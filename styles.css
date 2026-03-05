@@ -19,6 +19,7 @@ body {
     background: linear-gradient(135deg, #020617, #111827 45%, #1e1b4b);
     color: var(--text);
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
 header {
@@ -86,6 +87,9 @@ select,
 textarea {
     background: #0b1221;
     color: var(--text);
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
 }
 
 button {
@@ -207,6 +211,7 @@ fieldset {
 }
 
 @media (max-width: 760px) {
+
     html,
     body {
         overflow-x: hidden;
@@ -217,7 +222,7 @@ fieldset {
     }
 
     main {
-        width: min(720px, 96vw);
+        padding-inline: 0.7rem;
     }
 
     .card {
@@ -230,6 +235,10 @@ fieldset {
 
     .inline-form input,
     .inline-form button {
+        width: 100%;
+    }
+
+    .grid-form button {
         width: 100%;
     }
 
