@@ -41,7 +41,7 @@ songForm.addEventListener("submit", async (event) => {
 
     const title = songTitle.value.trim();
     const artist = songArtist.value.trim();
-    const adder = songAdder.value.trim();
+    const adder = songAdder.value;
 
     if (!title || !artist || !adder) return;
 
@@ -58,7 +58,6 @@ songForm.addEventListener("submit", async (event) => {
         return;
     }
 
-    await ensureMember(adder);
     await reloadAllData();
     songForm.reset();
     setStatus("노래가 추가되었습니다.");
@@ -297,19 +296,33 @@ function renderVoteSongOptions() {
 
 function renderMembers() {
     voterName.innerHTML = "";
+    songAdder.innerHTML = "";
 
-    const placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = "평가자를 선택하세요";
-    voterName.appendChild(placeholder);
+    const voterPlaceholder = document.createElement("option");
+    voterPlaceholder.value = "";
+    voterPlaceholder.textContent = "평가자를 선택하세요";
+    voterName.appendChild(voterPlaceholder);
+
+    const adderPlaceholder = document.createElement("option");
+    adderPlaceholder.value = "";
+    adderPlaceholder.textContent = "추가자를 선택하세요";
+    songAdder.appendChild(adderPlaceholder);
 
     memberList.innerHTML = "";
+
+    const hasMembers = state.members.length > 0;
+    songAdder.disabled = !hasMembers;
 
     for (const member of state.members) {
         const option = document.createElement("option");
         option.value = member;
         option.textContent = member;
         voterName.appendChild(option);
+
+        const adderOption = document.createElement("option");
+        adderOption.value = member;
+        adderOption.textContent = member;
+        songAdder.appendChild(adderOption);
 
         const chip = document.createElement("span");
         chip.className = "chip";
