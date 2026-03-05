@@ -134,6 +134,27 @@ fieldset {
     gap: 0.35rem;
 }
 
+.decision-toggle-group {
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+}
+
+.decision-toggle-btn {
+    background: #0b1221;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.45rem 0.9rem;
+    font-weight: 600;
+}
+
+.decision-toggle-btn.active {
+    background: linear-gradient(45deg, var(--accent), var(--accent-2));
+    color: #020617;
+    border-color: transparent;
+}
+
 .chip-list {
     margin-top: 0.8rem;
     display: flex;

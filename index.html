@@ -50,12 +50,11 @@
 
                 <fieldset>
                     <legend>결과</legend>
-                    <label class="radio">
-                        <input type="radio" name="decision" value="방출" required /> 방출
-                    </label>
-                    <label class="radio">
-                        <input type="radio" name="decision" value="승격" required /> 승격
-                    </label>
+                    <div class="decision-toggle-group" role="group" aria-label="결과 선택">
+                        <button type="button" class="decision-toggle-btn" data-value="방출">방출</button>
+                        <button type="button" class="decision-toggle-btn" data-value="승격">승격</button>
+                    </div>
+                    <input id="decisionValue" type="hidden" required />
                 </fieldset>
 
                 <label>

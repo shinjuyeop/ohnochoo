@@ -20,8 +20,21 @@ const songTableBody = document.getElementById("songTableBody");
 const voteSongId = document.getElementById("voteSongId");
 const voterName = document.getElementById("voterName");
 const voteForm = document.getElementById("voteForm");
+const decisionValue = document.getElementById("decisionValue");
+const decisionButtons = document.querySelectorAll(".decision-toggle-btn");
 const memberList = document.getElementById("memberList");
 const statusMessage = document.getElementById("statusMessage");
+
+for (const button of decisionButtons) {
+    button.addEventListener("click", () => {
+        const value = button.dataset.value;
+        decisionValue.value = value;
+
+        for (const item of decisionButtons) {
+            item.classList.toggle("active", item === button);
+        }
+    });
+}
 
 songForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -69,10 +82,10 @@ voteForm.addEventListener("submit", async (event) => {
 
     const songId = voteSongId.value;
     const voter = voterName.value;
-    const decisionInput = document.querySelector("input[name='decision']:checked");
+    const decision = decisionValue.value;
     const reason = document.getElementById("reason").value.trim();
 
-    if (!songId || !voter || !decisionInput || !reason) return;
+    if (!songId || !voter || !decision || !reason) return;
 
     const targetSong = state.songs.find((song) => song.id === songId);
     if (!targetSong || !supabaseClient) return;
@@ -80,7 +93,7 @@ voteForm.addEventListener("submit", async (event) => {
     const { error } = await supabaseClient.from("votes").insert({
         songId,
         voter,
-        decision: decisionInput.value,
+        decision,
         reason,
     });
 
@@ -91,6 +104,10 @@ voteForm.addEventListener("submit", async (event) => {
 
     await reloadAllData();
     voteForm.reset();
+    decisionValue.value = "";
+    for (const button of decisionButtons) {
+        button.classList.remove("active");
+    }
     setStatus("투표가 저장되었습니다.");
 });
 
