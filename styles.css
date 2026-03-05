@@ -248,10 +248,17 @@ fieldset {
     .song-row td:nth-child(4) {
         min-width: 210px;
         padding-left: 1rem;
+        white-space: nowrap;
     }
 
     .status-actions {
+        display: inline-flex;
         flex-wrap: nowrap;
+        gap: 0.2rem;
+    }
+
+    .status-actions .decision-status {
+        gap: 0.2rem;
     }
 }
 
