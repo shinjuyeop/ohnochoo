@@ -173,8 +173,8 @@ fieldset {
 .status-actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.55rem;
+    justify-content: flex-start;
+    gap: 0.35rem;
 }
 
 .decision-status {
