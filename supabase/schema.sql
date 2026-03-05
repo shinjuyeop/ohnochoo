@@ -29,6 +29,7 @@ alter table public.votes enable row level security;
 
 drop policy if exists "songs_select" on public.songs;
 drop policy if exists "songs_insert" on public.songs;
+drop policy if exists "songs_delete" on public.songs;
 drop policy if exists "members_select" on public.members;
 drop policy if exists "members_insert" on public.members;
 drop policy if exists "votes_select" on public.votes;
@@ -45,6 +46,12 @@ create policy "songs_insert"
   for insert
   to anon
   with check (true);
+
+create policy "songs_delete"
+  on public.songs
+  for delete
+  to anon
+  using (true);
 
 create policy "members_select"
   on public.members
