@@ -114,6 +114,7 @@ td {
     text-align: left;
     border-bottom: 1px solid var(--border);
     padding: 0.6rem;
+    word-break: break-word;
 }
 
 fieldset {
@@ -206,6 +207,11 @@ fieldset {
 }
 
 @media (max-width: 760px) {
+    html,
+    body {
+        overflow-x: hidden;
+    }
+
     header h1 {
         font-size: 1.85rem;
     }
@@ -254,10 +260,8 @@ fieldset {
     .song-row td {
         border-bottom: 1px dashed #243045;
         padding: 0.5rem 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 0.8rem;
+        display: block;
+        min-width: 0;
     }
 
     .song-row td:last-child {
@@ -268,12 +272,18 @@ fieldset {
         content: attr(data-label);
         color: var(--muted);
         font-size: 0.82rem;
-        min-width: 3.7rem;
-        flex: 0 0 auto;
+        display: block;
+        margin-bottom: 0.25rem;
     }
 
     .vote-count-cell {
         width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .decision-status {
+        justify-content: flex-start;
     }
 
     .toggle-votes-btn {
