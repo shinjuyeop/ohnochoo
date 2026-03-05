@@ -94,10 +94,12 @@ voteForm.addEventListener("submit", async (event) => {
 });
 
 async function bootstrap() {
+    setStatus("설정 정보를 불러오는 중...");
+
     try {
-        const response = await fetch("/api/config");
+        const response = await fetchWithTimeout("/api/config", 8000);
         if (!response.ok) {
-            throw new Error("/api/config 응답을 받지 못했습니다.");
+            throw new Error(`/api/config 응답 오류 (${response.status})`);
         }
 
         const config = await response.json();
@@ -105,11 +107,35 @@ async function bootstrap() {
             throw new Error("SUPABASE_URL 또는 SUPABASE_ANON_KEY가 설정되지 않았습니다.");
         }
 
+        if (!window.supabase || typeof window.supabase.createClient !== "function") {
+            throw new Error("Supabase SDK 로드 실패 (CDN 스크립트 확인 필요)");
+        }
+
         supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+        setStatus("Supabase 연결 중...");
         await reloadAllData();
         setStatus("Supabase 연결 완료");
     } catch (error) {
         setStatus(`초기화 실패: ${error.message}`, true);
+    }
+}
+
+async function fetchWithTimeout(url, timeoutMs) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        return await fetch(url, {
+            cache: "no-store",
+            signal: controller.signal,
+        });
+    } catch (error) {
+        if (error.name === "AbortError") {
+            throw new Error(`요청 시간 초과 (${timeoutMs}ms): ${url}`);
+        }
+        throw error;
+    } finally {
+        clearTimeout(timeoutId);
     }
 }
 
@@ -148,6 +174,7 @@ async function ensureMember(name) {
 }
 
 function setStatus(message, isError = false) {
+    if (!statusMessage) return;
     statusMessage.textContent = message;
     statusMessage.style.color = isError ? "#fca5a5" : "";
 }
