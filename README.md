@@ -16,7 +16,14 @@
 
 ## 로컬 실행
 
-- `index.html` 파일을 브라우저에서 열면 바로 사용 가능합니다.
+1. `.env.local` 파일에 환경변수를 설정합니다.
+2. 아래 명령어로 개발 서버를 실행합니다.
+
+```powershell
+vercel dev
+```
+
+3. 브라우저에서 `http://localhost:3000` 접속
 
 ## Supabase 설정
 
