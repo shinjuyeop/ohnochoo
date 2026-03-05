@@ -241,11 +241,13 @@ fieldset {
     .song-row td:nth-child(3) {
         white-space: nowrap;
         word-break: normal;
+        padding-right: 1rem;
     }
 
     th:nth-child(4),
     .song-row td:nth-child(4) {
         min-width: 210px;
+        padding-left: 1rem;
     }
 
     .status-actions {
