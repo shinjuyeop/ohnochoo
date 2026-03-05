@@ -15,6 +15,9 @@ const songAdder = document.getElementById("songAdder");
 
 const memberForm = document.getElementById("memberForm");
 const memberName = document.getElementById("memberName");
+const deleteSongForm = document.getElementById("deleteSongForm");
+const deleteSongId = document.getElementById("deleteSongId");
+const deletePassword = document.getElementById("deletePassword");
 
 const songTableBody = document.getElementById("songTableBody");
 const voteSongId = document.getElementById("voteSongId");
@@ -74,6 +77,31 @@ memberForm.addEventListener("submit", async (event) => {
         setStatus("평가자가 추가되었습니다.");
     }
     memberForm.reset();
+});
+
+deleteSongForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const songId = deleteSongId.value;
+    const password = deletePassword.value;
+
+    if (!songId) return;
+    if (password !== "shinju") {
+        setStatus("노래 삭제 실패: 비밀번호가 올바르지 않습니다.", true);
+        return;
+    }
+    if (!supabaseClient) return;
+
+    const { error } = await supabaseClient.from("songs").delete().eq("id", songId);
+    if (error) {
+        setStatus(`노래 삭제 실패: ${error.message}`, true);
+        return;
+    }
+
+    expandedSongIds.delete(songId);
+    deleteSongForm.reset();
+    await reloadAllData();
+    setStatus("노래가 삭제되었습니다.");
 });
 
 voteForm.addEventListener("submit", async (event) => {
@@ -199,6 +227,7 @@ function setStatus(message, isError = false) {
 function renderAll() {
     renderSongs();
     renderVoteSongOptions();
+    renderDeleteSongOptions();
     renderMembers();
 }
 
@@ -292,6 +321,24 @@ function renderVoteSongOptions() {
         option.textContent = `${song.title} - ${song.artist} (${song.adder})`;
         voteSongId.appendChild(option);
     }
+}
+
+function renderDeleteSongOptions() {
+    deleteSongId.innerHTML = "";
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = state.songs.length === 0 ? "삭제할 노래가 없습니다" : "삭제할 노래를 선택하세요";
+    deleteSongId.appendChild(placeholder);
+
+    for (const song of state.songs) {
+        const option = document.createElement("option");
+        option.value = song.id;
+        option.textContent = `${song.title} - ${song.artist} (${song.adder})`;
+        deleteSongId.appendChild(option);
+    }
+
+    deleteSongId.disabled = state.songs.length === 0;
 }
 
 function renderMembers() {

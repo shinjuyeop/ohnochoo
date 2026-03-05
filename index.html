@@ -53,8 +53,8 @@
                 <fieldset>
                     <legend>결과</legend>
                     <div class="decision-toggle-group" role="group" aria-label="결과 선택">
-                        <button type="button" class="decision-toggle-btn" data-value="방출">방출</button>
                         <button type="button" class="decision-toggle-btn" data-value="승격">승격</button>
+                        <button type="button" class="decision-toggle-btn" data-value="방출">방출</button>
                     </div>
                     <input id="decisionValue" type="hidden" required />
                 </fieldset>
@@ -83,6 +83,23 @@
                     <tbody id="songTableBody"></tbody>
                 </table>
             </div>
+        </section>
+
+        <section class="card">
+            <h2>노래 삭제</h2>
+            <form id="deleteSongForm" class="grid-form">
+                <label>
+                    삭제할 노래
+                    <select id="deleteSongId" required>
+                        <option value="">삭제할 노래를 선택하세요</option>
+                    </select>
+                </label>
+                <label>
+                    비밀번호
+                    <input id="deletePassword" type="password" required placeholder="비밀번호 입력" />
+                </label>
+                <button type="submit">노래 삭제</button>
+            </form>
         </section>
 
         <section class="card">
