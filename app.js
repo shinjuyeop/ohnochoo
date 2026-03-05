@@ -143,7 +143,7 @@ async function reloadAllData() {
     if (!supabaseClient) return;
 
     const [songsResult, votesResult, membersResult] = await Promise.all([
-        supabaseClient.from("songs").select("id,title,artist,adder,createdAt").order("createdAt", { ascending: false }),
+        supabaseClient.from("songs").select("id,title,artist,adder,createdAt").order("createdAt", { ascending: true }),
         supabaseClient.from("votes").select("id,songId,voter,decision,reason,createdAt").order("createdAt", { ascending: false }),
         supabaseClient.from("members").select("id,name,createdAt").order("name", { ascending: true }),
     ]);
