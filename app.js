@@ -4,6 +4,8 @@ const state = {
     members: [],
 };
 
+const expandedSongIds = new Set();
+
 let supabaseClient = null;
 
 const songForm = document.getElementById("songForm");
@@ -18,7 +20,6 @@ const songTableBody = document.getElementById("songTableBody");
 const voteSongId = document.getElementById("voteSongId");
 const voterName = document.getElementById("voterName");
 const voteForm = document.getElementById("voteForm");
-const voteHistory = document.getElementById("voteHistory");
 const memberList = document.getElementById("memberList");
 const statusMessage = document.getElementById("statusMessage");
 
@@ -183,7 +184,6 @@ function renderAll() {
     renderSongs();
     renderVoteSongOptions();
     renderMembers();
-    renderVoteHistory();
 }
 
 function renderSongs() {
@@ -195,17 +195,67 @@ function renderSongs() {
     }
 
     for (const song of state.songs) {
-        const voteCount = state.votes.filter((vote) => vote.songId === song.id).length;
+        const songVotes = state.votes.filter((vote) => vote.songId === song.id);
+        const voteCount = songVotes.length;
+        const isExpanded = expandedSongIds.has(song.id);
 
         const row = document.createElement("tr");
+        row.className = "song-row";
         row.innerHTML = `
       <td>${escapeHtml(song.title)}</td>
       <td>${escapeHtml(song.artist)}</td>
       <td>${escapeHtml(song.adder)}</td>
-      <td>${voteCount}</td>
+            <td>
+                <div class="vote-count-cell">
+                    <span>${voteCount}</span>
+                    <button type="button" class="toggle-votes-btn">${isExpanded ? "숨기기" : "투표 보기"}</button>
+                </div>
+            </td>
     `;
+
+        const toggleButton = row.querySelector(".toggle-votes-btn");
+        toggleButton.addEventListener("click", () => {
+            if (expandedSongIds.has(song.id)) {
+                expandedSongIds.delete(song.id);
+            } else {
+                expandedSongIds.add(song.id);
+            }
+            renderSongs();
+        });
+
         songTableBody.appendChild(row);
+
+        if (isExpanded) {
+            const detailRow = document.createElement("tr");
+            detailRow.className = "vote-detail-row";
+            detailRow.innerHTML = `<td colspan="4">${buildSongVoteDetails(songVotes)}</td>`;
+            songTableBody.appendChild(detailRow);
+        }
     }
+}
+
+function buildSongVoteDetails(songVotes) {
+    if (songVotes.length === 0) {
+        return "<p class='muted'>아직 이 노래에 대한 투표가 없습니다.</p>";
+    }
+
+    const sortedVotes = [...songVotes].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    return `
+            <div class="vote-inline-list">
+                ${sortedVotes
+            .map(
+                (vote) => `
+                                    <article class="vote-inline-item">
+                                        <div>${escapeHtml(vote.voter)} · <b>${escapeHtml(vote.decision)}</b></div>
+                                        <div class="muted">${new Date(vote.createdAt).toLocaleString()}</div>
+                                        <p>${escapeHtml(vote.reason)}</p>
+                                    </article>
+                                `,
+            )
+            .join("")}
+            </div>
+        `;
 }
 
 function renderVoteSongOptions() {
@@ -244,33 +294,6 @@ function renderMembers() {
         chip.className = "chip";
         chip.textContent = member;
         memberList.appendChild(chip);
-    }
-}
-
-function renderVoteHistory() {
-    voteHistory.innerHTML = "";
-
-    if (state.votes.length === 0) {
-        voteHistory.innerHTML = "<p class='muted'>아직 투표 기록이 없습니다.</p>";
-        return;
-    }
-
-    const sortedVotes = [...state.votes].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    for (const vote of sortedVotes) {
-        const song = state.songs.find((item) => item.id === vote.songId);
-        const songName = song ? `${song.title} - ${song.artist}` : "삭제된 노래";
-
-        const item = document.createElement("article");
-        item.className = "vote-item";
-        item.innerHTML = `
-      <strong>${escapeHtml(songName)}</strong>
-      <div>${escapeHtml(vote.voter)} · <b>${escapeHtml(vote.decision)}</b></div>
-      <div class="muted">${new Date(vote.createdAt).toLocaleString()}</div>
-      <p>${escapeHtml(vote.reason)}</p>
-    `;
-
-        voteHistory.appendChild(item);
     }
 }
 
