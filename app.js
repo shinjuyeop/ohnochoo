@@ -190,25 +190,33 @@ function renderSongs() {
     songTableBody.innerHTML = "";
 
     if (state.songs.length === 0) {
-        songTableBody.innerHTML = "<tr><td colspan='4' class='muted'>아직 추가된 노래가 없습니다.</td></tr>";
+        songTableBody.innerHTML = "<tr><td colspan='5' class='muted'>아직 추가된 노래가 없습니다.</td></tr>";
         return;
     }
 
     for (const song of state.songs) {
         const songVotes = state.votes.filter((vote) => vote.songId === song.id);
         const voteCount = songVotes.length;
+        const promotedCount = songVotes.filter((vote) => vote.decision === "승격").length;
+        const releasedCount = songVotes.filter((vote) => vote.decision === "방출").length;
         const isExpanded = expandedSongIds.has(song.id);
 
         const row = document.createElement("tr");
         row.className = "song-row";
         row.innerHTML = `
-      <td>${escapeHtml(song.title)}</td>
-      <td>${escapeHtml(song.artist)}</td>
-      <td>${escapeHtml(song.adder)}</td>
-            <td>
+      <td data-label="노래">${escapeHtml(song.title)}</td>
+      <td data-label="아티스트">${escapeHtml(song.artist)}</td>
+      <td data-label="추가자">${escapeHtml(song.adder)}</td>
+            <td data-label="평가 수">
                 <div class="vote-count-cell">
                     <span>${voteCount}</span>
                     <button type="button" class="toggle-votes-btn">${isExpanded ? "숨기기" : "투표 보기"}</button>
+                </div>
+            </td>
+            <td data-label="현황">
+                <div class="decision-status">
+                    <span class="decision-pill promote">승격 ${promotedCount}</span>
+                    <span class="decision-pill release">방출 ${releasedCount}</span>
                 </div>
             </td>
     `;
@@ -228,7 +236,7 @@ function renderSongs() {
         if (isExpanded) {
             const detailRow = document.createElement("tr");
             detailRow.className = "vote-detail-row";
-            detailRow.innerHTML = `<td colspan="4">${buildSongVoteDetails(songVotes)}</td>`;
+            detailRow.innerHTML = `<td colspan="5">${buildSongVoteDetails(songVotes)}</td>`;
             songTableBody.appendChild(detailRow);
         }
     }

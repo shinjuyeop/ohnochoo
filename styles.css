@@ -151,6 +151,30 @@ fieldset {
     gap: 0.6rem;
 }
 
+.decision-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.decision-pill {
+    font-size: 0.8rem;
+    border-radius: 999px;
+    padding: 0.18rem 0.55rem;
+    border: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.decision-pill.promote {
+    background: rgba(16, 185, 129, 0.18);
+    border-color: rgba(16, 185, 129, 0.55);
+}
+
+.decision-pill.release {
+    background: rgba(248, 113, 113, 0.18);
+    border-color: rgba(248, 113, 113, 0.55);
+}
+
 .toggle-votes-btn {
     padding: 0.35rem 0.6rem;
     font-size: 0.85rem;
@@ -179,4 +203,95 @@ fieldset {
 
 .muted {
     color: var(--muted);
+}
+
+@media (max-width: 760px) {
+    header h1 {
+        font-size: 1.85rem;
+    }
+
+    main {
+        width: min(720px, 96vw);
+    }
+
+    .card {
+        padding: 0.85rem;
+    }
+
+    .inline-form {
+        flex-direction: column;
+    }
+
+    .inline-form input,
+    .inline-form button {
+        width: 100%;
+    }
+
+    .table-wrap {
+        overflow-x: visible;
+    }
+
+    table,
+    tbody,
+    tr,
+    td {
+        display: block;
+        width: 100%;
+    }
+
+    thead {
+        display: none;
+    }
+
+    .song-row {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0.35rem 0.7rem;
+        margin-bottom: 0.55rem;
+        background: #0b1221;
+    }
+
+    .song-row td {
+        border-bottom: 1px dashed #243045;
+        padding: 0.5rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+
+    .song-row td:last-child {
+        border-bottom: 0;
+    }
+
+    .song-row td::before {
+        content: attr(data-label);
+        color: var(--muted);
+        font-size: 0.82rem;
+        min-width: 3.7rem;
+        flex: 0 0 auto;
+    }
+
+    .vote-count-cell {
+        width: 100%;
+    }
+
+    .toggle-votes-btn {
+        padding: 0.28rem 0.5rem;
+        font-size: 0.78rem;
+    }
+
+    .vote-detail-row {
+        margin: -0.15rem 0 0.55rem;
+    }
+
+    .vote-detail-row td {
+        border: 0;
+        background: transparent;
+        padding: 0;
+    }
+
+    .vote-detail-row td::before {
+        content: none;
+    }
 }
