@@ -4,7 +4,7 @@ const state = {
     members: [],
 };
 
-let supabase = null;
+let supabaseClient = null;
 
 const songForm = document.getElementById("songForm");
 const songTitle = document.getElementById("songTitle");
@@ -31,9 +31,9 @@ songForm.addEventListener("submit", async (event) => {
 
     if (!title || !artist || !adder) return;
 
-    if (!supabase) return;
+    if (!supabaseClient) return;
 
-    const { error } = await supabase.from("songs").insert({
+    const { error } = await supabaseClient.from("songs").insert({
         title,
         artist,
         adder,
@@ -74,9 +74,9 @@ voteForm.addEventListener("submit", async (event) => {
     if (!songId || !voter || !decisionInput || !reason) return;
 
     const targetSong = state.songs.find((song) => song.id === songId);
-    if (!targetSong || !supabase) return;
+    if (!targetSong || !supabaseClient) return;
 
-    const { error } = await supabase.from("votes").insert({
+    const { error } = await supabaseClient.from("votes").insert({
         songId,
         voter,
         decision: decisionInput.value,
@@ -111,7 +111,7 @@ async function bootstrap() {
             throw new Error("Supabase SDK 로드 실패 (CDN 스크립트 확인 필요)");
         }
 
-        supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+        supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
         setStatus("Supabase 연결 중...");
         await reloadAllData();
         setStatus("Supabase 연결 완료");
@@ -140,12 +140,12 @@ async function fetchWithTimeout(url, timeoutMs) {
 }
 
 async function reloadAllData() {
-    if (!supabase) return;
+    if (!supabaseClient) return;
 
     const [songsResult, votesResult, membersResult] = await Promise.all([
-        supabase.from("songs").select("id,title,artist,adder,createdAt").order("createdAt", { ascending: false }),
-        supabase.from("votes").select("id,songId,voter,decision,reason,createdAt").order("createdAt", { ascending: false }),
-        supabase.from("members").select("id,name,createdAt").order("name", { ascending: true }),
+        supabaseClient.from("songs").select("id,title,artist,adder,createdAt").order("createdAt", { ascending: false }),
+        supabaseClient.from("votes").select("id,songId,voter,decision,reason,createdAt").order("createdAt", { ascending: false }),
+        supabaseClient.from("members").select("id,name,createdAt").order("name", { ascending: true }),
     ]);
 
     if (songsResult.error || votesResult.error || membersResult.error) {
@@ -161,10 +161,10 @@ async function reloadAllData() {
 }
 
 async function ensureMember(name) {
-    if (!supabase || !name) return false;
+    if (!supabaseClient || !name) return false;
     if (state.members.includes(name)) return false;
 
-    const { error } = await supabase.from("members").insert({ name });
+    const { error } = await supabaseClient.from("members").insert({ name });
     if (error) {
         setStatus(`평가자 추가 실패: ${error.message}`, true);
         return false;
