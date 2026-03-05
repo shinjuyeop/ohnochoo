@@ -259,6 +259,7 @@ fieldset {
 
     .status-actions .decision-status {
         gap: 0.2rem;
+        flex-wrap: nowrap;
     }
 }
 
