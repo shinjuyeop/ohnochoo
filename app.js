@@ -18,7 +18,6 @@ const memberForm = document.getElementById("memberForm");
 const memberName = document.getElementById("memberName");
 const deleteSongForm = document.getElementById("deleteSongForm");
 const deleteSongId = document.getElementById("deleteSongId");
-const deletePassword = document.getElementById("deletePassword");
 
 const songTableBody = document.getElementById("songTableBody");
 const voteSongId = document.getElementById("voteSongId");
@@ -87,9 +86,9 @@ deleteSongForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const songId = deleteSongId.value;
-    const password = deletePassword.value;
-
     if (!songId) return;
+
+    const password = window.prompt("노래 삭제 비밀번호를 입력하세요");
     if (password !== "shinju") {
         setStatus("노래 삭제 실패: 비밀번호가 올바르지 않습니다.", true);
         return;
@@ -147,6 +146,13 @@ mutigoeulForm.addEventListener("submit", async (event) => {
 
     const songId = mutigoeulSongId.value;
     if (!songId || !supabaseClient) return;
+
+    const password = window.prompt("무티고을 이동 비밀번호를 입력하세요");
+
+    if (password !== "shinju") {
+        setStatus("무티고을 이동 실패: 비밀번호가 올바르지 않습니다.", true);
+        return;
+    }
 
     const { error } = await supabaseClient.from("mutigoeul_songs").insert({
         songId,
@@ -325,7 +331,7 @@ function renderMutigoeulSongs() {
     mutigoeulTableBody.innerHTML = "";
 
     if (state.mutigoeulSongs.length === 0) {
-        mutigoeulTableBody.innerHTML = "<tr><td colspan='3' class='muted'>아직 무티고을로 이동된 노래가 없습니다.</td></tr>";
+        mutigoeulTableBody.innerHTML = "<tr><td colspan='4' class='muted'>아직 무티고을로 이동된 노래가 없습니다.</td></tr>";
         return;
     }
 
@@ -334,14 +340,38 @@ function renderMutigoeulSongs() {
     for (const mutigoeulSong of state.mutigoeulSongs) {
         const song = songsById.get(mutigoeulSong.songId);
         if (!song) continue;
+        const songVotes = state.votes.filter((vote) => vote.songId === song.id);
+        const isExpanded = expandedSongIds.has(song.id);
 
         const row = document.createElement("tr");
+        row.className = "song-row";
         row.innerHTML = `
       <td data-label="노래">${escapeHtml(song.title)}</td>
       <td data-label="아티스트">${escapeHtml(song.artist)}</td>
       <td data-label="추가자">${escapeHtml(song.adder)}</td>
+      <td data-label="투표">
+        <button type="button" class="toggle-votes-btn">${isExpanded ? "숨기기" : "투표 보기"}</button>
+      </td>
     `;
+
+        const toggleButton = row.querySelector(".toggle-votes-btn");
+        toggleButton.addEventListener("click", () => {
+            if (expandedSongIds.has(song.id)) {
+                expandedSongIds.delete(song.id);
+            } else {
+                expandedSongIds.add(song.id);
+            }
+            renderMutigoeulSongs();
+        });
+
         mutigoeulTableBody.appendChild(row);
+
+        if (isExpanded) {
+            const detailRow = document.createElement("tr");
+            detailRow.className = "vote-detail-row";
+            detailRow.innerHTML = `<td colspan="4">${buildSongVoteDetails(songVotes)}</td>`;
+            mutigoeulTableBody.appendChild(detailRow);
+        }
     }
 }
 
@@ -388,21 +418,24 @@ function renderVoteSongOptions() {
 
 function renderDeleteSongOptions() {
     deleteSongId.innerHTML = "";
-    const onochuSongs = getOnochuSongs();
+    const allSongs = state.songs;
+    const mutigoeulSongIdSet = getMutigoeulSongIdSet();
 
     const placeholder = document.createElement("option");
     placeholder.value = "";
-    placeholder.textContent = onochuSongs.length === 0 ? "삭제할 노래가 없습니다" : "삭제할 노래를 선택하세요";
+    placeholder.textContent = allSongs.length === 0 ? "삭제할 노래가 없습니다" : "삭제할 노래를 선택하세요";
     deleteSongId.appendChild(placeholder);
 
-    for (const song of onochuSongs) {
+    for (const song of allSongs) {
         const option = document.createElement("option");
         option.value = song.id;
-        option.textContent = `${song.title} - ${song.artist} (${song.adder})`;
+        const isMutigoeul = mutigoeulSongIdSet.has(song.id);
+        const playlistTag = isMutigoeul ? "무티고을" : "오노추";
+        option.textContent = `[${playlistTag}] ${song.title} - ${song.artist} (${song.adder})`;
         deleteSongId.appendChild(option);
     }
 
-    deleteSongId.disabled = onochuSongs.length === 0;
+    deleteSongId.disabled = allSongs.length === 0;
 }
 
 function renderMutigoeulSongOptions() {
