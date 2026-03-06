@@ -258,37 +258,37 @@ fieldset {
 }
 
 @media (min-width: 761px) {
-    table {
-        min-width: 900px;
+    .playlist-table {
+        min-width: 0;
     }
 
     .playlist-table th:nth-child(3),
     .playlist-table .song-row td:nth-child(3) {
-        white-space: nowrap;
+        white-space: normal;
         word-break: normal;
-        padding-right: 1rem;
+        padding-right: 0.75rem;
     }
 
     .playlist-table th:nth-child(4),
     .playlist-table .song-row td:nth-child(4) {
-        min-width: 210px;
-        padding-left: 1rem;
-        white-space: nowrap;
+        min-width: 0;
+        padding-left: 0.75rem;
+        white-space: normal;
     }
 
-    .status-actions {
-        display: inline-flex;
-        flex-wrap: nowrap;
-        gap: 0.2rem;
+    .playlist-table .status-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
     }
 
-    .status-actions .decision-status {
-        gap: 0.2rem;
-        flex-wrap: nowrap;
+    .playlist-table .status-actions .decision-status {
+        gap: 0.3rem;
+        flex-wrap: wrap;
     }
 
-    .status-actions .toggle-votes-btn {
-        margin-left: 0.35rem;
+    .playlist-table .status-actions .toggle-votes-btn {
+        margin-left: 0;
     }
 }
 
