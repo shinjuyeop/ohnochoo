@@ -123,19 +123,19 @@ table {
 }
 
 .playlist-table .col-song {
-    width: 40%;
+    width: 42%;
 }
 
 .playlist-table .col-artist {
-    width: 24%;
+    width: 27%;
 }
 
 .playlist-table .col-adder {
-    width: 12%;
+    width: 13%;
 }
 
 .playlist-table .col-action {
-    width: 24%;
+    width: 18%;
 }
 
 th,
