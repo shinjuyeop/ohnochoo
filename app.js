@@ -2,6 +2,7 @@ const state = {
     songs: [],
     votes: [],
     members: [],
+    mutigoeulSongs: [],
 };
 
 const expandedSongIds = new Set();
@@ -27,6 +28,9 @@ const decisionValue = document.getElementById("decisionValue");
 const decisionButtons = document.querySelectorAll(".decision-toggle-btn");
 const memberList = document.getElementById("memberList");
 const statusMessage = document.getElementById("statusMessage");
+const mutigoeulForm = document.getElementById("mutigoeulForm");
+const mutigoeulSongId = document.getElementById("mutigoeulSongId");
+const mutigoeulTableBody = document.getElementById("mutigoeulTableBody");
 
 for (const button of decisionButtons) {
     button.addEventListener("click", () => {
@@ -138,6 +142,26 @@ voteForm.addEventListener("submit", async (event) => {
     setStatus("투표가 저장되었습니다.");
 });
 
+mutigoeulForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const songId = mutigoeulSongId.value;
+    if (!songId || !supabaseClient) return;
+
+    const { error } = await supabaseClient.from("mutigoeul_songs").insert({
+        songId,
+    });
+
+    if (error) {
+        setStatus(`무티고을 추가 실패: ${error.message}`, true);
+        return;
+    }
+
+    mutigoeulForm.reset();
+    await reloadAllData();
+    setStatus("노래가 무티고을 플레이리스트로 이동되었습니다.");
+});
+
 async function bootstrap() {
     setStatus("설정 정보를 불러오는 중...");
 
@@ -187,14 +211,15 @@ async function fetchWithTimeout(url, timeoutMs) {
 async function reloadAllData() {
     if (!supabaseClient) return;
 
-    const [songsResult, votesResult, membersResult] = await Promise.all([
+    const [songsResult, votesResult, membersResult, mutigoeulResult] = await Promise.all([
         supabaseClient.from("songs").select("id,title,artist,adder,createdAt").order("createdAt", { ascending: true }),
         supabaseClient.from("votes").select("id,songId,voter,decision,reason,createdAt").order("createdAt", { ascending: false }),
         supabaseClient.from("members").select("id,name,createdAt").order("name", { ascending: true }),
+        supabaseClient.from("mutigoeul_songs").select("id,songId,createdAt").order("createdAt", { ascending: false }),
     ]);
 
-    if (songsResult.error || votesResult.error || membersResult.error) {
-        const message = songsResult.error?.message || votesResult.error?.message || membersResult.error?.message;
+    if (songsResult.error || votesResult.error || membersResult.error || mutigoeulResult.error) {
+        const message = songsResult.error?.message || votesResult.error?.message || membersResult.error?.message || mutigoeulResult.error?.message;
         setStatus(`데이터 조회 실패: ${message}`, true);
         return;
     }
@@ -202,6 +227,7 @@ async function reloadAllData() {
     state.songs = songsResult.data ?? [];
     state.votes = votesResult.data ?? [];
     state.members = (membersResult.data ?? []).map((member) => member.name);
+    state.mutigoeulSongs = mutigoeulResult.data ?? [];
     renderAll();
 }
 
@@ -226,20 +252,32 @@ function setStatus(message, isError = false) {
 
 function renderAll() {
     renderSongs();
+    renderMutigoeulSongs();
     renderVoteSongOptions();
     renderDeleteSongOptions();
+    renderMutigoeulSongOptions();
     renderMembers();
+}
+
+function getMutigoeulSongIdSet() {
+    return new Set(state.mutigoeulSongs.map((item) => item.songId));
+}
+
+function getOnochuSongs() {
+    const mutigoeulSongIdSet = getMutigoeulSongIdSet();
+    return state.songs.filter((song) => !mutigoeulSongIdSet.has(song.id));
 }
 
 function renderSongs() {
     songTableBody.innerHTML = "";
+    const onochuSongs = getOnochuSongs();
 
-    if (state.songs.length === 0) {
+    if (onochuSongs.length === 0) {
         songTableBody.innerHTML = "<tr><td colspan='4' class='muted'>아직 추가된 노래가 없습니다.</td></tr>";
         return;
     }
 
-    for (const song of state.songs) {
+    for (const song of onochuSongs) {
         const songVotes = state.votes.filter((vote) => vote.songId === song.id);
         const promotedCount = songVotes.filter((vote) => vote.decision === "승격").length;
         const releasedCount = songVotes.filter((vote) => vote.decision === "방출").length;
@@ -283,6 +321,30 @@ function renderSongs() {
     }
 }
 
+function renderMutigoeulSongs() {
+    mutigoeulTableBody.innerHTML = "";
+
+    if (state.mutigoeulSongs.length === 0) {
+        mutigoeulTableBody.innerHTML = "<tr><td colspan='3' class='muted'>아직 무티고을로 이동된 노래가 없습니다.</td></tr>";
+        return;
+    }
+
+    const songsById = new Map(state.songs.map((song) => [song.id, song]));
+
+    for (const mutigoeulSong of state.mutigoeulSongs) {
+        const song = songsById.get(mutigoeulSong.songId);
+        if (!song) continue;
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+      <td data-label="노래">${escapeHtml(song.title)}</td>
+      <td data-label="아티스트">${escapeHtml(song.artist)}</td>
+      <td data-label="추가자">${escapeHtml(song.adder)}</td>
+    `;
+        mutigoeulTableBody.appendChild(row);
+    }
+}
+
 function buildSongVoteDetails(songVotes) {
     if (songVotes.length === 0) {
         return "<p class='muted'>아직 이 노래에 대한 투표가 없습니다.</p>";
@@ -309,13 +371,14 @@ function buildSongVoteDetails(songVotes) {
 
 function renderVoteSongOptions() {
     voteSongId.innerHTML = "";
+    const onochuSongs = getOnochuSongs();
 
     const placeholder = document.createElement("option");
     placeholder.value = "";
     placeholder.textContent = "노래를 선택하세요";
     voteSongId.appendChild(placeholder);
 
-    for (const song of state.songs) {
+    for (const song of onochuSongs) {
         const option = document.createElement("option");
         option.value = song.id;
         option.textContent = `${song.title} - ${song.artist} (${song.adder})`;
@@ -325,20 +388,40 @@ function renderVoteSongOptions() {
 
 function renderDeleteSongOptions() {
     deleteSongId.innerHTML = "";
+    const onochuSongs = getOnochuSongs();
 
     const placeholder = document.createElement("option");
     placeholder.value = "";
-    placeholder.textContent = state.songs.length === 0 ? "삭제할 노래가 없습니다" : "삭제할 노래를 선택하세요";
+    placeholder.textContent = onochuSongs.length === 0 ? "삭제할 노래가 없습니다" : "삭제할 노래를 선택하세요";
     deleteSongId.appendChild(placeholder);
 
-    for (const song of state.songs) {
+    for (const song of onochuSongs) {
         const option = document.createElement("option");
         option.value = song.id;
         option.textContent = `${song.title} - ${song.artist} (${song.adder})`;
         deleteSongId.appendChild(option);
     }
 
-    deleteSongId.disabled = state.songs.length === 0;
+    deleteSongId.disabled = onochuSongs.length === 0;
+}
+
+function renderMutigoeulSongOptions() {
+    mutigoeulSongId.innerHTML = "";
+    const onochuSongs = getOnochuSongs();
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = onochuSongs.length === 0 ? "이동할 노래가 없습니다" : "노래를 선택하세요";
+    mutigoeulSongId.appendChild(placeholder);
+
+    for (const song of onochuSongs) {
+        const option = document.createElement("option");
+        option.value = song.id;
+        option.textContent = `${song.title} - ${song.artist} (${song.adder})`;
+        mutigoeulSongId.appendChild(option);
+    }
+
+    mutigoeulSongId.disabled = onochuSongs.length === 0;
 }
 
 function renderMembers() {

@@ -23,9 +23,16 @@ create table if not exists public.votes (
   "createdAt" timestamptz not null default now()
 );
 
+create table if not exists public.mutigoeul_songs (
+  id uuid primary key default gen_random_uuid(),
+  "songId" uuid not null unique references public.songs(id) on delete cascade,
+  "createdAt" timestamptz not null default now()
+);
+
 alter table public.songs enable row level security;
 alter table public.members enable row level security;
 alter table public.votes enable row level security;
+alter table public.mutigoeul_songs enable row level security;
 
 drop policy if exists "songs_select" on public.songs;
 drop policy if exists "songs_insert" on public.songs;
@@ -34,6 +41,8 @@ drop policy if exists "members_select" on public.members;
 drop policy if exists "members_insert" on public.members;
 drop policy if exists "votes_select" on public.votes;
 drop policy if exists "votes_insert" on public.votes;
+drop policy if exists "mutigoeul_songs_select" on public.mutigoeul_songs;
+drop policy if exists "mutigoeul_songs_insert" on public.mutigoeul_songs;
 
 create policy "songs_select"
   on public.songs
@@ -73,6 +82,18 @@ create policy "votes_select"
 
 create policy "votes_insert"
   on public.votes
+  for insert
+  to anon
+  with check (true);
+
+create policy "mutigoeul_songs_select"
+  on public.mutigoeul_songs
+  for select
+  to anon
+  using (true);
+
+create policy "mutigoeul_songs_insert"
+  on public.mutigoeul_songs
   for insert
   to anon
   with check (true);
