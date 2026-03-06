@@ -123,11 +123,11 @@ table {
 }
 
 .playlist-table .col-song {
-    width: 42%;
+    width: 40%;
 }
 
 .playlist-table .col-artist {
-    width: 30%;
+    width: 24%;
 }
 
 .playlist-table .col-adder {
@@ -135,7 +135,7 @@ table {
 }
 
 .playlist-table .col-action {
-    width: 16%;
+    width: 24%;
 }
 
 th,
@@ -273,22 +273,32 @@ fieldset {
     .playlist-table .song-row td:nth-child(4) {
         min-width: 0;
         padding-left: 0.75rem;
-        white-space: normal;
+        white-space: nowrap;
     }
 
     .playlist-table .status-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.3rem;
+        display: inline-flex;
+        flex-wrap: nowrap;
+        gap: 0.2rem;
     }
 
     .playlist-table .status-actions .decision-status {
-        gap: 0.3rem;
-        flex-wrap: wrap;
+        gap: 0.2rem;
+        flex-wrap: nowrap;
     }
 
     .playlist-table .status-actions .toggle-votes-btn {
-        margin-left: 0;
+        margin-left: 0.3rem;
+    }
+
+    .playlist-table .decision-pill {
+        font-size: 0.75rem;
+        padding: 0.16rem 0.48rem;
+    }
+
+    .playlist-table .toggle-votes-btn {
+        font-size: 0.8rem;
+        padding: 0.32rem 0.56rem;
     }
 }
 
