@@ -237,6 +237,18 @@ fieldset {
     background: #0a1020;
 }
 
+.song-row.promotion-target td {
+    background: rgba(16, 185, 129, 0.09);
+}
+
+.song-row.promotion-target td:first-child {
+    box-shadow: inset 4px 0 0 rgba(16, 185, 129, 0.7);
+}
+
+.vote-detail-row.promotion-target-detail td {
+    background: rgba(9, 59, 45, 0.5);
+}
+
 .vote-inline-list {
     display: grid;
     gap: 0.5rem;
@@ -356,6 +368,19 @@ fieldset {
         padding: 0.35rem 0.7rem;
         margin-bottom: 0.55rem;
         background: #0b1221;
+    }
+
+    .song-row.promotion-target {
+        border-color: rgba(16, 185, 129, 0.7);
+        background: rgba(16, 185, 129, 0.12);
+    }
+
+    .song-row.promotion-target td {
+        background: transparent;
+    }
+
+    .song-row.promotion-target td:first-child {
+        box-shadow: none;
     }
 
     .song-row td {

@@ -274,6 +274,10 @@ function getOnochuSongs() {
     return state.songs.filter((song) => !mutigoeulSongIdSet.has(song.id));
 }
 
+function isPromotionTarget(promotedCount, releasedCount) {
+    return promotedCount >= releasedCount + 3;
+}
+
 function renderSongs() {
     songTableBody.innerHTML = "";
     const onochuSongs = getOnochuSongs();
@@ -287,10 +291,11 @@ function renderSongs() {
         const songVotes = state.votes.filter((vote) => vote.songId === song.id);
         const promotedCount = songVotes.filter((vote) => vote.decision === "승격").length;
         const releasedCount = songVotes.filter((vote) => vote.decision === "방출").length;
+        const isTarget = isPromotionTarget(promotedCount, releasedCount);
         const isExpanded = expandedSongIds.has(song.id);
 
         const row = document.createElement("tr");
-        row.className = "song-row";
+        row.className = `song-row${isTarget ? " promotion-target" : ""}`;
         row.innerHTML = `
       <td data-label="노래">${escapeHtml(song.title)}</td>
       <td data-label="아티스트">${escapeHtml(song.artist)}</td>
@@ -320,7 +325,7 @@ function renderSongs() {
 
         if (isExpanded) {
             const detailRow = document.createElement("tr");
-            detailRow.className = "vote-detail-row";
+            detailRow.className = `vote-detail-row${isTarget ? " promotion-target-detail" : ""}`;
             detailRow.innerHTML = `<td colspan="4">${buildSongVoteDetails(songVotes)}</td>`;
             songTableBody.appendChild(detailRow);
         }
