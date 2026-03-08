@@ -233,6 +233,20 @@ fieldset {
     white-space: nowrap;
 }
 
+.song-title-wrap {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+}
+
+.song-date {
+    font-size: 0.8em;
+    color: var(--muted);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
 .vote-detail-row td {
     background: #0a1020;
 }

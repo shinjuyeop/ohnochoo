@@ -291,6 +291,16 @@ function isReleaseTarget(song, promotedCount, releasedCount, nowMs = Date.now())
     return hasElapsedOneWeek(song.createdAt, nowMs);
 }
 
+function formatShortDate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+
+    const year = String(date.getFullYear()).slice(-2);
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}.${month}.${day}`;
+}
+
 function renderSongs() {
     songTableBody.innerHTML = "";
     const onochuSongs = getOnochuSongs();
@@ -312,7 +322,7 @@ function renderSongs() {
         const row = document.createElement("tr");
         row.className = `song-row${isTarget ? " promotion-target" : ""}${isRelease ? " release-target" : ""}`;
         row.innerHTML = `
-      <td data-label="노래">${escapeHtml(song.title)}</td>
+            <td data-label="노래"><span class="song-title-wrap">${escapeHtml(song.title)} <span class="song-date">${formatShortDate(song.createdAt)}</span></span></td>
       <td data-label="아티스트">${escapeHtml(song.artist)}</td>
       <td data-label="추가자">${escapeHtml(song.adder)}</td>
             <td data-label="현황">
@@ -366,7 +376,7 @@ function renderMutigoeulSongs() {
         const row = document.createElement("tr");
         row.className = "song-row";
         row.innerHTML = `
-      <td data-label="노래">${escapeHtml(song.title)}</td>
+            <td data-label="노래"><span class="song-title-wrap">${escapeHtml(song.title)} <span class="song-date">${formatShortDate(song.createdAt)}</span></span></td>
       <td data-label="아티스트">${escapeHtml(song.artist)}</td>
       <td data-label="추가자">${escapeHtml(song.adder)}</td>
       <td data-label="투표">
