@@ -374,6 +374,10 @@ fieldset {
         overflow-x: visible;
     }
 
+    #mutigoeulForm+.table-wrap {
+        margin-top: 0.5rem;
+    }
+
     table,
     tbody,
     tr,
@@ -389,9 +393,10 @@ fieldset {
     .song-row {
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 0.35rem 0.7rem;
+        padding: 0.55rem 0.7rem;
         margin-bottom: 0.55rem;
         background: #0b1221;
+        cursor: pointer;
     }
 
     .song-row.promotion-target {
@@ -421,8 +426,8 @@ fieldset {
     }
 
     .song-row td {
-        border-bottom: 1px dashed #243045;
-        padding: 0.5rem 0;
+        border-bottom: 0;
+        padding: 0.16rem 0;
         display: block;
         min-width: 0;
     }
@@ -432,11 +437,24 @@ fieldset {
     }
 
     .song-row td::before {
-        content: attr(data-label);
+        content: none;
+    }
+
+    .song-row.mobile-collapsible .mobile-date {
         color: var(--muted);
-        font-size: 0.82rem;
-        display: block;
-        margin-bottom: 0.25rem;
+        font-size: 0.84rem;
+    }
+
+    .song-row.mobile-collapsible .mobile-title {
+        font-size: 1.03rem;
+        font-weight: 650;
+        line-height: 1.28;
+        padding-top: 0.05rem;
+    }
+
+    .song-row.mobile-collapsible .mobile-artist,
+    .song-row.mobile-collapsible .mobile-adder {
+        color: #d9e2f2;
     }
 
     .status-actions {
@@ -461,10 +479,52 @@ fieldset {
     .vote-detail-row td {
         border: 0;
         background: transparent;
-        padding: 0;
+        padding: 0.2rem 0 0;
     }
 
     .vote-detail-row td::before {
         content: none;
+    }
+
+    .mobile-status-block {
+        margin: 0.1rem 0 0.45rem;
+    }
+
+    .mobile-status-block .decision-status {
+        justify-content: flex-start;
+    }
+
+    .mobile-status-block .decision-pill {
+        font-size: 0.74rem;
+        padding: 0.14rem 0.5rem;
+    }
+
+    .song-row.mobile-collapsible.is-expanded {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        margin-bottom: 0;
+        border-bottom-color: transparent;
+    }
+
+    .song-row.mobile-collapsible.is-expanded+.vote-detail-row {
+        margin: 0 0 0.55rem;
+    }
+
+    .song-row.mobile-collapsible.is-expanded+.vote-detail-row td {
+        border: 1px solid var(--border);
+        border-top: 0;
+        border-radius: 0 0 12px 12px;
+        background: #0b1221;
+        padding: 0.15rem 0.7rem 0.6rem;
+    }
+
+    .song-row.mobile-collapsible.promotion-target.is-expanded+.vote-detail-row td {
+        border-color: rgba(16, 185, 129, 0.7);
+        background: rgba(16, 185, 129, 0.12);
+    }
+
+    .song-row.mobile-collapsible.release-target.is-expanded+.vote-detail-row td {
+        border-color: rgba(248, 113, 113, 0.68);
+        background: rgba(248, 113, 113, 0.12);
     }
 }

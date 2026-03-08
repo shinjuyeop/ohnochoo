@@ -301,13 +301,18 @@ function formatShortDate(value) {
     return `${year}.${month}.${day}`;
 }
 
+function isMobileView() {
+    return window.matchMedia("(max-width: 760px)").matches;
+}
+
 function renderSongs() {
     songTableBody.innerHTML = "";
     const onochuSongs = getOnochuSongs();
     const nowMs = Date.now();
+    const mobileView = isMobileView();
 
     if (onochuSongs.length === 0) {
-        songTableBody.innerHTML = "<tr><td colspan='4' class='muted'>아직 추가된 노래가 없습니다.</td></tr>";
+        songTableBody.innerHTML = "<tr><td colspan='5' class='muted'>아직 추가된 노래가 없습니다.</td></tr>";
         return;
     }
 
@@ -320,39 +325,72 @@ function renderSongs() {
         const isExpanded = expandedSongIds.has(song.id);
 
         const row = document.createElement("tr");
-        row.className = `song-row${isTarget ? " promotion-target" : ""}${isRelease ? " release-target" : ""}`;
-        row.innerHTML = `
-            <td data-label="날짜">${formatShortDate(song.createdAt)}</td>
-            <td data-label="노래">${escapeHtml(song.title)}</td>
-      <td data-label="아티스트">${escapeHtml(song.artist)}</td>
-      <td data-label="추가자">${escapeHtml(song.adder)}</td>
-            <td data-label="현황">
-                <div class="status-actions">
-                    <div class="decision-status">
-                        <span class="decision-pill promote">승격 ${promotedCount}</span>
-                        <span class="decision-pill release">방출 ${releasedCount}</span>
-                    </div>
-                    <button type="button" class="toggle-votes-btn">${isExpanded ? "숨기기" : "투표 보기"}</button>
-                </div>
-            </td>
-    `;
+        row.className = `song-row${isTarget ? " promotion-target" : ""}${isRelease ? " release-target" : ""}${isExpanded ? " is-expanded" : ""}`;
+        if (mobileView) {
+            row.classList.add("mobile-collapsible");
+            row.innerHTML = `
+                <td class="mobile-line mobile-date">${formatShortDate(song.createdAt)}</td>
+                <td class="mobile-line mobile-title">${escapeHtml(song.title)}</td>
+                <td class="mobile-line mobile-artist">${escapeHtml(song.artist)}</td>
+                <td class="mobile-line mobile-adder">${escapeHtml(song.adder)}</td>
+            `;
 
-        const toggleButton = row.querySelector(".toggle-votes-btn");
-        toggleButton.addEventListener("click", () => {
-            if (expandedSongIds.has(song.id)) {
-                expandedSongIds.delete(song.id);
-            } else {
-                expandedSongIds.add(song.id);
-            }
-            renderSongs();
-        });
+            row.addEventListener("click", () => {
+                if (expandedSongIds.has(song.id)) {
+                    expandedSongIds.delete(song.id);
+                } else {
+                    expandedSongIds.add(song.id);
+                }
+                renderSongs();
+            });
+        } else {
+            row.innerHTML = `
+                <td data-label="날짜">${formatShortDate(song.createdAt)}</td>
+                <td data-label="노래">${escapeHtml(song.title)}</td>
+                <td data-label="아티스트">${escapeHtml(song.artist)}</td>
+                <td data-label="추가자">${escapeHtml(song.adder)}</td>
+                <td data-label="현황">
+                    <div class="status-actions">
+                        <div class="decision-status">
+                            <span class="decision-pill promote">승격 ${promotedCount}</span>
+                            <span class="decision-pill release">방출 ${releasedCount}</span>
+                        </div>
+                        <button type="button" class="toggle-votes-btn">${isExpanded ? "숨기기" : "투표 보기"}</button>
+                    </div>
+                </td>
+            `;
+
+            const toggleButton = row.querySelector(".toggle-votes-btn");
+            toggleButton.addEventListener("click", () => {
+                if (expandedSongIds.has(song.id)) {
+                    expandedSongIds.delete(song.id);
+                } else {
+                    expandedSongIds.add(song.id);
+                }
+                renderSongs();
+            });
+        }
 
         songTableBody.appendChild(row);
 
         if (isExpanded) {
             const detailRow = document.createElement("tr");
             detailRow.className = `vote-detail-row${isTarget ? " promotion-target-detail" : ""}${isRelease ? " release-target-detail" : ""}`;
-            detailRow.innerHTML = `<td colspan="5">${buildSongVoteDetails(songVotes)}</td>`;
+            if (mobileView) {
+                detailRow.innerHTML = `
+                    <td colspan="4">
+                        <div class="mobile-status-block">
+                            <div class="decision-status">
+                                <span class="decision-pill promote">승격 ${promotedCount}</span>
+                                <span class="decision-pill release">방출 ${releasedCount}</span>
+                            </div>
+                        </div>
+                        ${buildSongVoteDetails(songVotes)}
+                    </td>
+                `;
+            } else {
+                detailRow.innerHTML = `<td colspan="5">${buildSongVoteDetails(songVotes)}</td>`;
+            }
             songTableBody.appendChild(detailRow);
         }
     }
@@ -360,6 +398,7 @@ function renderSongs() {
 
 function renderMutigoeulSongs() {
     mutigoeulTableBody.innerHTML = "";
+    const mobileView = isMobileView();
 
     if (state.mutigoeulSongs.length === 0) {
         mutigoeulTableBody.innerHTML = "<tr><td colspan='5' class='muted'>아직 무티고을로 이동된 노래가 없습니다.</td></tr>";
@@ -372,36 +411,71 @@ function renderMutigoeulSongs() {
         const song = songsById.get(mutigoeulSong.songId);
         if (!song) continue;
         const songVotes = state.votes.filter((vote) => vote.songId === song.id);
+        const promotedCount = songVotes.filter((vote) => vote.decision === "승격").length;
+        const releasedCount = songVotes.filter((vote) => vote.decision === "방출").length;
         const isExpanded = expandedSongIds.has(song.id);
 
         const row = document.createElement("tr");
-        row.className = "song-row";
-        row.innerHTML = `
-            <td data-label="날짜">${formatShortDate(song.createdAt)}</td>
-            <td data-label="노래">${escapeHtml(song.title)}</td>
-      <td data-label="아티스트">${escapeHtml(song.artist)}</td>
-      <td data-label="추가자">${escapeHtml(song.adder)}</td>
-      <td data-label="투표">
-        <button type="button" class="toggle-votes-btn">${isExpanded ? "숨기기" : "투표 보기"}</button>
-      </td>
-    `;
+        row.className = `song-row${isExpanded ? " is-expanded" : ""}`;
+        if (mobileView) {
+            row.classList.add("mobile-collapsible");
+            row.innerHTML = `
+                <td class="mobile-line mobile-date">${formatShortDate(song.createdAt)}</td>
+                <td class="mobile-line mobile-title">${escapeHtml(song.title)}</td>
+                <td class="mobile-line mobile-artist">${escapeHtml(song.artist)}</td>
+                <td class="mobile-line mobile-adder">${escapeHtml(song.adder)}</td>
+            `;
 
-        const toggleButton = row.querySelector(".toggle-votes-btn");
-        toggleButton.addEventListener("click", () => {
-            if (expandedSongIds.has(song.id)) {
-                expandedSongIds.delete(song.id);
-            } else {
-                expandedSongIds.add(song.id);
-            }
-            renderMutigoeulSongs();
-        });
+            row.addEventListener("click", () => {
+                if (expandedSongIds.has(song.id)) {
+                    expandedSongIds.delete(song.id);
+                } else {
+                    expandedSongIds.add(song.id);
+                }
+                renderMutigoeulSongs();
+            });
+        } else {
+            row.innerHTML = `
+                <td data-label="날짜">${formatShortDate(song.createdAt)}</td>
+                <td data-label="노래">${escapeHtml(song.title)}</td>
+                <td data-label="아티스트">${escapeHtml(song.artist)}</td>
+                <td data-label="추가자">${escapeHtml(song.adder)}</td>
+                <td data-label="투표">
+                    <button type="button" class="toggle-votes-btn">${isExpanded ? "숨기기" : "투표 보기"}</button>
+                </td>
+            `;
+
+            const toggleButton = row.querySelector(".toggle-votes-btn");
+            toggleButton.addEventListener("click", () => {
+                if (expandedSongIds.has(song.id)) {
+                    expandedSongIds.delete(song.id);
+                } else {
+                    expandedSongIds.add(song.id);
+                }
+                renderMutigoeulSongs();
+            });
+        }
 
         mutigoeulTableBody.appendChild(row);
 
         if (isExpanded) {
             const detailRow = document.createElement("tr");
             detailRow.className = "vote-detail-row";
-            detailRow.innerHTML = `<td colspan="5">${buildSongVoteDetails(songVotes)}</td>`;
+            if (mobileView) {
+                detailRow.innerHTML = `
+                    <td colspan="4">
+                        <div class="mobile-status-block">
+                            <div class="decision-status">
+                                <span class="decision-pill promote">승격 ${promotedCount}</span>
+                                <span class="decision-pill release">방출 ${releasedCount}</span>
+                            </div>
+                        </div>
+                        ${buildSongVoteDetails(songVotes)}
+                    </td>
+                `;
+            } else {
+                detailRow.innerHTML = `<td colspan="5">${buildSongVoteDetails(songVotes)}</td>`;
+            }
             mutigoeulTableBody.appendChild(detailRow);
         }
     }
@@ -540,5 +614,14 @@ function escapeHtml(value) {
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
 }
+
+let lastMobileView = isMobileView();
+window.addEventListener("resize", () => {
+    const currentMobileView = isMobileView();
+    if (currentMobileView === lastMobileView) return;
+    lastMobileView = currentMobileView;
+    renderSongs();
+    renderMutigoeulSongs();
+});
 
 bootstrap();
