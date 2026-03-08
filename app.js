@@ -221,7 +221,7 @@ async function reloadAllData() {
         supabaseClient.from("songs").select("id,title,artist,adder,createdAt").order("createdAt", { ascending: true }),
         supabaseClient.from("votes").select("id,songId,voter,decision,reason,createdAt").order("createdAt", { ascending: false }),
         supabaseClient.from("members").select("id,name,createdAt").order("name", { ascending: true }),
-        supabaseClient.from("mutigoeul_songs").select("id,songId,createdAt").order("createdAt", { ascending: false }),
+        supabaseClient.from("mutigoeul_songs").select("id,songId,createdAt").order("createdAt", { ascending: true }),
     ]);
 
     if (songsResult.error || votesResult.error || membersResult.error || mutigoeulResult.error) {
@@ -461,20 +461,26 @@ function renderDeleteSongOptions() {
 function renderMutigoeulSongOptions() {
     mutigoeulSongId.innerHTML = "";
     const onochuSongs = getOnochuSongs();
+    const promotionEligibleSongs = onochuSongs.filter((song) => {
+        const songVotes = state.votes.filter((vote) => vote.songId === song.id);
+        const promotedCount = songVotes.filter((vote) => vote.decision === "승격").length;
+        const releasedCount = songVotes.filter((vote) => vote.decision === "방출").length;
+        return isPromotionTarget(promotedCount, releasedCount);
+    });
 
     const placeholder = document.createElement("option");
     placeholder.value = "";
-    placeholder.textContent = onochuSongs.length === 0 ? "이동할 노래가 없습니다" : "노래를 선택하세요";
+    placeholder.textContent = promotionEligibleSongs.length === 0 ? "승격 조건을 만족하는 노래가 없습니다" : "노래를 선택하세요";
     mutigoeulSongId.appendChild(placeholder);
 
-    for (const song of onochuSongs) {
+    for (const song of promotionEligibleSongs) {
         const option = document.createElement("option");
         option.value = song.id;
         option.textContent = `${song.title} - ${song.artist} (${song.adder})`;
         mutigoeulSongId.appendChild(option);
     }
 
-    mutigoeulSongId.disabled = onochuSongs.length === 0;
+    mutigoeulSongId.disabled = promotionEligibleSongs.length === 0;
 }
 
 function renderMembers() {
