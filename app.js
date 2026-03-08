@@ -329,7 +329,15 @@ function renderSongs() {
         if (mobileView) {
             row.classList.add("mobile-collapsible");
             row.innerHTML = `
-                <td class="mobile-line mobile-date">${formatShortDate(song.createdAt)}</td>
+                <td class="mobile-line mobile-top-row">
+                    <div class="mobile-summary-head">
+                        <div class="decision-status">
+                            <span class="decision-pill promote">승격 ${promotedCount}</span>
+                            <span class="decision-pill release">방출 ${releasedCount}</span>
+                        </div>
+                        <span class="mobile-date">${formatShortDate(song.createdAt)}</span>
+                    </div>
+                </td>
                 <td class="mobile-line mobile-title">${escapeHtml(song.title)}</td>
                 <td class="mobile-line mobile-artist">${escapeHtml(song.artist)}</td>
                 <td class="mobile-line mobile-adder">${escapeHtml(song.adder)}</td>
@@ -377,17 +385,7 @@ function renderSongs() {
             const detailRow = document.createElement("tr");
             detailRow.className = `vote-detail-row${isTarget ? " promotion-target-detail" : ""}${isRelease ? " release-target-detail" : ""}`;
             if (mobileView) {
-                detailRow.innerHTML = `
-                    <td colspan="4">
-                        <div class="mobile-status-block">
-                            <div class="decision-status">
-                                <span class="decision-pill promote">승격 ${promotedCount}</span>
-                                <span class="decision-pill release">방출 ${releasedCount}</span>
-                            </div>
-                        </div>
-                        ${buildSongVoteDetails(songVotes)}
-                    </td>
-                `;
+                detailRow.innerHTML = `<td colspan="4">${buildSongVoteDetails(songVotes)}</td>`;
             } else {
                 detailRow.innerHTML = `<td colspan="5">${buildSongVoteDetails(songVotes)}</td>`;
             }
@@ -420,7 +418,15 @@ function renderMutigoeulSongs() {
         if (mobileView) {
             row.classList.add("mobile-collapsible");
             row.innerHTML = `
-                <td class="mobile-line mobile-date">${formatShortDate(song.createdAt)}</td>
+                <td class="mobile-line mobile-top-row">
+                    <div class="mobile-summary-head">
+                        <div class="decision-status">
+                            <span class="decision-pill promote">승격 ${promotedCount}</span>
+                            <span class="decision-pill release">방출 ${releasedCount}</span>
+                        </div>
+                        <span class="mobile-date">${formatShortDate(song.createdAt)}</span>
+                    </div>
+                </td>
                 <td class="mobile-line mobile-title">${escapeHtml(song.title)}</td>
                 <td class="mobile-line mobile-artist">${escapeHtml(song.artist)}</td>
                 <td class="mobile-line mobile-adder">${escapeHtml(song.adder)}</td>
@@ -462,17 +468,7 @@ function renderMutigoeulSongs() {
             const detailRow = document.createElement("tr");
             detailRow.className = "vote-detail-row";
             if (mobileView) {
-                detailRow.innerHTML = `
-                    <td colspan="4">
-                        <div class="mobile-status-block">
-                            <div class="decision-status">
-                                <span class="decision-pill promote">승격 ${promotedCount}</span>
-                                <span class="decision-pill release">방출 ${releasedCount}</span>
-                            </div>
-                        </div>
-                        ${buildSongVoteDetails(songVotes)}
-                    </td>
-                `;
+                detailRow.innerHTML = `<td colspan="4">${buildSongVoteDetails(songVotes)}</td>`;
             } else {
                 detailRow.innerHTML = `<td colspan="5">${buildSongVoteDetails(songVotes)}</td>`;
             }
