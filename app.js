@@ -558,7 +558,7 @@ function renderMutigoeulSongOptions() {
 
     const placeholder = document.createElement("option");
     placeholder.value = "";
-    placeholder.textContent = promotionEligibleSongs.length === 0 ? "7일 + 승격 조건을 만족하는 노래가 없습니다" : "노래를 선택하세요";
+    placeholder.textContent = promotionEligibleSongs.length === 0 ? "승격 조건을 만족하는 노래가 없습니다" : "노래를 선택하세요";
     mutigoeulSongId.appendChild(placeholder);
 
     for (const song of promotionEligibleSongs) {
