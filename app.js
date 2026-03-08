@@ -291,6 +291,10 @@ function isReleaseTarget(song, promotedCount, releasedCount, nowMs = Date.now())
     return hasElapsedOneWeek(song.createdAt, nowMs);
 }
 
+function isMutigoeulReady(song, promotedCount, releasedCount, nowMs = Date.now()) {
+    return hasElapsedOneWeek(song.createdAt, nowMs) && isPromotionTarget(promotedCount, releasedCount);
+}
+
 function formatShortDate(value) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "";
@@ -321,11 +325,12 @@ function renderSongs() {
         const promotedCount = songVotes.filter((vote) => vote.decision === "승격").length;
         const releasedCount = songVotes.filter((vote) => vote.decision === "방출").length;
         const isTarget = isPromotionTarget(promotedCount, releasedCount);
+        const isMutigoeulCandidate = isMutigoeulReady(song, promotedCount, releasedCount, nowMs);
         const isRelease = isReleaseTarget(song, promotedCount, releasedCount, nowMs);
         const isExpanded = expandedSongIds.has(song.id);
 
         const row = document.createElement("tr");
-        row.className = `song-row${isTarget ? " promotion-target" : ""}${isRelease ? " release-target" : ""}${isExpanded ? " is-expanded" : ""}`;
+        row.className = `song-row${isTarget ? " promotion-target" : ""}${isMutigoeulCandidate ? " mutigoeul-ready" : ""}${isRelease ? " release-target" : ""}${isExpanded ? " is-expanded" : ""}`;
         if (mobileView) {
             row.classList.add("mobile-collapsible");
             row.innerHTML = `
@@ -383,7 +388,7 @@ function renderSongs() {
 
         if (isExpanded) {
             const detailRow = document.createElement("tr");
-            detailRow.className = `vote-detail-row${isTarget ? " promotion-target-detail" : ""}${isRelease ? " release-target-detail" : ""}`;
+            detailRow.className = `vote-detail-row${isTarget ? " promotion-target-detail" : ""}${isMutigoeulCandidate ? " mutigoeul-ready-detail" : ""}${isRelease ? " release-target-detail" : ""}`;
             if (mobileView) {
                 detailRow.innerHTML = `<td colspan="4">${buildSongVoteDetails(songVotes)}</td>`;
             } else {
@@ -543,16 +548,17 @@ function renderDeleteSongOptions() {
 function renderMutigoeulSongOptions() {
     mutigoeulSongId.innerHTML = "";
     const onochuSongs = getOnochuSongs();
+    const nowMs = Date.now();
     const promotionEligibleSongs = onochuSongs.filter((song) => {
         const songVotes = state.votes.filter((vote) => vote.songId === song.id);
         const promotedCount = songVotes.filter((vote) => vote.decision === "승격").length;
         const releasedCount = songVotes.filter((vote) => vote.decision === "방출").length;
-        return isPromotionTarget(promotedCount, releasedCount);
+        return isMutigoeulReady(song, promotedCount, releasedCount, nowMs);
     });
 
     const placeholder = document.createElement("option");
     placeholder.value = "";
-    placeholder.textContent = promotionEligibleSongs.length === 0 ? "승격 조건을 만족하는 노래가 없습니다" : "노래를 선택하세요";
+    placeholder.textContent = promotionEligibleSongs.length === 0 ? "7일 + 승격 조건을 만족하는 노래가 없습니다" : "노래를 선택하세요";
     mutigoeulSongId.appendChild(placeholder);
 
     for (const song of promotionEligibleSongs) {

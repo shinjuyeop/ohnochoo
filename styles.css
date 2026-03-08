@@ -253,6 +253,18 @@ fieldset {
     background: rgba(9, 59, 45, 0.5);
 }
 
+.song-row.mutigoeul-ready td {
+    background: rgba(56, 189, 248, 0.12);
+}
+
+.song-row.mutigoeul-ready td:first-child {
+    box-shadow: inset 4px 0 0 rgba(56, 189, 248, 0.78);
+}
+
+.vote-detail-row.mutigoeul-ready-detail td {
+    background: rgba(11, 53, 84, 0.5);
+}
+
 .song-row.release-target td {
     background: rgba(248, 113, 113, 0.1);
 }
@@ -412,6 +424,19 @@ fieldset {
         box-shadow: none;
     }
 
+    .song-row.mutigoeul-ready {
+        border-color: rgba(56, 189, 248, 0.75);
+        background: rgba(56, 189, 248, 0.14);
+    }
+
+    .song-row.mutigoeul-ready td {
+        background: transparent;
+    }
+
+    .song-row.mutigoeul-ready td:first-child {
+        box-shadow: none;
+    }
+
     .song-row.release-target {
         border-color: rgba(248, 113, 113, 0.68);
         background: rgba(248, 113, 113, 0.12);
@@ -531,6 +556,11 @@ fieldset {
     .song-row.mobile-collapsible.promotion-target.is-expanded+.vote-detail-row td {
         border-color: rgba(16, 185, 129, 0.7);
         background: rgba(16, 185, 129, 0.12);
+    }
+
+    .song-row.mobile-collapsible.mutigoeul-ready.is-expanded+.vote-detail-row td {
+        border-color: rgba(56, 189, 248, 0.75);
+        background: rgba(56, 189, 248, 0.14);
     }
 
     .song-row.mobile-collapsible.release-target.is-expanded+.vote-detail-row td {
