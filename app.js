@@ -278,9 +278,23 @@ function isPromotionTarget(promotedCount, releasedCount) {
     return promotedCount >= releasedCount + 3;
 }
 
+function hasElapsedOneWeek(createdAt, nowMs = Date.now()) {
+    const createdMs = new Date(createdAt).getTime();
+    if (Number.isNaN(createdMs)) return false;
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+    return nowMs - createdMs >= oneWeekMs;
+}
+
+function isReleaseTarget(song, promotedCount, releasedCount, nowMs = Date.now()) {
+    const promotionTarget = isPromotionTarget(promotedCount, releasedCount);
+    if (promotionTarget) return false;
+    return hasElapsedOneWeek(song.createdAt, nowMs);
+}
+
 function renderSongs() {
     songTableBody.innerHTML = "";
     const onochuSongs = getOnochuSongs();
+    const nowMs = Date.now();
 
     if (onochuSongs.length === 0) {
         songTableBody.innerHTML = "<tr><td colspan='4' class='muted'>아직 추가된 노래가 없습니다.</td></tr>";
@@ -292,10 +306,11 @@ function renderSongs() {
         const promotedCount = songVotes.filter((vote) => vote.decision === "승격").length;
         const releasedCount = songVotes.filter((vote) => vote.decision === "방출").length;
         const isTarget = isPromotionTarget(promotedCount, releasedCount);
+        const isRelease = isReleaseTarget(song, promotedCount, releasedCount, nowMs);
         const isExpanded = expandedSongIds.has(song.id);
 
         const row = document.createElement("tr");
-        row.className = `song-row${isTarget ? " promotion-target" : ""}`;
+        row.className = `song-row${isTarget ? " promotion-target" : ""}${isRelease ? " release-target" : ""}`;
         row.innerHTML = `
       <td data-label="노래">${escapeHtml(song.title)}</td>
       <td data-label="아티스트">${escapeHtml(song.artist)}</td>
@@ -325,7 +340,7 @@ function renderSongs() {
 
         if (isExpanded) {
             const detailRow = document.createElement("tr");
-            detailRow.className = `vote-detail-row${isTarget ? " promotion-target-detail" : ""}`;
+            detailRow.className = `vote-detail-row${isTarget ? " promotion-target-detail" : ""}${isRelease ? " release-target-detail" : ""}`;
             detailRow.innerHTML = `<td colspan="4">${buildSongVoteDetails(songVotes)}</td>`;
             songTableBody.appendChild(detailRow);
         }
