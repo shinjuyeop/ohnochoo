@@ -122,8 +122,12 @@ table {
     table-layout: fixed;
 }
 
+.playlist-table .col-date {
+    width: 10%;
+}
+
 .playlist-table .col-song {
-    width: 42%;
+    width: 32%;
 }
 
 .playlist-table .col-artist {
@@ -233,20 +237,6 @@ fieldset {
     white-space: nowrap;
 }
 
-.song-title-wrap {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.45rem;
-    flex-wrap: wrap;
-}
-
-.song-date {
-    font-size: 0.8em;
-    color: var(--muted);
-    font-weight: 500;
-    white-space: nowrap;
-}
-
 .vote-detail-row td {
     background: #0a1020;
 }
@@ -300,15 +290,23 @@ fieldset {
         min-width: 0;
     }
 
-    .playlist-table th:nth-child(3),
-    .playlist-table .song-row td:nth-child(3) {
+    .playlist-table th:nth-child(1),
+    .playlist-table .song-row td:nth-child(1) {
+        white-space: nowrap;
+        color: var(--muted);
+        font-size: 0.9rem;
+        padding-right: 0.6rem;
+    }
+
+    .playlist-table th:nth-child(4),
+    .playlist-table .song-row td:nth-child(4) {
         white-space: normal;
         word-break: normal;
         padding-right: 0.75rem;
     }
 
-    .playlist-table th:nth-child(4),
-    .playlist-table .song-row td:nth-child(4) {
+    .playlist-table th:nth-child(5),
+    .playlist-table .song-row td:nth-child(5) {
         min-width: 0;
         padding-left: 0.75rem;
         white-space: nowrap;

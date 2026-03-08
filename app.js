@@ -322,7 +322,8 @@ function renderSongs() {
         const row = document.createElement("tr");
         row.className = `song-row${isTarget ? " promotion-target" : ""}${isRelease ? " release-target" : ""}`;
         row.innerHTML = `
-            <td data-label="노래"><span class="song-title-wrap">${escapeHtml(song.title)} <span class="song-date">${formatShortDate(song.createdAt)}</span></span></td>
+            <td data-label="날짜">${formatShortDate(song.createdAt)}</td>
+            <td data-label="노래">${escapeHtml(song.title)}</td>
       <td data-label="아티스트">${escapeHtml(song.artist)}</td>
       <td data-label="추가자">${escapeHtml(song.adder)}</td>
             <td data-label="현황">
@@ -351,7 +352,7 @@ function renderSongs() {
         if (isExpanded) {
             const detailRow = document.createElement("tr");
             detailRow.className = `vote-detail-row${isTarget ? " promotion-target-detail" : ""}${isRelease ? " release-target-detail" : ""}`;
-            detailRow.innerHTML = `<td colspan="4">${buildSongVoteDetails(songVotes)}</td>`;
+            detailRow.innerHTML = `<td colspan="5">${buildSongVoteDetails(songVotes)}</td>`;
             songTableBody.appendChild(detailRow);
         }
     }
@@ -361,7 +362,7 @@ function renderMutigoeulSongs() {
     mutigoeulTableBody.innerHTML = "";
 
     if (state.mutigoeulSongs.length === 0) {
-        mutigoeulTableBody.innerHTML = "<tr><td colspan='4' class='muted'>아직 무티고을로 이동된 노래가 없습니다.</td></tr>";
+        mutigoeulTableBody.innerHTML = "<tr><td colspan='5' class='muted'>아직 무티고을로 이동된 노래가 없습니다.</td></tr>";
         return;
     }
 
@@ -376,7 +377,8 @@ function renderMutigoeulSongs() {
         const row = document.createElement("tr");
         row.className = "song-row";
         row.innerHTML = `
-            <td data-label="노래"><span class="song-title-wrap">${escapeHtml(song.title)} <span class="song-date">${formatShortDate(song.createdAt)}</span></span></td>
+            <td data-label="날짜">${formatShortDate(song.createdAt)}</td>
+            <td data-label="노래">${escapeHtml(song.title)}</td>
       <td data-label="아티스트">${escapeHtml(song.artist)}</td>
       <td data-label="추가자">${escapeHtml(song.adder)}</td>
       <td data-label="투표">
@@ -399,7 +401,7 @@ function renderMutigoeulSongs() {
         if (isExpanded) {
             const detailRow = document.createElement("tr");
             detailRow.className = "vote-detail-row";
-            detailRow.innerHTML = `<td colspan="4">${buildSongVoteDetails(songVotes)}</td>`;
+            detailRow.innerHTML = `<td colspan="5">${buildSongVoteDetails(songVotes)}</td>`;
             mutigoeulTableBody.appendChild(detailRow);
         }
     }
