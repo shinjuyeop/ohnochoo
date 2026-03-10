@@ -71,6 +71,18 @@ h2 {
     min-width: 128px;
 }
 
+.apple-fetch-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+}
+
+.apple-fetch-actions button {
+    width: 100%;
+    min-width: 0;
+}
+
 label,
 fieldset {
     display: grid;
@@ -449,6 +461,10 @@ fieldset {
 
     .inline-form {
         flex-direction: column;
+    }
+
+    .apple-fetch-actions {
+        grid-template-columns: 1fr;
     }
 
     .inline-form input,

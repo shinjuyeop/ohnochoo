@@ -13,6 +13,7 @@ const songForm = document.getElementById("songForm");
 const songTitle = document.getElementById("songTitle");
 const songArtist = document.getElementById("songArtist");
 const songAdder = document.getElementById("songAdder");
+const manualAddContainer = document.getElementById("manualAddContainer");
 
 const memberForm = document.getElementById("memberForm");
 const memberName = document.getElementById("memberName");
@@ -34,6 +35,7 @@ const statusMessage = document.getElementById("statusMessage");
 const mutigoeulForm = document.getElementById("mutigoeulForm");
 const mutigoeulSongId = document.getElementById("mutigoeulSongId");
 const mutigoeulTableBody = document.getElementById("mutigoeulTableBody");
+const toggleManualAddBtn = document.getElementById("toggleManualAddBtn");
 
 for (const button of decisionButtons) {
     button.addEventListener("click", () => {
@@ -690,3 +692,105 @@ window.addEventListener("resize", () => {
 });
 
 bootstrap();
+
+// --- Apple Music 연동 로직 ---
+const fetchAppleMusicBtn = document.getElementById("fetchAppleMusicBtn");
+const appleMusicStatus = document.getElementById("appleMusicStatus");
+const fetchedSongsContainer = document.getElementById("fetchedSongsContainer");
+const fetchedSongSelect = document.getElementById("fetchedSongSelect");
+const FIXED_APPLE_MUSIC_PLAYLIST_URL = "https://music.apple.com/kr/playlist/o-n0-ch0o%24e/pl.u-Ymb09optgrM3117";
+
+let fetchedSongsList = []; // 파싱해온 곡 목록 임시 저장
+
+// 상태 메시지 띄워주는 함수
+function showFetchStatus(message, isError = false, customColor = "") {
+    appleMusicStatus.style.display = "block";
+    appleMusicStatus.textContent = message;
+    if (isError) appleMusicStatus.style.color = "#fca5a5";
+    else if (customColor) appleMusicStatus.style.color = customColor;
+    else appleMusicStatus.style.color = "var(--muted)";
+}
+
+// [불러오기] 버튼 클릭 이벤트
+if (fetchAppleMusicBtn) {
+    fetchAppleMusicBtn.addEventListener("click", async () => {
+        const url = FIXED_APPLE_MUSIC_PLAYLIST_URL;
+
+        showFetchStatus("Apple Music에서 곡 정보를 가져오는 중...", false);
+        fetchedSongsContainer.style.display = "none";
+        fetchedSongSelect.innerHTML = '<option value="">곡을 선택하면 아래 폼에 자동 입력됩니다</option>';
+
+        try {
+            // Vercel 서버리스 API로 요청 보내기
+            const response = await fetchWithTimeout(`/api/fetch-playlist?url=${encodeURIComponent(url)}`, 10000);
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.error || "알 수 없는 오류");
+            if (!data.songs || data.songs.length === 0) throw new Error("곡을 찾지 못했습니다.");
+
+            // 이미 DB에 있는 곡 필터링 (중복 방지)
+            const existingSongs = new Set(state.songs.map(s => `${s.title}|${s.artist}`));
+            fetchedSongsList = data.songs.filter(s => !existingSongs.has(`${s.title}|${s.artist}`));
+
+            if (fetchedSongsList.length === 0) {
+                showFetchStatus(`불러온 ${data.songs.length}곡이 모두 이미 오노추에 추가되어 있습니다!`, false, "#86efac");
+                return;
+            }
+
+            // 드롭다운에 곡 목록 채우기
+            for (const [index, song] of fetchedSongsList.entries()) {
+                const option = document.createElement("option");
+                option.value = index;
+                option.textContent = `${song.title} - ${song.artist}`;
+                fetchedSongSelect.appendChild(option);
+            }
+
+            fetchedSongsContainer.style.display = "block";
+            showFetchStatus(`총 ${data.songs.length}곡 중 중복 제외 ${fetchedSongsList.length}곡을 불러왔습니다.`, false, "#86efac");
+
+        } catch (error) {
+            showFetchStatus(`실패: ${error.message} (아래 폼에서 수동으로 입력해주세요)`, true);
+        }
+    });
+}
+
+if (toggleManualAddBtn && manualAddContainer) {
+    toggleManualAddBtn.addEventListener("click", () => {
+        const isHidden = manualAddContainer.style.display === "none";
+        manualAddContainer.style.display = isHidden ? "block" : "none";
+        toggleManualAddBtn.textContent = isHidden ? "수동추가 닫기" : "수동추가";
+    });
+}
+
+// 드롭다운에서 곡을 선택하면 수동 입력 폼에 자동으로 글자 채워주기
+if (fetchedSongSelect) {
+    fetchedSongSelect.addEventListener("change", (e) => {
+        const index = e.target.value;
+        if (index === "") return;
+
+        const selectedSong = fetchedSongsList[index];
+        const songTitleInput = document.getElementById("songTitle");
+        const songArtistInput = document.getElementById("songArtist");
+
+        if (manualAddContainer && manualAddContainer.style.display === "none") {
+            manualAddContainer.style.display = "block";
+            if (toggleManualAddBtn) {
+                toggleManualAddBtn.textContent = "수동추가 닫기";
+            }
+        }
+
+        songTitleInput.value = selectedSong.title;
+        songArtistInput.value = selectedSong.artist;
+
+        // 시각적 피드백 (테두리 깜빡임)
+        songTitleInput.style.transition = "box-shadow 0.3s";
+        songArtistInput.style.transition = "box-shadow 0.3s";
+        songTitleInput.style.boxShadow = "0 0 0 2px var(--accent)";
+        songArtistInput.style.boxShadow = "0 0 0 2px var(--accent)";
+
+        setTimeout(() => {
+            songTitleInput.style.boxShadow = "none";
+            songArtistInput.style.boxShadow = "none";
+        }, 1200);
+    });
+}

@@ -23,23 +23,44 @@
     <main>
         <section class="card">
             <h2>노래 추가</h2>
-            <form id="songForm" class="grid-form">
-                <label>
-                    노래
-                    <input id="songTitle" type="text" required placeholder="예: NEW DROP" />
-                </label>
-                <label>
-                    아티스트
-                    <input id="songArtist" type="text" required placeholder="예: Don Toliver" />
-                </label>
-                <label>
-                    추가자
-                    <select id="songAdder" required>
-                        <option value="">추가자를 선택하세요</option>
-                    </select>
-                </label>
-                <button type="submit">추가하기</button>
-            </form>
+
+            <fieldset style="margin-bottom: 1.2rem; border-color: var(--accent);">
+                <legend style="color: var(--accent); font-weight: bold;">🍎 Apple Music 불러오기</legend>
+                <div class="inline-form apple-fetch-actions">
+                    <button type="button" id="fetchAppleMusicBtn">불러오기</button>
+                    <button type="button" id="toggleManualAddBtn">수동추가</button>
+                </div>
+
+                <div id="fetchedSongsContainer" style="display: none; margin-top: 0.8rem;">
+                    <label>
+                        추가할 곡 선택
+                        <select id="fetchedSongSelect">
+                            <option value="">곡을 선택하면 아래 폼에 자동 입력됩니다</option>
+                        </select>
+                    </label>
+                </div>
+                <p id="appleMusicStatus" class="muted" style="font-size: 0.85rem; margin-top: 0.5rem; display: none;">
+                </p>
+            </fieldset>
+            <div id="manualAddContainer" style="display: none;">
+                <form id="songForm" class="grid-form">
+                    <label>
+                        노래
+                        <input id="songTitle" type="text" required placeholder="예: NEW DROP" />
+                    </label>
+                    <label>
+                        아티스트
+                        <input id="songArtist" type="text" required placeholder="예: Don Toliver" />
+                    </label>
+                    <label>
+                        추가자
+                        <select id="songAdder" required>
+                            <option value="">추가자를 선택하세요</option>
+                        </select>
+                    </label>
+                    <button type="submit">추가하기</button>
+                </form>
+            </div>
         </section>
 
         <section class="card">

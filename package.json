@@ -1,0 +1,25 @@
+{
+  "name": "ohnochoo",
+  "version": "1.0.0",
+  "description": "친구들과 플레이리스트 후보곡을 모으고, 각 곡을 **승격 / 방출**로 투표하는 웹 앱입니다.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shinjuyeop/ohnochoo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/shinjuyeop/ohnochoo/issues"
+  },
+  "homepage": "https://github.com/shinjuyeop/ohnochoo#readme",
+  "dependencies": {
+    "axios": "^1.13.6",
+    "cheerio": "^1.2.0"
+  }
+}
