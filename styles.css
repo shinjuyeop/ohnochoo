@@ -169,6 +169,78 @@ fieldset {
     flex-wrap: wrap;
 }
 
+.vote-result-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.rating-picker-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.rating-picker {
+    display: inline-flex;
+    gap: 0.08rem;
+}
+
+.rating-star {
+    width: 1.45rem;
+    height: 1.45rem;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    position: relative;
+    color: #475569;
+}
+
+.rating-star::before {
+    content: "★";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 1.3rem;
+    color: #475569;
+}
+
+.rating-star.full::before {
+    color: #facc15;
+}
+
+.rating-star.half::before {
+    background: linear-gradient(90deg, #facc15 50%, #475569 50%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.star-rating {
+    position: relative;
+    display: inline-block;
+    line-height: 1;
+    letter-spacing: 0.06em;
+    vertical-align: middle;
+}
+
+.star-rating-empty {
+    color: #475569;
+}
+
+.star-rating-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    color: #facc15;
+}
+
 .decision-toggle-btn {
     background: #0b1221;
     color: var(--text);
@@ -380,6 +452,18 @@ fieldset {
 
     .grid-form button {
         width: 100%;
+    }
+
+    .vote-result-controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.55rem;
+    }
+
+    .rating-picker-wrap {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
     }
 
     .table-wrap {

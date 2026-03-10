@@ -25,6 +25,10 @@ const voterName = document.getElementById("voterName");
 const voteForm = document.getElementById("voteForm");
 const decisionValue = document.getElementById("decisionValue");
 const decisionButtons = document.querySelectorAll(".decision-toggle-btn");
+const ratingPicker = document.getElementById("ratingPicker");
+const ratingStars = document.querySelectorAll(".rating-star");
+const ratingValue = document.getElementById("ratingValue");
+const ratingValueLabel = document.getElementById("ratingValueLabel");
 const memberList = document.getElementById("memberList");
 const statusMessage = document.getElementById("statusMessage");
 const mutigoeulForm = document.getElementById("mutigoeulForm");
@@ -41,6 +45,18 @@ for (const button of decisionButtons) {
         }
     });
 }
+
+for (const starButton of ratingStars) {
+    starButton.addEventListener("click", (event) => {
+        const starIndex = Number(starButton.dataset.starIndex);
+        const rect = starButton.getBoundingClientRect();
+        const isLeftHalf = event.clientX - rect.left < rect.width / 2;
+        const score = starIndex - (isLeftHalf ? 0.5 : 0);
+        setRating(score);
+    });
+}
+
+setRating(0);
 
 songForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -113,17 +129,34 @@ voteForm.addEventListener("submit", async (event) => {
     const songId = voteSongId.value;
     const voter = voterName.value;
     const decision = decisionValue.value;
+    const rating = Number(ratingValue.value);
     const reason = document.getElementById("reason").value.trim();
 
-    if (!songId || !voter || !decision || !reason) return;
+    if (!songId || !voter || !decision || !reason || Number.isNaN(rating)) return;
 
     const targetSong = state.songs.find((song) => song.id === songId);
     if (!targetSong || !supabaseClient) return;
+
+    const existingVoteResult = await supabaseClient.from("votes").select("id").eq("songId", songId).eq("voter", voter);
+    if (existingVoteResult.error) {
+        setStatus(`투표 저장 실패: ${existingVoteResult.error.message}`, true);
+        return;
+    }
+
+    const existingVoteIds = (existingVoteResult.data ?? []).map((vote) => vote.id);
+    if (existingVoteIds.length > 0) {
+        const { error: deleteError } = await supabaseClient.from("votes").delete().in("id", existingVoteIds);
+        if (deleteError) {
+            setStatus(`기존 투표 교체 실패: ${deleteError.message}`, true);
+            return;
+        }
+    }
 
     const { error } = await supabaseClient.from("votes").insert({
         songId,
         voter,
         decision,
+        rating,
         reason,
     });
 
@@ -135,10 +168,11 @@ voteForm.addEventListener("submit", async (event) => {
     await reloadAllData();
     voteForm.reset();
     decisionValue.value = "";
+    setRating(0);
     for (const button of decisionButtons) {
         button.classList.remove("active");
     }
-    setStatus("투표가 저장되었습니다.");
+    setStatus(existingVoteIds.length > 0 ? "기존 투표가 새 내용으로 교체되었습니다." : "투표가 저장되었습니다.");
 });
 
 mutigoeulForm.addEventListener("submit", async (event) => {
@@ -219,7 +253,7 @@ async function reloadAllData() {
 
     const [songsResult, votesResult, membersResult, mutigoeulResult] = await Promise.all([
         supabaseClient.from("songs").select("id,title,artist,adder,createdAt").order("createdAt", { ascending: true }),
-        supabaseClient.from("votes").select("id,songId,voter,decision,reason,createdAt").order("createdAt", { ascending: false }),
+        supabaseClient.from("votes").select("id,songId,voter,decision,rating,reason,createdAt").order("createdAt", { ascending: false }),
         supabaseClient.from("members").select("id,name,createdAt").order("name", { ascending: true }),
         supabaseClient.from("mutigoeul_songs").select("id,songId,createdAt").order("createdAt", { ascending: true }),
     ]);
@@ -495,7 +529,7 @@ function buildSongVoteDetails(songVotes) {
             .map(
                 (vote) => `
                                     <article class="vote-inline-item">
-                                        <div>${escapeHtml(vote.voter)} · <b>${escapeHtml(vote.decision)}</b></div>
+                                        <div>${escapeHtml(vote.voter)} · <b>${escapeHtml(vote.decision)}</b> · ${buildRatingDisplay(vote.rating)}</div>
                                         <div class="muted">${new Date(vote.createdAt).toLocaleString()}</div>
                                         <p>${escapeHtml(vote.reason)}</p>
                                     </article>
@@ -558,7 +592,7 @@ function renderMutigoeulSongOptions() {
 
     const placeholder = document.createElement("option");
     placeholder.value = "";
-    placeholder.textContent = promotionEligibleSongs.length === 0 ? "승격 조건을 만족하는 노래가 없습니다" : "노래를 선택하세요";
+    placeholder.textContent = promotionEligibleSongs.length === 0 ? "7일 + 승격 조건을 만족하는 노래가 없습니다" : "노래를 선택하세요";
     mutigoeulSongId.appendChild(placeholder);
 
     for (const song of promotionEligibleSongs) {
@@ -615,6 +649,29 @@ function escapeHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
+}
+
+function setRating(score) {
+    const normalized = Math.max(0, Math.min(5, Math.round(score * 2) / 2));
+    ratingValue.value = String(normalized);
+    if (ratingValueLabel) {
+        ratingValueLabel.textContent = `${normalized.toFixed(1)}점`;
+    }
+
+    for (const starButton of ratingStars) {
+        const index = Number(starButton.dataset.starIndex);
+        const isFull = normalized >= index;
+        const isHalf = !isFull && normalized >= index - 0.5;
+        starButton.classList.toggle("full", isFull);
+        starButton.classList.toggle("half", isHalf);
+    }
+}
+
+function buildRatingDisplay(rawRating) {
+    const numericRating = Number(rawRating);
+    const safeRating = Number.isNaN(numericRating) ? 0 : Math.max(0, Math.min(5, numericRating));
+    const percent = (safeRating / 5) * 100;
+    return `<span class="star-rating" aria-label="${safeRating.toFixed(1)}점"><span class="star-rating-empty">★★★★★</span><span class="star-rating-fill" style="width:${percent}%">★★★★★</span></span>`;
 }
 
 let lastMobileView = isMobileView();

@@ -58,9 +58,22 @@
 
                 <fieldset>
                     <legend>결과</legend>
-                    <div class="decision-toggle-group" role="group" aria-label="결과 선택">
-                        <button type="button" class="decision-toggle-btn" data-value="승격">승격</button>
-                        <button type="button" class="decision-toggle-btn" data-value="방출">방출</button>
+                    <div class="vote-result-controls">
+                        <div class="decision-toggle-group" role="group" aria-label="결과 선택">
+                            <button type="button" class="decision-toggle-btn" data-value="승격">승격</button>
+                            <button type="button" class="decision-toggle-btn" data-value="방출">방출</button>
+                        </div>
+                        <div class="rating-picker-wrap">
+                            <div id="ratingPicker" class="rating-picker" role="group" aria-label="별점 선택">
+                                <button type="button" class="rating-star" data-star-index="1" aria-label="1점"></button>
+                                <button type="button" class="rating-star" data-star-index="2" aria-label="2점"></button>
+                                <button type="button" class="rating-star" data-star-index="3" aria-label="3점"></button>
+                                <button type="button" class="rating-star" data-star-index="4" aria-label="4점"></button>
+                                <button type="button" class="rating-star" data-star-index="5" aria-label="5점"></button>
+                            </div>
+                            <span id="ratingValueLabel" class="muted">0.0점</span>
+                            <input id="ratingValue" type="hidden" value="0" />
+                        </div>
                     </div>
                     <input id="decisionValue" type="hidden" required />
                 </fieldset>
