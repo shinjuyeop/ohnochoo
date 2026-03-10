@@ -484,7 +484,7 @@ fieldset {
     .rating-picker-wrap {
         width: 100%;
         display: flex;
-        justify-content: flex-start;
+        justify-content: center;
         align-items: center;
         gap: 0.35rem;
     }
