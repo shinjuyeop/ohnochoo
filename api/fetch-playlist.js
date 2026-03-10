@@ -2,7 +2,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 
 module.exports = async (req, res) => {
-    // CORS 및 브라우저 캐싱 설정 (1분 동안 Vercel Edge Cache 사용)
+    // CORS 및 브라우저 캐싱 설정 (10초 동안 Vercel Edge Cache 사용)
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Cache-Control", "s-maxage=10, stale-while-revalidate");
 
