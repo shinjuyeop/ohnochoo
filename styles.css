@@ -186,11 +186,14 @@ fieldset {
 .rating-picker {
     display: inline-flex;
     gap: 0.08rem;
+    align-items: center;
+    flex-wrap: nowrap;
 }
 
 .rating-star {
     width: 1.45rem;
     height: 1.45rem;
+    min-width: 1.45rem;
     padding: 0;
     border: 0;
     border-radius: 0;
@@ -222,14 +225,16 @@ fieldset {
 
 .star-rating {
     position: relative;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     line-height: 1;
     letter-spacing: 0.06em;
-    vertical-align: middle;
+    vertical-align: -0.08em;
 }
 
 .star-rating-empty {
     color: #475569;
+    line-height: 1;
 }
 
 .star-rating-fill {
@@ -239,6 +244,7 @@ fieldset {
     white-space: nowrap;
     overflow: hidden;
     color: #facc15;
+    line-height: 1;
 }
 
 .decision-toggle-btn {
@@ -454,6 +460,21 @@ fieldset {
         width: 100%;
     }
 
+    .grid-form .rating-star {
+        width: 1.45rem;
+        min-width: 1.45rem;
+    }
+
+    .vote-result-controls .decision-toggle-group {
+        width: 100%;
+    }
+
+    .vote-result-controls .decision-toggle-group .decision-toggle-btn {
+        flex: 1 1 0;
+        width: auto;
+        text-align: center;
+    }
+
     .vote-result-controls {
         flex-direction: column;
         align-items: flex-start;
@@ -464,6 +485,8 @@ fieldset {
         width: 100%;
         display: flex;
         justify-content: flex-start;
+        align-items: center;
+        gap: 0.35rem;
     }
 
     .table-wrap {

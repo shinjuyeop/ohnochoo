@@ -51,7 +51,13 @@ for (const starButton of ratingStars) {
         const starIndex = Number(starButton.dataset.starIndex);
         const rect = starButton.getBoundingClientRect();
         const isLeftHalf = event.clientX - rect.left < rect.width / 2;
-        const score = starIndex - (isLeftHalf ? 0.5 : 0);
+        const currentScore = Number(ratingValue.value || 0);
+        let score = starIndex - (isLeftHalf ? 0.5 : 0);
+
+        if (starIndex === 1 && isLeftHalf && currentScore === 0.5) {
+            score = 0;
+        }
+
         setRating(score);
     });
 }
