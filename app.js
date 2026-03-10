@@ -98,6 +98,12 @@ memberForm.addEventListener("submit", async (event) => {
     const name = memberName.value.trim();
     if (!name) return;
 
+    const password = window.prompt("평가자 추가 비밀번호를 입력하세요");
+    if (password !== "shinju") {
+        setStatus("평가자 추가 실패: 비밀번호가 올바르지 않습니다.", true);
+        return;
+    }
+
     const inserted = await ensureMember(name);
     if (inserted) {
         await reloadAllData();
