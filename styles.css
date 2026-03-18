@@ -52,6 +52,10 @@ main {
     padding: 1rem;
 }
 
+#deleteSongCard {
+    margin-top: 1rem;
+}
+
 h2 {
     margin-top: 0;
 }
