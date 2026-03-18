@@ -488,6 +488,9 @@ fieldset {
     }
 
     .card {
+        width: calc(100% + 0.9rem);
+        margin-left: -0.45rem;
+        margin-right: -0.45rem;
         padding: 0.85rem;
     }
 
@@ -560,7 +563,7 @@ fieldset {
     .song-row {
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 0.55rem 0.7rem;
+        padding: 0.55rem 0.6rem;
         margin-bottom: 0.55rem;
         background: #0b1221;
         cursor: pointer;
@@ -714,7 +717,7 @@ fieldset {
         border-top: 0;
         border-radius: 0 0 12px 12px;
         background: #0b1221;
-        padding: 0.15rem 0.7rem 0.6rem;
+        padding: 0.15rem 0.6rem 0.6rem;
     }
 
     .song-row.mobile-collapsible.promotion-target.is-expanded+.vote-detail-row td {
