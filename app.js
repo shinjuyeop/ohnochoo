@@ -237,6 +237,7 @@ async function bootstrap() {
         supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
         setStatus("Supabase 연결 중...");
         await reloadAllData();
+        await syncCoverMapFromApple({ silent: true });
         setStatus("Supabase 연결 완료");
     } catch (error) {
         setStatus(`초기화 실패: ${error.message}`, true);
@@ -353,6 +354,45 @@ function formatShortDate(value) {
     return `${year}.${month}.${day}`;
 }
 
+function getSongCoverKey(title, artist) {
+    return `${String(title ?? "").trim()}|${String(artist ?? "").trim()}`;
+}
+
+const songCoverMap = new Map();
+
+function upsertSongCoverMap(songs) {
+    if (!Array.isArray(songs)) return;
+    for (const song of songs) {
+        const key = getSongCoverKey(song.title, song.artist);
+        const coverImageUrl = typeof song.coverImageUrl === "string" && song.coverImageUrl.trim() ? song.coverImageUrl.trim() : null;
+        if (!key || !coverImageUrl) continue;
+        songCoverMap.set(key, coverImageUrl);
+    }
+}
+
+function getSongCoverImageUrl(song) {
+    const ownCoverImageUrl = typeof song.coverImageUrl === "string" && song.coverImageUrl.trim() ? song.coverImageUrl.trim() : null;
+    if (ownCoverImageUrl) return ownCoverImageUrl;
+    return songCoverMap.get(getSongCoverKey(song.title, song.artist)) ?? null;
+}
+
+function buildSongCellContent(song, titleClassName = "", includeCoverImage = true) {
+    const safeTitle = escapeHtml(song.title);
+    const coverImageUrl = includeCoverImage ? getSongCoverImageUrl(song) : null;
+    const classAttr = titleClassName ? ` class="${titleClassName}"` : "";
+
+    if (!coverImageUrl) {
+        return `<span${classAttr}>${safeTitle}</span>`;
+    }
+
+    return `
+        <div class="song-cell-content">
+            <img class="song-cover-image" src="${escapeHtml(coverImageUrl)}" alt="${safeTitle} 앨범 커버" loading="lazy" />
+            <span${classAttr}>${safeTitle}</span>
+        </div>
+    `;
+}
+
 function isMobileView() {
     return window.matchMedia("(max-width: 760px)").matches;
 }
@@ -381,19 +421,27 @@ function renderSongs() {
         row.className = `song-row${isTarget ? " promotion-target" : ""}${isMutigoeulCandidate ? " mutigoeul-ready" : ""}${isRelease ? " release-target" : ""}${isExpanded ? " is-expanded" : ""}`;
         if (mobileView) {
             row.classList.add("mobile-collapsible");
+            const coverImageUrl = getSongCoverImageUrl(song);
             row.innerHTML = `
-                <td class="mobile-line mobile-top-row">
-                    <div class="mobile-summary-head">
-                        <div class="decision-status">
-                            <span class="decision-pill promote">승격 ${promotedCount}</span>
-                            <span class="decision-pill release">방출 ${releasedCount}</span>
+                <td class="mobile-line mobile-main-cell">
+                    <div class="mobile-song-layout">
+                        ${coverImageUrl ? `<img class="song-cover-image mobile-song-cover" src="${escapeHtml(coverImageUrl)}" alt="${escapeHtml(song.title)} 앨범 커버" loading="lazy" />` : ""}
+                        <div class="mobile-song-meta">
+                            <div class="mobile-top-row">
+                                <div class="mobile-summary-head">
+                                    <div class="decision-status">
+                                        <span class="decision-pill promote">승격 ${promotedCount}</span>
+                                        <span class="decision-pill release">방출 ${releasedCount}</span>
+                                    </div>
+                                    <span class="mobile-date">${formatShortDate(song.createdAt)}</span>
+                                </div>
+                            </div>
+                            ${buildSongCellContent(song, "mobile-title", false)}
+                            <div class="mobile-artist">${escapeHtml(song.artist)}</div>
+                            <div class="mobile-adder">${escapeHtml(song.adder)}</div>
                         </div>
-                        <span class="mobile-date">${formatShortDate(song.createdAt)}</span>
                     </div>
                 </td>
-                <td class="mobile-line mobile-title">${escapeHtml(song.title)}</td>
-                <td class="mobile-line mobile-artist">${escapeHtml(song.artist)}</td>
-                <td class="mobile-line mobile-adder">${escapeHtml(song.adder)}</td>
             `;
 
             row.addEventListener("click", () => {
@@ -407,7 +455,7 @@ function renderSongs() {
         } else {
             row.innerHTML = `
                 <td data-label="날짜">${formatShortDate(song.createdAt)}</td>
-                <td data-label="노래">${escapeHtml(song.title)}</td>
+                <td data-label="노래">${buildSongCellContent(song)}</td>
                 <td data-label="아티스트">${escapeHtml(song.artist)}</td>
                 <td data-label="추가자">${escapeHtml(song.adder)}</td>
                 <td data-label="현황">
@@ -438,7 +486,7 @@ function renderSongs() {
             const detailRow = document.createElement("tr");
             detailRow.className = `vote-detail-row${isTarget ? " promotion-target-detail" : ""}${isMutigoeulCandidate ? " mutigoeul-ready-detail" : ""}${isRelease ? " release-target-detail" : ""}`;
             if (mobileView) {
-                detailRow.innerHTML = `<td colspan="4">${buildSongVoteDetails(songVotes)}</td>`;
+                detailRow.innerHTML = `<td colspan="1">${buildSongVoteDetails(songVotes)}</td>`;
             } else {
                 detailRow.innerHTML = `<td colspan="5">${buildSongVoteDetails(songVotes)}</td>`;
             }
@@ -470,19 +518,27 @@ function renderMutigoeulSongs() {
         row.className = `song-row${isExpanded ? " is-expanded" : ""}`;
         if (mobileView) {
             row.classList.add("mobile-collapsible");
+            const coverImageUrl = getSongCoverImageUrl(song);
             row.innerHTML = `
-                <td class="mobile-line mobile-top-row">
-                    <div class="mobile-summary-head">
-                        <div class="decision-status">
-                            <span class="decision-pill promote">승격 ${promotedCount}</span>
-                            <span class="decision-pill release">방출 ${releasedCount}</span>
+                <td class="mobile-line mobile-main-cell">
+                    <div class="mobile-song-layout">
+                        ${coverImageUrl ? `<img class="song-cover-image mobile-song-cover" src="${escapeHtml(coverImageUrl)}" alt="${escapeHtml(song.title)} 앨범 커버" loading="lazy" />` : ""}
+                        <div class="mobile-song-meta">
+                            <div class="mobile-top-row">
+                                <div class="mobile-summary-head">
+                                    <div class="decision-status">
+                                        <span class="decision-pill promote">승격 ${promotedCount}</span>
+                                        <span class="decision-pill release">방출 ${releasedCount}</span>
+                                    </div>
+                                    <span class="mobile-date">${formatShortDate(song.createdAt)}</span>
+                                </div>
+                            </div>
+                            ${buildSongCellContent(song, "mobile-title", false)}
+                            <div class="mobile-artist">${escapeHtml(song.artist)}</div>
+                            <div class="mobile-adder">${escapeHtml(song.adder)}</div>
                         </div>
-                        <span class="mobile-date">${formatShortDate(song.createdAt)}</span>
                     </div>
                 </td>
-                <td class="mobile-line mobile-title">${escapeHtml(song.title)}</td>
-                <td class="mobile-line mobile-artist">${escapeHtml(song.artist)}</td>
-                <td class="mobile-line mobile-adder">${escapeHtml(song.adder)}</td>
             `;
 
             row.addEventListener("click", () => {
@@ -496,7 +552,7 @@ function renderMutigoeulSongs() {
         } else {
             row.innerHTML = `
                 <td data-label="날짜">${formatShortDate(song.createdAt)}</td>
-                <td data-label="노래">${escapeHtml(song.title)}</td>
+                <td data-label="노래">${buildSongCellContent(song)}</td>
                 <td data-label="아티스트">${escapeHtml(song.artist)}</td>
                 <td data-label="추가자">${escapeHtml(song.adder)}</td>
                 <td data-label="투표">
@@ -521,7 +577,7 @@ function renderMutigoeulSongs() {
             const detailRow = document.createElement("tr");
             detailRow.className = "vote-detail-row";
             if (mobileView) {
-                detailRow.innerHTML = `<td colspan="4">${buildSongVoteDetails(songVotes)}</td>`;
+                detailRow.innerHTML = `<td colspan="1">${buildSongVoteDetails(songVotes)}</td>`;
             } else {
                 detailRow.innerHTML = `<td colspan="5">${buildSongVoteDetails(songVotes)}</td>`;
             }
@@ -708,6 +764,21 @@ const FIXED_APPLE_MUSIC_PLAYLIST_URL = "https://music.apple.com/kr/playlist/o-n0
 
 let fetchedSongsList = []; // 파싱해온 곡 목록 임시 저장
 
+async function syncCoverMapFromApple({ silent = false } = {}) {
+    const response = await fetchWithTimeout(`/api/fetch-playlist?url=${encodeURIComponent(FIXED_APPLE_MUSIC_PLAYLIST_URL)}`, 10000);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "알 수 없는 오류");
+    if (!Array.isArray(data.songs) || data.songs.length === 0) return;
+
+    upsertSongCoverMap(data.songs);
+    renderSongs();
+    renderMutigoeulSongs();
+
+    if (!silent) {
+        showFetchStatus(`총 ${data.songs.length}곡의 커버 정보를 동기화했습니다.`, false, "#86efac");
+    }
+}
+
 // 상태 메시지 띄워주는 함수
 function showFetchStatus(message, isError = false, customColor = "") {
     appleMusicStatus.style.display = "block";
@@ -734,9 +805,19 @@ if (fetchAppleMusicBtn) {
             if (!response.ok) throw new Error(data.error || "알 수 없는 오류");
             if (!data.songs || data.songs.length === 0) throw new Error("곡을 찾지 못했습니다.");
 
+            upsertSongCoverMap(data.songs);
+            renderSongs();
+            renderMutigoeulSongs();
+
             // 이미 DB에 있는 곡 필터링 (중복 방지)
             const existingSongs = new Set(state.songs.map(s => `${s.title}|${s.artist}`));
-            fetchedSongsList = data.songs.filter(s => !existingSongs.has(`${s.title}|${s.artist}`));
+            fetchedSongsList = data.songs
+                .filter(s => !existingSongs.has(`${s.title}|${s.artist}`))
+                .map((song) => ({
+                    title: song.title,
+                    artist: song.artist,
+                    coverImageUrl: song.coverImageUrl ?? null,
+                }));
 
             if (fetchedSongsList.length === 0) {
                 showFetchStatus(`불러온 ${data.songs.length}곡이 모두 이미 오노추에 추가되어 있습니다!`, false, "#86efac");

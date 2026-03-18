@@ -28,13 +28,54 @@ module.exports = async (req, res) => {
         const parsedData = JSON.parse(scriptContent);
         const songs = [];
 
+        function resolveArtworkUrl(artwork) {
+            if (!artwork || typeof artwork !== 'object') return null;
+
+            const artworkSource = artwork.dictionary && typeof artwork.dictionary === 'object'
+                ? artwork.dictionary
+                : artwork;
+
+            const rawUrl = artworkSource.url;
+            if (typeof rawUrl !== 'string' || !rawUrl.trim()) return null;
+
+            const width = Number.isFinite(Number(artworkSource.width)) ? Number(artworkSource.width) : 300;
+            const height = Number.isFinite(Number(artworkSource.height)) ? Number(artworkSource.height) : 300;
+
+            return rawUrl
+                .replace('{w}', String(width || 300))
+                .replace('{h}', String(height || 300))
+                .replace('{f}', 'jpg');
+        }
+
+        function resolveSongFields(obj) {
+            if (!obj || typeof obj !== 'object') {
+                return { title: null, artist: null, artwork: null };
+            }
+
+            const attributes = obj.attributes && typeof obj.attributes === 'object' ? obj.attributes : null;
+
+            const title = obj.title || obj.name || attributes?.title || attributes?.name || null;
+            const artist = obj.artistName || obj.artist || attributes?.artistName || attributes?.artist || null;
+            const artwork = obj.artwork || attributes?.artwork || null;
+
+            return { title, artist, artwork };
+        }
+
         function findSongs(obj) {
             if (!obj || typeof obj !== 'object') return;
-            if (obj.title && obj.artistName) {
-                if (obj.kind === 'song' || obj.playParams || obj.artwork) {
-                    const isDuplicate = songs.some(s => s.title === obj.title && s.artist === obj.artistName);
-                    if (!isDuplicate) {
-                        songs.push({ title: obj.title, artist: obj.artistName });
+            const { title, artist, artwork } = resolveSongFields(obj);
+            if (title && artist) {
+                if (obj.kind === 'song' || obj.playParams || artwork || obj.attributes) {
+                    const coverImageUrl = resolveArtworkUrl(artwork);
+                    const existingSong = songs.find(s => s.title === title && s.artist === artist);
+                    if (!existingSong) {
+                        songs.push({
+                            title,
+                            artist,
+                            coverImageUrl,
+                        });
+                    } else if (!existingSong.coverImageUrl && coverImageUrl) {
+                        existingSong.coverImageUrl = coverImageUrl;
                     }
                 }
             }

@@ -162,6 +162,38 @@ td {
     word-break: break-word;
 }
 
+.song-cell-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    justify-content: flex-start;
+}
+
+.song-cover-image {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.mobile-song-layout {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.mobile-song-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.mobile-song-cover {
+    width: 4.75rem;
+    height: 4.75rem;
+    margin-top: 0;
+}
+
 fieldset {
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -588,8 +620,12 @@ fieldset {
         content: none;
     }
 
+    .song-row.mobile-collapsible .mobile-main-cell {
+        padding-top: 0.05rem;
+    }
+
     .song-row.mobile-collapsible .mobile-top-row {
-        padding-bottom: 0.2rem;
+        padding-bottom: 0.15rem;
     }
 
     .song-row.mobile-collapsible .mobile-summary-head {
@@ -617,10 +653,15 @@ fieldset {
     }
 
     .song-row.mobile-collapsible .mobile-title {
+        display: block;
         font-size: 1.03rem;
         font-weight: 650;
         line-height: 1.28;
         padding-top: 0.05rem;
+    }
+
+    .song-row.mobile-collapsible .mobile-title .song-cover-image {
+        display: none;
     }
 
     .song-row.mobile-collapsible .mobile-artist,
