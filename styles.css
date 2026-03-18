@@ -484,14 +484,20 @@ fieldset {
     }
 
     main {
+        width: min(1100px, 94vw);
+        margin: 0 auto;
         padding-inline: 0.7rem;
     }
 
     .card {
-        width: calc(100% + 0.9rem);
-        margin-left: -0.45rem;
-        margin-right: -0.45rem;
         padding: 0.85rem;
+    }
+
+    .playlist-card {
+        width: 100vw;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        border-radius: 0;
     }
 
     .inline-form {
