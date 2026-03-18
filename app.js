@@ -412,7 +412,7 @@ function buildStatusActionsContent(promotedCount, releasedCount, isExpanded) {
                 <span class="decision-pill promote">승격 ${promotedCount}</span>
                 <span class="decision-pill release">방출 ${releasedCount}</span>
             </div>
-            <button type="button" class="toggle-votes-btn">${isExpanded ? "숨기기" : "투표 보기"}</button>
+            <button type="button" class="toggle-votes-btn">${isExpanded ? "숨기기" : "평가 보기"}</button>
         </div>
     `;
 }
