@@ -397,6 +397,25 @@ function isMobileView() {
     return window.matchMedia("(max-width: 760px)").matches;
 }
 
+function toggleMobileDetailRow({ row, songId, songVotes, detailRowClassName }) {
+    const nextRow = row.nextElementSibling;
+    const hasDetailRow = nextRow && nextRow.classList.contains("vote-detail-row");
+
+    if (hasDetailRow) {
+        nextRow.remove();
+        row.classList.remove("is-expanded");
+        expandedSongIds.delete(songId);
+        return;
+    }
+
+    const detailRow = document.createElement("tr");
+    detailRow.className = detailRowClassName;
+    detailRow.innerHTML = `<td colspan="1">${buildSongVoteDetails(songVotes)}</td>`;
+    row.insertAdjacentElement("afterend", detailRow);
+    row.classList.add("is-expanded");
+    expandedSongIds.add(songId);
+}
+
 function renderSongs() {
     songTableBody.innerHTML = "";
     const onochuSongs = getOnochuSongs();
@@ -416,6 +435,7 @@ function renderSongs() {
         const isMutigoeulCandidate = isMutigoeulReady(song, promotedCount, releasedCount, nowMs);
         const isRelease = isReleaseTarget(song, promotedCount, releasedCount, nowMs);
         const isExpanded = expandedSongIds.has(song.id);
+        const detailRowClassName = `vote-detail-row${isTarget ? " promotion-target-detail" : ""}${isMutigoeulCandidate ? " mutigoeul-ready-detail" : ""}${isRelease ? " release-target-detail" : ""}`;
 
         const row = document.createElement("tr");
         row.className = `song-row${isTarget ? " promotion-target" : ""}${isMutigoeulCandidate ? " mutigoeul-ready" : ""}${isRelease ? " release-target" : ""}${isExpanded ? " is-expanded" : ""}`;
@@ -425,7 +445,7 @@ function renderSongs() {
             row.innerHTML = `
                 <td class="mobile-line mobile-main-cell">
                     <div class="mobile-song-layout">
-                        ${coverImageUrl ? `<img class="song-cover-image mobile-song-cover" src="${escapeHtml(coverImageUrl)}" alt="${escapeHtml(song.title)} 앨범 커버" loading="lazy" />` : ""}
+                        ${coverImageUrl ? `<img class="song-cover-image mobile-song-cover" src="${escapeHtml(coverImageUrl)}" alt="${escapeHtml(song.title)} 앨범 커버" loading="eager" />` : ""}
                         <div class="mobile-song-meta">
                             <div class="mobile-top-row">
                                 <div class="mobile-summary-head">
@@ -445,12 +465,12 @@ function renderSongs() {
             `;
 
             row.addEventListener("click", () => {
-                if (expandedSongIds.has(song.id)) {
-                    expandedSongIds.delete(song.id);
-                } else {
-                    expandedSongIds.add(song.id);
-                }
-                renderSongs();
+                toggleMobileDetailRow({
+                    row,
+                    songId: song.id,
+                    songVotes,
+                    detailRowClassName,
+                });
             });
         } else {
             row.innerHTML = `
@@ -484,7 +504,7 @@ function renderSongs() {
 
         if (isExpanded) {
             const detailRow = document.createElement("tr");
-            detailRow.className = `vote-detail-row${isTarget ? " promotion-target-detail" : ""}${isMutigoeulCandidate ? " mutigoeul-ready-detail" : ""}${isRelease ? " release-target-detail" : ""}`;
+            detailRow.className = detailRowClassName;
             if (mobileView) {
                 detailRow.innerHTML = `<td colspan="1">${buildSongVoteDetails(songVotes)}</td>`;
             } else {
@@ -513,6 +533,7 @@ function renderMutigoeulSongs() {
         const promotedCount = songVotes.filter((vote) => vote.decision === "승격").length;
         const releasedCount = songVotes.filter((vote) => vote.decision === "방출").length;
         const isExpanded = expandedSongIds.has(song.id);
+        const detailRowClassName = "vote-detail-row";
 
         const row = document.createElement("tr");
         row.className = `song-row${isExpanded ? " is-expanded" : ""}`;
@@ -522,7 +543,7 @@ function renderMutigoeulSongs() {
             row.innerHTML = `
                 <td class="mobile-line mobile-main-cell">
                     <div class="mobile-song-layout">
-                        ${coverImageUrl ? `<img class="song-cover-image mobile-song-cover" src="${escapeHtml(coverImageUrl)}" alt="${escapeHtml(song.title)} 앨범 커버" loading="lazy" />` : ""}
+                        ${coverImageUrl ? `<img class="song-cover-image mobile-song-cover" src="${escapeHtml(coverImageUrl)}" alt="${escapeHtml(song.title)} 앨범 커버" loading="eager" />` : ""}
                         <div class="mobile-song-meta">
                             <div class="mobile-top-row">
                                 <div class="mobile-summary-head">
@@ -542,12 +563,12 @@ function renderMutigoeulSongs() {
             `;
 
             row.addEventListener("click", () => {
-                if (expandedSongIds.has(song.id)) {
-                    expandedSongIds.delete(song.id);
-                } else {
-                    expandedSongIds.add(song.id);
-                }
-                renderMutigoeulSongs();
+                toggleMobileDetailRow({
+                    row,
+                    songId: song.id,
+                    songVotes,
+                    detailRowClassName,
+                });
             });
         } else {
             row.innerHTML = `
@@ -575,7 +596,7 @@ function renderMutigoeulSongs() {
 
         if (isExpanded) {
             const detailRow = document.createElement("tr");
-            detailRow.className = "vote-detail-row";
+            detailRow.className = detailRowClassName;
             if (mobileView) {
                 detailRow.innerHTML = `<td colspan="1">${buildSongVoteDetails(songVotes)}</td>`;
             } else {
