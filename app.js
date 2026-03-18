@@ -24,6 +24,8 @@ const songTableBody = document.getElementById("songTableBody");
 const voteSongId = document.getElementById("voteSongId");
 const voterName = document.getElementById("voterName");
 const voteForm = document.getElementById("voteForm");
+const voteRegisterCard = document.getElementById("voteRegisterCard");
+const voteFormHome = document.getElementById("voteFormHome");
 const decisionValue = document.getElementById("decisionValue");
 const decisionButtons = document.querySelectorAll(".decision-toggle-btn");
 const ratingPicker = document.getElementById("ratingPicker");
@@ -36,6 +38,12 @@ const mutigoeulForm = document.getElementById("mutigoeulForm");
 const mutigoeulSongId = document.getElementById("mutigoeulSongId");
 const mutigoeulTableBody = document.getElementById("mutigoeulTableBody");
 const toggleManualAddBtn = document.getElementById("toggleManualAddBtn");
+
+let inlineVoteSongId = null;
+
+if (voteRegisterCard) {
+    voteRegisterCard.hidden = true;
+}
 
 for (const button of decisionButtons) {
     button.addEventListener("click", () => {
@@ -178,6 +186,10 @@ voteForm.addEventListener("submit", async (event) => {
         setStatus(`투표 저장 실패: ${error.message}`, true);
         return;
     }
+
+    // Close inline evaluation panel after a successful save.
+    inlineVoteSongId = null;
+    restoreVoteCardHome();
 
     await reloadAllData();
     voteForm.reset();
@@ -393,6 +405,35 @@ function buildSongCellContent(song, titleClassName = "", includeCoverImage = tru
     `;
 }
 
+function buildStatusActionsContent(promotedCount, releasedCount, isExpanded) {
+    return `
+        <div class="status-actions">
+            <div class="decision-status">
+                <span class="decision-pill promote">승격 ${promotedCount}</span>
+                <span class="decision-pill release">방출 ${releasedCount}</span>
+            </div>
+            <button type="button" class="toggle-votes-btn">${isExpanded ? "숨기기" : "투표 보기"}</button>
+        </div>
+    `;
+}
+
+function restoreVoteCardHome() {
+    if (!voteRegisterCard || !voteFormHome) return;
+    voteRegisterCard.classList.remove("inline-vote-card");
+    voteRegisterCard.hidden = true;
+    if (voteRegisterCard.parentElement !== voteFormHome) {
+        voteFormHome.appendChild(voteRegisterCard);
+    }
+}
+
+function mountVoteCardInline(mountTarget, songId) {
+    if (!voteRegisterCard || !mountTarget) return;
+    mountTarget.appendChild(voteRegisterCard);
+    voteRegisterCard.hidden = false;
+    voteRegisterCard.classList.add("inline-vote-card");
+    voteSongId.value = songId;
+}
+
 function isMobileView() {
     return window.matchMedia("(max-width: 760px)").matches;
 }
@@ -421,6 +462,7 @@ function renderSongs() {
     const onochuSongs = getOnochuSongs();
     const nowMs = Date.now();
     const mobileView = isMobileView();
+    let mountedInlineVoteCard = false;
 
     if (onochuSongs.length === 0) {
         songTableBody.innerHTML = "<tr><td colspan='5' class='muted'>아직 추가된 노래가 없습니다.</td></tr>";
@@ -465,12 +507,12 @@ function renderSongs() {
             `;
 
             row.addEventListener("click", () => {
-                toggleMobileDetailRow({
-                    row,
-                    songId: song.id,
-                    songVotes,
-                    detailRowClassName,
-                });
+                if (expandedSongIds.has(song.id)) {
+                    expandedSongIds.delete(song.id);
+                } else {
+                    expandedSongIds.add(song.id);
+                }
+                renderSongs();
             });
         } else {
             row.innerHTML = `
@@ -479,13 +521,7 @@ function renderSongs() {
                 <td data-label="아티스트">${escapeHtml(song.artist)}</td>
                 <td data-label="추가자">${escapeHtml(song.adder)}</td>
                 <td data-label="현황">
-                    <div class="status-actions">
-                        <div class="decision-status">
-                            <span class="decision-pill promote">승격 ${promotedCount}</span>
-                            <span class="decision-pill release">방출 ${releasedCount}</span>
-                        </div>
-                        <button type="button" class="toggle-votes-btn">${isExpanded ? "숨기기" : "투표 보기"}</button>
-                    </div>
+                    ${buildStatusActionsContent(promotedCount, releasedCount, isExpanded)}
                 </td>
             `;
 
@@ -506,12 +542,42 @@ function renderSongs() {
             const detailRow = document.createElement("tr");
             detailRow.className = detailRowClassName;
             if (mobileView) {
-                detailRow.innerHTML = `<td colspan="1">${buildSongVoteDetails(songVotes)}</td>`;
+                detailRow.innerHTML = `<td colspan="1">${buildSongVoteDetails(songVotes, { enableInlineVote: true, songId: song.id })}</td>`;
             } else {
-                detailRow.innerHTML = `<td colspan="5">${buildSongVoteDetails(songVotes)}</td>`;
+                detailRow.innerHTML = `<td colspan="5">${buildSongVoteDetails(songVotes, { enableInlineVote: true, songId: song.id })}</td>`;
             }
             songTableBody.appendChild(detailRow);
+
+            const evaluateButton = detailRow.querySelector(".inline-evaluate-btn");
+            if (evaluateButton) {
+                evaluateButton.addEventListener("click", () => {
+                    if (inlineVoteSongId === song.id) {
+                        inlineVoteSongId = null;
+                        restoreVoteCardHome();
+                        renderSongs();
+                        return;
+                    }
+
+                    inlineVoteSongId = song.id;
+                    renderSongs();
+                });
+            }
+
+            if (inlineVoteSongId === song.id) {
+                const mountTarget = detailRow.querySelector(".inline-vote-card-mount");
+                if (mountTarget) {
+                    mountVoteCardInline(mountTarget, song.id);
+                    mountedInlineVoteCard = true;
+                }
+            }
         }
+    }
+
+    if (!mountedInlineVoteCard) {
+        if (inlineVoteSongId) {
+            inlineVoteSongId = null;
+        }
+        restoreVoteCardHome();
     }
 }
 
@@ -576,8 +642,8 @@ function renderMutigoeulSongs() {
                 <td data-label="노래">${buildSongCellContent(song)}</td>
                 <td data-label="아티스트">${escapeHtml(song.artist)}</td>
                 <td data-label="추가자">${escapeHtml(song.adder)}</td>
-                <td data-label="투표">
-                    <button type="button" class="toggle-votes-btn">${isExpanded ? "숨기기" : "투표 보기"}</button>
+                <td data-label="현황">
+                    ${buildStatusActionsContent(promotedCount, releasedCount, isExpanded)}
                 </td>
             `;
 
@@ -607,14 +673,25 @@ function renderMutigoeulSongs() {
     }
 }
 
-function buildSongVoteDetails(songVotes) {
+function buildSongVoteDetails(songVotes, options = {}) {
+    const { enableInlineVote = false, songId = "" } = options;
+    const inlineVoteButtonBlock = enableInlineVote
+        ? `
+            <div class="vote-cta-wrap">
+                <button type="button" class="inline-evaluate-btn">${inlineVoteSongId === songId ? "평가 창 닫기" : "평가하기"}</button>
+                <div class="inline-vote-card-mount"></div>
+            </div>
+        `
+        : "";
+
     if (songVotes.length === 0) {
-        return "<p class='muted'>아직 이 노래에 대한 투표가 없습니다.</p>";
+        return `${inlineVoteButtonBlock}<p class='muted'>아직 이 노래에 대한 투표가 없습니다.</p>`;
     }
 
     const sortedVotes = [...songVotes].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    return `
+        return `
+            ${inlineVoteButtonBlock}
             <div class="vote-inline-list">
                 ${sortedVotes
             .map(
@@ -632,33 +709,38 @@ function buildSongVoteDetails(songVotes) {
 }
 
 function renderVoteSongOptions() {
-    voteSongId.innerHTML = "";
     const onochuSongs = getOnochuSongs();
 
-    const placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = "노래를 선택하세요";
-    voteSongId.appendChild(placeholder);
+    if (!inlineVoteSongId) {
+        voteSongId.value = "";
+        return;
+    }
 
-    for (const song of onochuSongs) {
-        const option = document.createElement("option");
-        option.value = song.id;
-        option.textContent = `${song.title} - ${song.artist} (${song.adder})`;
-        voteSongId.appendChild(option);
+    if (inlineVoteSongId && onochuSongs.some((song) => song.id === inlineVoteSongId)) {
+        voteSongId.value = inlineVoteSongId;
+    } else {
+        inlineVoteSongId = null;
+        voteSongId.value = "";
     }
 }
 
 function renderDeleteSongOptions() {
     deleteSongId.innerHTML = "";
     const allSongs = state.songs;
+    const onochuSongs = getOnochuSongs();
     const mutigoeulSongIdSet = getMutigoeulSongIdSet();
+    const songsById = new Map(state.songs.map((song) => [song.id, song]));
+    const mutigoeulSongs = state.mutigoeulSongs
+        .map((item) => songsById.get(item.songId))
+        .filter(Boolean);
+    const orderedSongs = [...onochuSongs, ...mutigoeulSongs];
 
     const placeholder = document.createElement("option");
     placeholder.value = "";
     placeholder.textContent = allSongs.length === 0 ? "삭제할 노래가 없습니다" : "삭제할 노래를 선택하세요";
     deleteSongId.appendChild(placeholder);
 
-    for (const song of allSongs) {
+    for (const song of orderedSongs) {
         const option = document.createElement("option");
         option.value = song.id;
         const isMutigoeul = mutigoeulSongIdSet.has(song.id);
@@ -850,7 +932,7 @@ if (fetchAppleMusicBtn) {
                 }));
 
             if (fetchedSongsList.length === 0) {
-                showFetchStatus(`오노추 ${onochuSongs.length}곡은 모두 이미 추가되어 있고, 무티고을 ${mutigoeulSongs.length}곡 커버도 동기화했습니다.`, false, "#86efac");
+                showFetchStatus(`오노추 ${onochuSongs.length}곡은 모두 이미 추가되어 있습니다.`, false, "#86efac");
                 return;
             }
 

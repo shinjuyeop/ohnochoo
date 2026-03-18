@@ -74,22 +74,18 @@
             </div>
         </section>
 
-        <section class="card">
+        <div id="voteFormHome"></div>
+        <section id="voteRegisterCard" class="card">
             <h2>투표 등록</h2>
             <form id="voteForm" class="grid-form">
-                <label>
-                    평가할 노래
-                    <select id="voteSongId" required></select>
-                </label>
-                <label>
-                    평가자
+                <input id="voteSongId" type="hidden" required />
+                <label aria-label="평가자">
                     <select id="voterName" required>
                         <option value="">평가자를 선택하세요</option>
                     </select>
                 </label>
 
-                <fieldset>
-                    <legend>평가</legend>
+                <fieldset aria-label="평가">
                     <div class="vote-result-controls">
                         <div class="decision-toggle-group" role="group" aria-label="평가 선택">
                             <button type="button" class="decision-toggle-btn" data-value="승격">승격</button>
@@ -110,12 +106,11 @@
                     <input id="decisionValue" type="hidden" required />
                 </fieldset>
 
-                <label>
-                    이유
+                <label aria-label="이유">
                     <textarea id="reason" rows="4" required placeholder="왜 승격/방출인지 적어주세요"></textarea>
                 </label>
 
-                <button type="submit">투표 저장</button>
+                <button type="submit">평가 저장</button>
             </form>
         </section>
 

@@ -147,11 +147,11 @@ table {
 }
 
 .playlist-table .col-adder {
-    width: 13%;
+    width: 11%;
 }
 
 .playlist-table .col-action {
-    width: 18%;
+    width: 20%;
 }
 
 th,
@@ -415,6 +415,33 @@ fieldset {
     margin: 0.35rem 0 0;
 }
 
+.vote-cta-wrap {
+    display: grid;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.inline-vote-card-mount:empty {
+    display: none;
+}
+
+.inline-evaluate-btn {
+    width: 100%;
+    border-radius: 10px;
+}
+
+.inline-vote-card-mount {
+    width: 100%;
+}
+
+.inline-vote-card {
+    margin-top: 0;
+}
+
+.inline-vote-card h2 {
+    display: none;
+}
+
 .muted {
     color: var(--muted);
 }
@@ -551,6 +578,10 @@ fieldset {
 
     #mutigoeulForm+.table-wrap {
         margin-top: 0.5rem;
+    }
+
+    #mutigoeulForm.grid-form {
+        gap: 0.5rem;
     }
 
     table,
