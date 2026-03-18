@@ -760,22 +760,33 @@ const fetchAppleMusicBtn = document.getElementById("fetchAppleMusicBtn");
 const appleMusicStatus = document.getElementById("appleMusicStatus");
 const fetchedSongsContainer = document.getElementById("fetchedSongsContainer");
 const fetchedSongSelect = document.getElementById("fetchedSongSelect");
-const FIXED_APPLE_MUSIC_PLAYLIST_URL = "https://music.apple.com/kr/playlist/o-n0-ch0o%24e/pl.u-Ymb09optgrM3117";
+const ONOCHU_APPLE_MUSIC_PLAYLIST_URL = "https://music.apple.com/kr/playlist/o-n0-ch0o%24e/pl.u-Ymb09optgrM3117";
+const MUTIGOEUL_APPLE_MUSIC_PLAYLIST_URL = "https://music.apple.com/kr/playlist/muti9oeul/pl.u-06oxDW6uWPKDjZe";
 
 let fetchedSongsList = []; // 파싱해온 곡 목록 임시 저장
 
-async function syncCoverMapFromApple({ silent = false } = {}) {
-    const response = await fetchWithTimeout(`/api/fetch-playlist?url=${encodeURIComponent(FIXED_APPLE_MUSIC_PLAYLIST_URL)}`, 10000);
+async function fetchPlaylistSongs(url) {
+    const response = await fetchWithTimeout(`/api/fetch-playlist?url=${encodeURIComponent(url)}`, 10000);
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "알 수 없는 오류");
-    if (!Array.isArray(data.songs) || data.songs.length === 0) return;
+    return Array.isArray(data.songs) ? data.songs : [];
+}
 
-    upsertSongCoverMap(data.songs);
+async function syncCoverMapFromApple({ silent = false } = {}) {
+    const [onochuSongs, mutigoeulSongs] = await Promise.all([
+        fetchPlaylistSongs(ONOCHU_APPLE_MUSIC_PLAYLIST_URL),
+        fetchPlaylistSongs(MUTIGOEUL_APPLE_MUSIC_PLAYLIST_URL),
+    ]);
+
+    const allSongs = [...onochuSongs, ...mutigoeulSongs];
+    if (allSongs.length === 0) return;
+
+    upsertSongCoverMap(allSongs);
     renderSongs();
     renderMutigoeulSongs();
 
     if (!silent) {
-        showFetchStatus(`총 ${data.songs.length}곡의 커버 정보를 동기화했습니다.`, false, "#86efac");
+        showFetchStatus(`오노추 ${onochuSongs.length}곡 + 무티고을 ${mutigoeulSongs.length}곡 커버를 동기화했습니다.`, false, "#86efac");
     }
 }
 
@@ -791,27 +802,25 @@ function showFetchStatus(message, isError = false, customColor = "") {
 // [불러오기] 버튼 클릭 이벤트
 if (fetchAppleMusicBtn) {
     fetchAppleMusicBtn.addEventListener("click", async () => {
-        const url = FIXED_APPLE_MUSIC_PLAYLIST_URL;
-
         showFetchStatus("Apple Music에서 곡 정보를 가져오는 중...", false);
         fetchedSongsContainer.style.display = "none";
         fetchedSongSelect.innerHTML = '<option value="">곡을 선택하면 아래 폼에 자동 입력됩니다</option>';
 
         try {
-            // Vercel 서버리스 API로 요청 보내기
-            const response = await fetchWithTimeout(`/api/fetch-playlist?url=${encodeURIComponent(url)}`, 10000);
-            const data = await response.json();
+            const [onochuSongs, mutigoeulSongs] = await Promise.all([
+                fetchPlaylistSongs(ONOCHU_APPLE_MUSIC_PLAYLIST_URL),
+                fetchPlaylistSongs(MUTIGOEUL_APPLE_MUSIC_PLAYLIST_URL),
+            ]);
 
-            if (!response.ok) throw new Error(data.error || "알 수 없는 오류");
-            if (!data.songs || data.songs.length === 0) throw new Error("곡을 찾지 못했습니다.");
+            if (onochuSongs.length === 0) throw new Error("오노추 플레이리스트 곡을 찾지 못했습니다.");
 
-            upsertSongCoverMap(data.songs);
+            upsertSongCoverMap([...onochuSongs, ...mutigoeulSongs]);
             renderSongs();
             renderMutigoeulSongs();
 
             // 이미 DB에 있는 곡 필터링 (중복 방지)
             const existingSongs = new Set(state.songs.map(s => `${s.title}|${s.artist}`));
-            fetchedSongsList = data.songs
+            fetchedSongsList = onochuSongs
                 .filter(s => !existingSongs.has(`${s.title}|${s.artist}`))
                 .map((song) => ({
                     title: song.title,
@@ -820,7 +829,7 @@ if (fetchAppleMusicBtn) {
                 }));
 
             if (fetchedSongsList.length === 0) {
-                showFetchStatus(`불러온 ${data.songs.length}곡이 모두 이미 오노추에 추가되어 있습니다!`, false, "#86efac");
+                showFetchStatus(`오노추 ${onochuSongs.length}곡은 모두 이미 추가되어 있고, 무티고을 ${mutigoeulSongs.length}곡 커버도 동기화했습니다.`, false, "#86efac");
                 return;
             }
 
@@ -833,7 +842,7 @@ if (fetchAppleMusicBtn) {
             }
 
             fetchedSongsContainer.style.display = "block";
-            showFetchStatus(`총 ${data.songs.length}곡 중 중복 제외 ${fetchedSongsList.length}곡을 불러왔습니다.`, false, "#86efac");
+            showFetchStatus(`오노추 ${onochuSongs.length}곡 중 중복 제외 ${fetchedSongsList.length}곡을 불러왔고, 무티고을 ${mutigoeulSongs.length}곡 커버도 동기화했습니다.`, false, "#86efac");
 
         } catch (error) {
             showFetchStatus(`실패: ${error.message} (아래 폼에서 수동으로 입력해주세요)`, true);
