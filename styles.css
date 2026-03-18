@@ -451,6 +451,14 @@ fieldset {
         min-width: 0;
     }
 
+    #mutigoeulForm.grid-form {
+        gap: 0.6rem;
+    }
+
+    #mutigoeulForm+.table-wrap {
+        margin-top: 0.65rem;
+    }
+
     .playlist-table th:nth-child(1),
     .playlist-table .song-row td:nth-child(1) {
         white-space: nowrap;
