@@ -440,6 +440,7 @@ fieldset {
 
 .inline-vote-card {
     margin-top: 0;
+    border-color: var(--accent);
 }
 
 .inline-vote-card h2 {
