@@ -690,7 +690,7 @@ function buildSongVoteDetails(songVotes, options = {}) {
 
     const sortedVotes = [...songVotes].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-        return `
+    return `
             ${inlineVoteButtonBlock}
             <div class="vote-inline-list">
                 ${sortedVotes
@@ -889,7 +889,7 @@ async function syncCoverMapFromApple({ silent = false } = {}) {
     renderMutigoeulSongs();
 
     if (!silent) {
-        showFetchStatus(`오노추 ${onochuSongs.length}곡 + 무티고을 ${mutigoeulSongs.length}곡 커버를 동기화했습니다.`, false, "#86efac");
+        showFetchStatus(`오노추 ${onochuSongs.length}곡을 동기화했습니다.`, false, "#86efac");
     }
 }
 
