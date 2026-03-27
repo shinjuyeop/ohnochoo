@@ -357,8 +357,8 @@ fieldset {
 }
 
 .decision-pill.hold {
-    background: rgba(125, 211, 252, 0.18);
-    border-color: rgba(125, 211, 252, 0.55);
+    background: rgba(148, 163, 184, 0.12);
+    border-color: rgba(148, 163, 184, 0.4);
 }
 
 .toggle-votes-btn {
