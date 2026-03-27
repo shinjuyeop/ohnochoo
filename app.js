@@ -405,12 +405,13 @@ function buildSongCellContent(song, titleClassName = "", includeCoverImage = tru
     `;
 }
 
-function buildStatusActionsContent(promotedCount, releasedCount, isExpanded) {
+function buildStatusActionsContent(promotedCount, releasedCount, heldCount, isExpanded) {
     return `
         <div class="status-actions">
             <div class="decision-status">
                 <span class="decision-pill promote">승격 ${promotedCount}</span>
                 <span class="decision-pill release">방출 ${releasedCount}</span>
+                <span class="decision-pill hold">보류 ${heldCount}</span>
             </div>
             <button type="button" class="toggle-votes-btn">${isExpanded ? "숨기기" : "평가 보기"}</button>
         </div>
@@ -473,6 +474,7 @@ function renderSongs() {
         const songVotes = state.votes.filter((vote) => vote.songId === song.id);
         const promotedCount = songVotes.filter((vote) => vote.decision === "승격").length;
         const releasedCount = songVotes.filter((vote) => vote.decision === "방출").length;
+        const heldCount = songVotes.filter((vote) => vote.decision === "보류").length;
         const isTarget = isPromotionTarget(promotedCount, releasedCount);
         const isMutigoeulCandidate = isMutigoeulReady(song, promotedCount, releasedCount, nowMs);
         const isRelease = isReleaseTarget(song, promotedCount, releasedCount, nowMs);
@@ -494,6 +496,7 @@ function renderSongs() {
                                     <div class="decision-status">
                                         <span class="decision-pill promote">승격 ${promotedCount}</span>
                                         <span class="decision-pill release">방출 ${releasedCount}</span>
+                                        <span class="decision-pill hold">보류 ${heldCount}</span>
                                     </div>
                                     <span class="mobile-date">${formatShortDate(song.createdAt)}</span>
                                 </div>
@@ -521,7 +524,7 @@ function renderSongs() {
                 <td data-label="아티스트">${escapeHtml(song.artist)}</td>
                 <td data-label="추가자">${escapeHtml(song.adder)}</td>
                 <td data-label="현황">
-                    ${buildStatusActionsContent(promotedCount, releasedCount, isExpanded)}
+                    ${buildStatusActionsContent(promotedCount, releasedCount, heldCount, isExpanded)}
                 </td>
             `;
 
@@ -598,6 +601,7 @@ function renderMutigoeulSongs() {
         const songVotes = state.votes.filter((vote) => vote.songId === song.id);
         const promotedCount = songVotes.filter((vote) => vote.decision === "승격").length;
         const releasedCount = songVotes.filter((vote) => vote.decision === "방출").length;
+        const heldCount = songVotes.filter((vote) => vote.decision === "보류").length;
         const isExpanded = expandedSongIds.has(song.id);
         const detailRowClassName = "vote-detail-row";
 
@@ -616,6 +620,7 @@ function renderMutigoeulSongs() {
                                     <div class="decision-status">
                                         <span class="decision-pill promote">승격 ${promotedCount}</span>
                                         <span class="decision-pill release">방출 ${releasedCount}</span>
+                                        <span class="decision-pill hold">보류 ${heldCount}</span>
                                     </div>
                                     <span class="mobile-date">${formatShortDate(song.createdAt)}</span>
                                 </div>
@@ -643,7 +648,7 @@ function renderMutigoeulSongs() {
                 <td data-label="아티스트">${escapeHtml(song.artist)}</td>
                 <td data-label="추가자">${escapeHtml(song.adder)}</td>
                 <td data-label="현황">
-                    ${buildStatusActionsContent(promotedCount, releasedCount, isExpanded)}
+                    ${buildStatusActionsContent(promotedCount, releasedCount, heldCount, isExpanded)}
                 </td>
             `;
 

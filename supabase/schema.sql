@@ -18,11 +18,18 @@ create table if not exists public.votes (
   id uuid primary key default gen_random_uuid(),
   "songId" uuid not null references public.songs(id) on delete cascade,
   voter text not null,
-  decision text not null check (decision in ('방출', '승격')),
+  decision text not null check (decision in ('방출', '승격', '보류')),
   rating numeric(2,1) not null default 0 check (rating >= 0 and rating <= 5 and rating * 2 = trunc(rating * 2)),
   reason text not null,
   "createdAt" timestamptz not null default now()
 );
+
+alter table public.votes
+  drop constraint if exists votes_decision_check;
+
+alter table public.votes
+  add constraint votes_decision_check
+  check (decision in ('방출', '승격', '보류'));
 
 alter table public.votes
   add column if not exists rating numeric(2,1) not null default 0;
