@@ -3,6 +3,7 @@ const state = {
     votes: [],
     members: [],
     mutigoeulSongs: [],
+    voteStatsBySongId: new Map(),
 };
 
 const expandedSongIds = new Set();
@@ -295,7 +296,43 @@ async function reloadAllData() {
     state.votes = votesResult.data ?? [];
     state.members = (membersResult.data ?? []).map((member) => member.name);
     state.mutigoeulSongs = mutigoeulResult.data ?? [];
+    state.voteStatsBySongId = buildVoteStatsBySongId(state.votes);
     renderAll();
+}
+
+function buildVoteStatsBySongId(votes) {
+    const statsBySongId = new Map();
+    for (const vote of votes) {
+        const songId = vote.songId;
+        if (!songId) continue;
+
+        let stats = statsBySongId.get(songId);
+        if (!stats) {
+            stats = {
+                votes: [],
+                promotedCount: 0,
+                releasedCount: 0,
+                heldCount: 0,
+            };
+            statsBySongId.set(songId, stats);
+        }
+
+        stats.votes.push(vote);
+        if (vote.decision === "승격") stats.promotedCount += 1;
+        else if (vote.decision === "방출") stats.releasedCount += 1;
+        else if (vote.decision === "보류") stats.heldCount += 1;
+    }
+
+    return statsBySongId;
+}
+
+function getVoteStats(songId) {
+    return state.voteStatsBySongId.get(songId) ?? {
+        votes: [],
+        promotedCount: 0,
+        releasedCount: 0,
+        heldCount: 0,
+    };
 }
 
 async function ensureMember(name) {
@@ -471,10 +508,7 @@ function renderSongs() {
     }
 
     for (const song of onochuSongs) {
-        const songVotes = state.votes.filter((vote) => vote.songId === song.id);
-        const promotedCount = songVotes.filter((vote) => vote.decision === "승격").length;
-        const releasedCount = songVotes.filter((vote) => vote.decision === "방출").length;
-        const heldCount = songVotes.filter((vote) => vote.decision === "보류").length;
+        const { votes: songVotes, promotedCount, releasedCount, heldCount } = getVoteStats(song.id);
         const isTarget = isPromotionTarget(promotedCount, releasedCount);
         const isMutigoeulCandidate = isMutigoeulReady(song, promotedCount, releasedCount, nowMs);
         const isRelease = isReleaseTarget(song, promotedCount, releasedCount, nowMs);
@@ -598,10 +632,7 @@ function renderMutigoeulSongs() {
     for (const mutigoeulSong of state.mutigoeulSongs) {
         const song = songsById.get(mutigoeulSong.songId);
         if (!song) continue;
-        const songVotes = state.votes.filter((vote) => vote.songId === song.id);
-        const promotedCount = songVotes.filter((vote) => vote.decision === "승격").length;
-        const releasedCount = songVotes.filter((vote) => vote.decision === "방출").length;
-        const heldCount = songVotes.filter((vote) => vote.decision === "보류").length;
+        const { votes: songVotes, promotedCount, releasedCount, heldCount } = getVoteStats(song.id);
         const isExpanded = expandedSongIds.has(song.id);
         const detailRowClassName = "vote-detail-row";
 
@@ -762,9 +793,7 @@ function renderMutigoeulSongOptions() {
     const onochuSongs = getOnochuSongs();
     const nowMs = Date.now();
     const promotionEligibleSongs = onochuSongs.filter((song) => {
-        const songVotes = state.votes.filter((vote) => vote.songId === song.id);
-        const promotedCount = songVotes.filter((vote) => vote.decision === "승격").length;
-        const releasedCount = songVotes.filter((vote) => vote.decision === "방출").length;
+        const { promotedCount, releasedCount } = getVoteStats(song.id);
         return isMutigoeulReady(song, promotedCount, releasedCount, nowMs);
     });
 
