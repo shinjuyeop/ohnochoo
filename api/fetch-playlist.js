@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
         }
 
         const parsedData = JSON.parse(scriptContent);
-        const songs = [];
+        const songsByKey = new Map();
 
         function resolveArtworkUrl(artwork) {
             if (!artwork || typeof artwork !== 'object') return null;
@@ -67,9 +67,10 @@ module.exports = async (req, res) => {
             if (title && artist) {
                 if (obj.kind === 'song' || obj.playParams || artwork || obj.attributes) {
                     const coverImageUrl = resolveArtworkUrl(artwork);
-                    const existingSong = songs.find(s => s.title === title && s.artist === artist);
+                    const key = `${title}|${artist}`;
+                    const existingSong = songsByKey.get(key);
                     if (!existingSong) {
-                        songs.push({
+                        songsByKey.set(key, {
                             title,
                             artist,
                             coverImageUrl,
@@ -87,6 +88,7 @@ module.exports = async (req, res) => {
         }
 
         findSongs(parsedData);
+        const songs = Array.from(songsByKey.values());
 
         return res.status(200).json({ songs });
     } catch (error) {
