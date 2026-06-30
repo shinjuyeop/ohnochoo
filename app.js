@@ -2,13 +2,19 @@ const state = {
     songs: [],
     votes: [],
     members: [],
+    memberRecords: [],
     mutigoeulSongs: [],
     voteStatsBySongId: new Map(),
 };
 
 const expandedSongIds = new Set();
+const selectedProfile = {
+    id: localStorage.getItem("selectedMemberId") || "",
+    name: localStorage.getItem("selectedMemberName") || "",
+};
 
 let supabaseClient = null;
+let activeSongFilter = "all";
 
 const songForm = document.getElementById("songForm");
 const songTitle = document.getElementById("songTitle");
@@ -18,6 +24,7 @@ const manualAddContainer = document.getElementById("manualAddContainer");
 
 const memberForm = document.getElementById("memberForm");
 const memberName = document.getElementById("memberName");
+const memberManageCard = document.getElementById("memberManageCard");
 const deleteSongForm = document.getElementById("deleteSongForm");
 const deleteSongId = document.getElementById("deleteSongId");
 
@@ -38,12 +45,129 @@ const statusMessage = document.getElementById("statusMessage");
 const mutigoeulForm = document.getElementById("mutigoeulForm");
 const mutigoeulSongId = document.getElementById("mutigoeulSongId");
 const mutigoeulTableBody = document.getElementById("mutigoeulTableBody");
+const openMutigoeulAddBtn = document.getElementById("openMutigoeulAddBtn");
+const closeMutigoeulAddBtn = document.getElementById("closeMutigoeulAddBtn");
+const mutigoeulAddModal = document.getElementById("mutigoeulAddModal");
 const toggleManualAddBtn = document.getElementById("toggleManualAddBtn");
+const profileSelectScreen = document.getElementById("profileSelectScreen");
+const profileCardList = document.getElementById("profileCardList");
+const profileAddShortcutBtn = document.getElementById("profileAddShortcutBtn");
+const closeMemberManageBtn = document.getElementById("closeMemberManageBtn");
+const profileDashboard = document.getElementById("profileDashboard");
+const currentProfileName = document.getElementById("currentProfileName");
+const changeProfileBtn = document.getElementById("changeProfileBtn");
+const showPendingSongsBtn = document.getElementById("showPendingSongsBtn");
+const showVotedSongsBtn = document.getElementById("showVotedSongsBtn");
+const showMySongsBtn = document.getElementById("showMySongsBtn");
+const openAddSongBtn = document.getElementById("openAddSongBtn");
+const closeAddSongBtn = document.getElementById("closeAddSongBtn");
+const addSongCard = document.getElementById("addSongCard");
+const notificationStatusText = document.getElementById("notificationStatusText");
+const notificationHint = document.getElementById("notificationHint");
+const enableNotificationsBtn = document.getElementById("enableNotificationsBtn");
+const disableNotificationsBtn = document.getElementById("disableNotificationsBtn");
+const sendTestNotificationBtn = document.getElementById("sendTestNotificationBtn");
+const modalScrim = document.getElementById("modalScrim");
+const openRuleInfoBtn = document.getElementById("openRuleInfoBtn");
+const closeRuleInfoBtn = document.getElementById("closeRuleInfoBtn");
+const ruleInfoModal = document.getElementById("ruleInfoModal");
+const filterTabs = document.querySelectorAll(".filter-tab");
 
 let inlineVoteSongId = null;
 
 if (voteRegisterCard) {
     voteRegisterCard.hidden = true;
+}
+
+if (profileAddShortcutBtn) {
+    profileAddShortcutBtn.addEventListener("click", () => {
+        openOverlayPanel(memberManageCard);
+        memberName?.focus();
+    });
+}
+
+if (closeMemberManageBtn) {
+    closeMemberManageBtn.addEventListener("click", closeOverlayPanels);
+}
+
+if (changeProfileBtn) {
+    changeProfileBtn.addEventListener("click", () => {
+        clearSelectedProfile();
+        renderAll();
+    });
+}
+
+if (showPendingSongsBtn) {
+    showPendingSongsBtn.addEventListener("click", () => {
+        setActiveSongFilter("my-pending");
+        document.querySelector(".playlist-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+}
+
+if (showVotedSongsBtn) {
+    showVotedSongsBtn.addEventListener("click", () => {
+        setActiveSongFilter("my-voted");
+        document.querySelector(".playlist-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+}
+
+if (showMySongsBtn) {
+    showMySongsBtn.addEventListener("click", () => {
+        setActiveSongFilter("my-added");
+        document.querySelector(".playlist-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+}
+
+if (openAddSongBtn) {
+    openAddSongBtn.addEventListener("click", () => {
+        openOverlayPanel(addSongCard);
+    });
+}
+
+if (enableNotificationsBtn) {
+    enableNotificationsBtn.addEventListener("click", enableNotifications);
+}
+
+if (disableNotificationsBtn) {
+    disableNotificationsBtn.addEventListener("click", disableNotifications);
+}
+
+if (sendTestNotificationBtn) {
+    sendTestNotificationBtn.addEventListener("click", sendTestNotification);
+}
+
+if (openMutigoeulAddBtn) {
+    openMutigoeulAddBtn.addEventListener("click", () => {
+        openOverlayPanel(mutigoeulAddModal);
+    });
+}
+
+if (closeMutigoeulAddBtn) {
+    closeMutigoeulAddBtn.addEventListener("click", closeOverlayPanels);
+}
+
+if (closeAddSongBtn) {
+    closeAddSongBtn.addEventListener("click", closeOverlayPanels);
+}
+
+if (openRuleInfoBtn) {
+    openRuleInfoBtn.addEventListener("click", () => {
+        openOverlayPanel(ruleInfoModal);
+    });
+}
+
+if (closeRuleInfoBtn) {
+    closeRuleInfoBtn.addEventListener("click", closeOverlayPanels);
+}
+
+if (modalScrim) {
+    modalScrim.addEventListener("click", closeOverlayPanels);
+}
+
+for (const tab of filterTabs) {
+    tab.addEventListener("click", () => {
+        setActiveSongFilter(tab.dataset.filter || "all");
+    });
 }
 
 for (const button of decisionButtons) {
@@ -80,7 +204,7 @@ songForm.addEventListener("submit", async (event) => {
 
     const title = songTitle.value.trim();
     const artist = songArtist.value.trim();
-    const adder = songAdder.value;
+    const adder = selectedProfile.name || songAdder.value;
 
     if (!title || !artist || !adder) return;
 
@@ -99,6 +223,8 @@ songForm.addEventListener("submit", async (event) => {
 
     await reloadAllData();
     songForm.reset();
+    if (selectedProfile.name) songAdder.value = selectedProfile.name;
+    closeOverlayPanels();
     setStatus("노래가 추가되었습니다.");
 });
 
@@ -150,7 +276,7 @@ voteForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const songId = voteSongId.value;
-    const voter = voterName.value;
+    const voter = selectedProfile.name || voterName.value;
     const decision = decisionValue.value;
     const rating = Number(ratingValue.value);
     const reason = document.getElementById("reason").value.trim();
@@ -225,6 +351,7 @@ mutigoeulForm.addEventListener("submit", async (event) => {
     }
 
     mutigoeulForm.reset();
+    closeOverlayPanels();
     await reloadAllData();
     setStatus("노래가 무티고을 플레이리스트로 이동되었습니다.");
 });
@@ -294,9 +421,11 @@ async function reloadAllData() {
 
     state.songs = songsResult.data ?? [];
     state.votes = votesResult.data ?? [];
-    state.members = (membersResult.data ?? []).map((member) => member.name);
+    state.memberRecords = membersResult.data ?? [];
+    state.members = state.memberRecords.map((member) => member.name);
     state.mutigoeulSongs = mutigoeulResult.data ?? [];
     state.voteStatsBySongId = buildVoteStatsBySongId(state.votes);
+    refreshSelectedProfileFromMembers();
     renderAll();
 }
 
@@ -355,12 +484,339 @@ function setStatus(message, isError = false) {
 }
 
 function renderAll() {
+    renderProfileGate();
+    renderDashboard();
+    renderFilterTabs();
     renderSongs();
     renderMutigoeulSongs();
     renderVoteSongOptions();
     renderDeleteSongOptions();
     renderMutigoeulSongOptions();
     renderMembers();
+}
+
+function renderFilterTabs() {
+    for (const tab of filterTabs) {
+        tab.classList.toggle("active", tab.dataset.filter === activeSongFilter);
+    }
+}
+
+function hasSelectedProfile() {
+    return Boolean(selectedProfile.name);
+}
+
+function setSelectedProfile(member) {
+    selectedProfile.id = member?.id || "";
+    selectedProfile.name = member?.name || "";
+    localStorage.setItem("selectedMemberId", selectedProfile.id);
+    localStorage.setItem("selectedMemberName", selectedProfile.name);
+    syncExistingPushSubscriptionToProfile();
+}
+
+function clearSelectedProfile() {
+    selectedProfile.id = "";
+    selectedProfile.name = "";
+    localStorage.removeItem("selectedMemberId");
+    localStorage.removeItem("selectedMemberName");
+    activeSongFilter = "all";
+    restoreVoteCardHome();
+}
+
+function refreshSelectedProfileFromMembers() {
+    if (!selectedProfile.name && selectedProfile.id) {
+        const byId = state.memberRecords.find((member) => member.id === selectedProfile.id);
+        if (byId) selectedProfile.name = byId.name;
+    }
+
+    if (!selectedProfile.name) return;
+
+    const match = state.memberRecords.find((member) => member.id === selectedProfile.id || member.name === selectedProfile.name);
+    if (!match) {
+        clearSelectedProfile();
+        return;
+    }
+
+    setSelectedProfile(match);
+}
+
+function renderProfileGate() {
+    const ready = hasSelectedProfile();
+    document.body.classList.toggle("needs-profile", !ready);
+    document.body.classList.toggle("profile-ready", ready);
+
+    if (profileSelectScreen) profileSelectScreen.hidden = ready;
+    if (profileDashboard) profileDashboard.hidden = !ready;
+    if (addSongCard && !addSongCard.classList.contains("is-open")) addSongCard.hidden = true;
+    if (currentProfileName) currentProfileName.textContent = selectedProfile.name || "-";
+
+    if (!profileCardList) return;
+    profileCardList.innerHTML = "";
+
+    if (state.memberRecords.length === 0) {
+        profileCardList.innerHTML = "<p class='muted'>아직 등록된 평가자가 없습니다. 먼저 평가자를 추가해주세요.</p>";
+        return;
+    }
+
+    for (const member of state.memberRecords) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "profile-card";
+        button.textContent = member.name;
+        button.addEventListener("click", () => {
+            setSelectedProfile(member);
+            renderAll();
+        });
+        profileCardList.appendChild(button);
+    }
+}
+
+function getSelectedProfileVotes() {
+    if (!selectedProfile.name) return [];
+    return state.votes.filter((vote) => vote.voter === selectedProfile.name);
+}
+
+function getSelectedProfileVote(songId) {
+    if (!selectedProfile.name) return null;
+    return state.votes.find((vote) => vote.songId === songId && vote.voter === selectedProfile.name) || null;
+}
+
+function getDashboardCounts() {
+    const onochuSongs = getOnochuSongs();
+    const pendingSongs = onochuSongs.filter((song) => !getSelectedProfileVote(song.id));
+    const mySongs = onochuSongs.filter((song) => song.adder === selectedProfile.name);
+    const votedSongs = onochuSongs.filter((song) => Boolean(getSelectedProfileVote(song.id)));
+
+    return {
+        pending: pendingSongs.length,
+        mySongs: mySongs.length,
+        voted: votedSongs.length,
+    };
+}
+
+function renderDashboard() {
+    if (!hasSelectedProfile()) return;
+    const counts = getDashboardCounts();
+    if (showPendingSongsBtn) {
+        showPendingSongsBtn.textContent = `평가하지 않은 곡 ${counts.pending}`;
+    }
+    if (showVotedSongsBtn) {
+        showVotedSongsBtn.textContent = `평가한 곡 ${counts.voted}`;
+    }
+    updateNotificationUi();
+}
+
+function setActiveSongFilter(filter) {
+    activeSongFilter = filter;
+    for (const tab of filterTabs) {
+        tab.classList.toggle("active", tab.dataset.filter === activeSongFilter);
+    }
+    renderSongs();
+}
+
+function openOverlayPanel(panel) {
+    if (!panel) return;
+    closeOverlayPanels();
+    if (modalScrim) modalScrim.hidden = false;
+    panel.hidden = false;
+    panel.classList.add("is-open");
+}
+
+function closeOverlayPanels() {
+    if (modalScrim) modalScrim.hidden = true;
+    for (const panel of [addSongCard, ruleInfoModal, memberManageCard, mutigoeulAddModal]) {
+        if (!panel) continue;
+        panel.classList.remove("is-open");
+        panel.hidden = true;
+    }
+}
+
+function supportsPushNotifications() {
+    return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+}
+
+function setNotificationUi({ status, hint, enabled, blocked = false }) {
+    if (notificationStatusText) notificationStatusText.textContent = status;
+    if (notificationHint) notificationHint.textContent = hint;
+    if (enableNotificationsBtn) enableNotificationsBtn.hidden = enabled || blocked;
+    if (disableNotificationsBtn) disableNotificationsBtn.hidden = !enabled;
+    if (sendTestNotificationBtn) sendTestNotificationBtn.hidden = !enabled;
+}
+
+async function updateNotificationUi() {
+    if (!notificationStatusText) return;
+
+    if (!hasSelectedProfile()) {
+        setNotificationUi({
+            status: "알림 상태 확인 중",
+            hint: "프로필을 선택하면 알림을 켤 수 있어요.",
+            enabled: false,
+        });
+        return;
+    }
+
+    if (!supportsPushNotifications()) {
+        setNotificationUi({
+            status: "알림 미지원",
+            hint: "iPhone은 홈 화면에 추가한 PWA에서만 알림을 받을 수 있어요.",
+            enabled: false,
+            blocked: true,
+        });
+        return;
+    }
+
+    if (Notification.permission === "denied") {
+        setNotificationUi({
+            status: "알림 차단됨",
+            hint: "브라우저 또는 기기 설정에서 알림을 허용해주세요.",
+            enabled: false,
+            blocked: true,
+        });
+        return;
+    }
+
+    try {
+        const registration = await navigator.serviceWorker.getRegistration("/");
+        const subscription = registration ? await registration.pushManager.getSubscription() : null;
+        if (subscription) {
+            setNotificationUi({
+                status: "알림 켜짐",
+                hint: "평가하지 않은 곡이 하루 이상 남아 있으면 매일 자정에 알려드려요.",
+                enabled: true,
+            });
+            return;
+        }
+    } catch {
+        // 상태 확인 실패는 켜기 버튼으로 복구할 수 있게 둡니다.
+    }
+
+    setNotificationUi({
+        status: "알림 꺼짐",
+        hint: "평가하지 않은 곡이 하루 이상 남아 있으면 매일 자정에 알려드려요.",
+        enabled: false,
+    });
+}
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; i += 1) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+
+    return outputArray;
+}
+
+async function getServiceWorkerRegistration() {
+    const existingRegistration = await navigator.serviceWorker.getRegistration("/");
+    return existingRegistration || navigator.serviceWorker.register("/service-worker.js");
+}
+
+async function saveSubscription(subscription) {
+    const response = await fetch("/api/save-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            memberId: selectedProfile.id,
+            subscription,
+            userAgent: navigator.userAgent,
+        }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "구독 저장 실패");
+}
+
+async function enableNotifications() {
+    if (!selectedProfile.id) {
+        window.alert("먼저 프로필을 선택해주세요.");
+        return;
+    }
+
+    if (!supportsPushNotifications()) {
+        window.alert("이 브라우저는 푸시 알림을 지원하지 않아요. iPhone은 홈 화면에 추가한 앱에서 시도해주세요.");
+        return;
+    }
+
+    try {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+            await updateNotificationUi();
+            return;
+        }
+
+        const publicKeyResponse = await fetch("/api/vapid-public-key", { cache: "no-store" });
+        const { publicKey, error } = await publicKeyResponse.json();
+        if (!publicKeyResponse.ok || !publicKey) {
+            throw new Error(error || "VAPID public key가 설정되지 않았습니다.");
+        }
+
+        const registration = await getServiceWorkerRegistration();
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(publicKey),
+            });
+        }
+
+        await saveSubscription(subscription);
+        await updateNotificationUi();
+        window.alert("알림이 켜졌어요.");
+    } catch (error) {
+        window.alert(`알림 설정 실패: ${error.message}`);
+        await updateNotificationUi();
+    }
+}
+
+async function disableNotifications() {
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+            await fetch("/api/remove-subscription", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ endpoint: subscription.endpoint }),
+            });
+            await subscription.unsubscribe();
+        }
+
+        await updateNotificationUi();
+    } catch (error) {
+        window.alert(`알림 끄기 실패: ${error.message}`);
+    }
+}
+
+async function sendTestNotification() {
+    if (!selectedProfile.id) return;
+
+    try {
+        const response = await fetch("/api/send-test-notification", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ memberId: selectedProfile.id }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "테스트 알림 전송 실패");
+        window.alert(`테스트 알림을 보냈어요. (${data.count || 0}개 기기)`);
+    } catch (error) {
+        window.alert(`테스트 알림 실패: ${error.message}`);
+    }
+}
+
+async function syncExistingPushSubscriptionToProfile() {
+    if (!selectedProfile.id || !supportsPushNotifications() || Notification.permission !== "granted") return;
+
+    try {
+        const registration = await navigator.serviceWorker.getRegistration("/");
+        const subscription = registration ? await registration.pushManager.getSubscription() : null;
+        if (subscription) await saveSubscription(subscription);
+        await updateNotificationUi();
+    } catch {
+        // 프로필 변경 중 구독 동기화 실패는 사용자가 다시 알림 받기를 누르면 복구됩니다.
+    }
 }
 
 function getMutigoeulSongIdSet() {
@@ -391,6 +847,57 @@ function isReleaseTarget(song, promotedCount, releasedCount, nowMs = Date.now())
 
 function isMutigoeulReady(song, promotedCount, releasedCount, nowMs = Date.now()) {
     return hasElapsedOneWeek(song.createdAt, nowMs) && isPromotionTarget(promotedCount, releasedCount);
+}
+
+function getDaysUntilDecision(song, nowMs = Date.now()) {
+    const createdMs = new Date(song.createdAt).getTime();
+    if (Number.isNaN(createdMs)) return 0;
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+    return Math.max(0, Math.ceil((createdMs + oneWeekMs - nowMs) / (24 * 60 * 60 * 1000)));
+}
+
+function getSongStatus(song, promotedCount, releasedCount, nowMs = Date.now()) {
+    if (isMutigoeulReady(song, promotedCount, releasedCount, nowMs)) {
+        return { label: "무티고을 가능", className: "ready", hint: "무티고을로 이동할 수 있어요" };
+    }
+    if (isPromotionTarget(promotedCount, releasedCount)) {
+        return { label: "승격 후보", className: "promote", hint: "무티고을까지 승격 조건을 채웠어요" };
+    }
+    if (isReleaseTarget(song, promotedCount, releasedCount, nowMs)) {
+        return { label: "방출 예정", className: "release", hint: "7일이 지났지만 승격 조건이 부족해요" };
+    }
+
+    const daysLeft = getDaysUntilDecision(song, nowMs);
+    return {
+        label: "평가 중",
+        className: "pending",
+        hint: daysLeft > 0 ? `7일 판정까지 ${daysLeft}일 남음` : "아직 판정 조건이 확정되지 않았어요",
+    };
+}
+
+function getAverageRating(votes) {
+    if (!votes.length) return 0;
+    const total = votes.reduce((sum, vote) => sum + Number(vote.rating || 0), 0);
+    return total / votes.length;
+}
+
+function getFilteredOnochuSongs() {
+    const onochuSongs = getOnochuSongs();
+    if (!hasSelectedProfile()) return onochuSongs;
+
+    if (activeSongFilter === "my-pending") {
+        return onochuSongs.filter((song) => !getSelectedProfileVote(song.id));
+    }
+
+    if (activeSongFilter === "my-voted") {
+        return onochuSongs.filter((song) => Boolean(getSelectedProfileVote(song.id)));
+    }
+
+    if (activeSongFilter === "my-added") {
+        return onochuSongs.filter((song) => song.adder === selectedProfile.name);
+    }
+
+    return onochuSongs;
 }
 
 function formatShortDate(value) {
@@ -442,19 +949,6 @@ function buildSongCellContent(song, titleClassName = "", includeCoverImage = tru
     `;
 }
 
-function buildStatusActionsContent(promotedCount, releasedCount, heldCount, isExpanded) {
-    return `
-        <div class="status-actions">
-            <div class="decision-status">
-                <span class="decision-pill promote">승격 ${promotedCount}</span>
-                <span class="decision-pill release">방출 ${releasedCount}</span>
-                <span class="decision-pill hold">보류 ${heldCount}</span>
-            </div>
-            <button type="button" class="toggle-votes-btn">${isExpanded ? "숨기기" : "평가 보기"}</button>
-        </div>
-    `;
-}
-
 function restoreVoteCardHome() {
     if (!voteRegisterCard || !voteFormHome) return;
     voteRegisterCard.classList.remove("inline-vote-card");
@@ -470,40 +964,66 @@ function mountVoteCardInline(mountTarget, songId) {
     voteRegisterCard.hidden = false;
     voteRegisterCard.classList.add("inline-vote-card");
     voteSongId.value = songId;
+    populateVoteFormForSong(songId);
+}
+
+function populateVoteFormForSong(songId) {
+    if (selectedProfile.name) {
+        voterName.value = selectedProfile.name;
+    }
+
+    const existingVote = getSelectedProfileVote(songId);
+    const reasonInput = document.getElementById("reason");
+    decisionValue.value = existingVote?.decision || "";
+    if (reasonInput) reasonInput.value = existingVote?.reason || "";
+    setRating(Number(existingVote?.rating || 0));
+
+    for (const button of decisionButtons) {
+        button.classList.toggle("active", Boolean(existingVote) && button.dataset.value === existingVote.decision);
+    }
 }
 
 function isMobileView() {
     return window.matchMedia("(max-width: 760px)").matches;
 }
 
-function toggleMobileDetailRow({ row, songId, songVotes, detailRowClassName }) {
-    const nextRow = row.nextElementSibling;
-    const hasDetailRow = nextRow && nextRow.classList.contains("vote-detail-row");
+function wireSongRowActions(row, songId, rerender) {
+    row.addEventListener("click", () => {
+        if (expandedSongIds.has(songId)) {
+            expandedSongIds.delete(songId);
+        } else {
+            expandedSongIds.add(songId);
+        }
+        rerender();
+    });
 
-    if (hasDetailRow) {
-        nextRow.remove();
-        row.classList.remove("is-expanded");
-        expandedSongIds.delete(songId);
-        return;
+    const evaluateButton = row.querySelector(".evaluate-song-btn");
+    if (evaluateButton) {
+        evaluateButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            inlineVoteSongId = songId;
+            expandedSongIds.add(songId);
+            rerender();
+        });
     }
-
-    const detailRow = document.createElement("tr");
-    detailRow.className = detailRowClassName;
-    detailRow.innerHTML = `<td colspan="1">${buildSongVoteDetails(songVotes)}</td>`;
-    row.insertAdjacentElement("afterend", detailRow);
-    row.classList.add("is-expanded");
-    expandedSongIds.add(songId);
 }
 
 function renderSongs() {
     songTableBody.innerHTML = "";
-    const onochuSongs = getOnochuSongs();
+    const onochuSongs = getFilteredOnochuSongs();
     const nowMs = Date.now();
     const mobileView = isMobileView();
     let mountedInlineVoteCard = false;
 
     if (onochuSongs.length === 0) {
-        songTableBody.innerHTML = "<tr><td colspan='5' class='muted'>아직 추가된 노래가 없습니다.</td></tr>";
+        const emptyMessage = activeSongFilter === "my-pending"
+            ? "내가 아직 평가하지 않은 노래가 없습니다."
+            : activeSongFilter === "my-voted"
+                ? "내가 평가한 노래가 없습니다."
+            : activeSongFilter === "my-added"
+                ? "내가 추가한 노래가 없습니다."
+                : "아직 추가된 노래가 없습니다.";
+        songTableBody.innerHTML = `<tr><td colspan='5' class='muted'>${emptyMessage}</td></tr>`;
         return;
     }
 
@@ -543,35 +1063,17 @@ function renderSongs() {
                 </td>
             `;
 
-            row.addEventListener("click", () => {
-                if (expandedSongIds.has(song.id)) {
-                    expandedSongIds.delete(song.id);
-                } else {
-                    expandedSongIds.add(song.id);
-                }
-                renderSongs();
-            });
         } else {
             row.innerHTML = `
                 <td data-label="날짜">${formatShortDate(song.createdAt)}</td>
                 <td data-label="노래">${buildSongCellContent(song)}</td>
                 <td data-label="아티스트">${escapeHtml(song.artist)}</td>
                 <td data-label="추가자">${escapeHtml(song.adder)}</td>
-                <td data-label="현황">
-                    ${buildStatusActionsContent(promotedCount, releasedCount, heldCount, isExpanded)}
-                </td>
+                <td data-label="현황"></td>
             `;
-
-            const toggleButton = row.querySelector(".toggle-votes-btn");
-            toggleButton.addEventListener("click", () => {
-                if (expandedSongIds.has(song.id)) {
-                    expandedSongIds.delete(song.id);
-                } else {
-                    expandedSongIds.add(song.id);
-                }
-                renderSongs();
-            });
         }
+
+        wireSongRowActions(row, song.id, renderSongs);
 
         songTableBody.appendChild(row);
 
@@ -664,35 +1166,17 @@ function renderMutigoeulSongs() {
                 </td>
             `;
 
-            row.addEventListener("click", () => {
-                toggleMobileDetailRow({
-                    row,
-                    songId: song.id,
-                    songVotes,
-                    detailRowClassName,
-                });
-            });
         } else {
             row.innerHTML = `
                 <td data-label="날짜">${formatShortDate(song.createdAt)}</td>
                 <td data-label="노래">${buildSongCellContent(song)}</td>
                 <td data-label="아티스트">${escapeHtml(song.artist)}</td>
                 <td data-label="추가자">${escapeHtml(song.adder)}</td>
-                <td data-label="현황">
-                    ${buildStatusActionsContent(promotedCount, releasedCount, heldCount, isExpanded)}
-                </td>
+                <td data-label="현황"></td>
             `;
-
-            const toggleButton = row.querySelector(".toggle-votes-btn");
-            toggleButton.addEventListener("click", () => {
-                if (expandedSongIds.has(song.id)) {
-                    expandedSongIds.delete(song.id);
-                } else {
-                    expandedSongIds.add(song.id);
-                }
-                renderMutigoeulSongs();
-            });
         }
+
+        wireSongRowActions(row, song.id, renderMutigoeulSongs);
 
         mutigoeulTableBody.appendChild(row);
 
@@ -830,6 +1314,7 @@ function renderMembers() {
 
     const hasMembers = state.members.length > 0;
     songAdder.disabled = !hasMembers;
+    voterName.disabled = hasSelectedProfile();
 
     for (const member of state.members) {
         const option = document.createElement("option");
@@ -846,6 +1331,11 @@ function renderMembers() {
         chip.className = "chip";
         chip.textContent = member;
         memberList.appendChild(chip);
+    }
+
+    if (selectedProfile.name) {
+        voterName.value = selectedProfile.name;
+        songAdder.value = selectedProfile.name;
     }
 }
 
@@ -892,6 +1382,14 @@ window.addEventListener("resize", () => {
 
 bootstrap();
 
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/service-worker.js").catch(() => {
+            // PWA 등록 실패는 핵심 평가 흐름을 막지 않습니다.
+        });
+    });
+}
+
 // --- Apple Music 연동 로직 ---
 const fetchAppleMusicBtn = document.getElementById("fetchAppleMusicBtn");
 const appleMusicStatus = document.getElementById("appleMusicStatus");
@@ -903,7 +1401,7 @@ const MUTIGOEUL_APPLE_MUSIC_PLAYLIST_URL = "https://music.apple.com/kr/playlist/
 let fetchedSongsList = []; // 파싱해온 곡 목록 임시 저장
 
 async function fetchPlaylistSongs(url) {
-    const response = await fetchWithTimeout(`/api/fetch-playlist?url=${encodeURIComponent(url)}`, 10000);
+    const response = await fetchWithTimeout(`/api/fetch-playlist?url=${encodeURIComponent(url)}&t=${Date.now()}`, 10000);
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "알 수 없는 오류");
     return Array.isArray(data.songs) ? data.songs : [];
@@ -923,7 +1421,7 @@ async function syncCoverMapFromApple({ silent = false } = {}) {
     renderMutigoeulSongs();
 
     if (!silent) {
-        showFetchStatus(`오노추 ${onochuSongs.length}곡을 동기화했습니다.`, false, "#86efac");
+        showFetchStatus(`추가되지 않은 ${onochuSongs.length}곡을 불러왔습니다.`, false, "#86efac");
     }
 }
 
@@ -966,7 +1464,7 @@ if (fetchAppleMusicBtn) {
                 }));
 
             if (fetchedSongsList.length === 0) {
-                showFetchStatus(`오노추 ${onochuSongs.length}곡은 모두 이미 추가되어 있습니다.`, false, "#86efac");
+                showFetchStatus("추가되지 않은 0곡을 불러왔습니다.", false, "#86efac");
                 return;
             }
 
@@ -979,7 +1477,7 @@ if (fetchAppleMusicBtn) {
             }
 
             fetchedSongsContainer.style.display = "block";
-            showFetchStatus(`오노추 ${onochuSongs.length}곡 중 중복 제외 ${fetchedSongsList.length}곡을 불러왔고, 무티고을 ${mutigoeulSongs.length}곡 커버도 동기화했습니다.`, false, "#86efac");
+            showFetchStatus(`추가되지 않은 ${fetchedSongsList.length}곡을 불러왔습니다.`, false, "#86efac");
 
         } catch (error) {
             showFetchStatus(`실패: ${error.message} (아래 폼에서 수동으로 입력해주세요)`, true);

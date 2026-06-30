@@ -19,7 +19,9 @@
   },
   "homepage": "https://github.com/shinjuyeop/ohnochoo#readme",
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.0",
     "axios": "^1.13.6",
-    "cheerio": "^1.2.0"
+    "cheerio": "^1.2.0",
+    "web-push": "^3.6.7"
   }
 }

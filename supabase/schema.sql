@@ -47,10 +47,29 @@ create table if not exists public.mutigoeul_songs (
   "createdAt" timestamptz not null default now()
 );
 
+create table if not exists public.push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid references public.members(id) on delete cascade,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  user_agent text,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists push_subscriptions_member_id_idx
+  on public.push_subscriptions(member_id);
+
+create index if not exists push_subscriptions_is_active_idx
+  on public.push_subscriptions(is_active);
+
 alter table public.songs enable row level security;
 alter table public.members enable row level security;
 alter table public.votes enable row level security;
 alter table public.mutigoeul_songs enable row level security;
+alter table public.push_subscriptions enable row level security;
 
 drop policy if exists "songs_select" on public.songs;
 drop policy if exists "songs_insert" on public.songs;
@@ -62,6 +81,7 @@ drop policy if exists "votes_insert" on public.votes;
 drop policy if exists "votes_delete" on public.votes;
 drop policy if exists "mutigoeul_songs_select" on public.mutigoeul_songs;
 drop policy if exists "mutigoeul_songs_insert" on public.mutigoeul_songs;
+drop policy if exists "push_subscriptions_no_anon_access" on public.push_subscriptions;
 
 create policy "songs_select"
   on public.songs
@@ -122,3 +142,10 @@ create policy "mutigoeul_songs_insert"
   for insert
   to anon
   with check (true);
+
+create policy "push_subscriptions_no_anon_access"
+  on public.push_subscriptions
+  for all
+  to anon
+  using (false)
+  with check (false);

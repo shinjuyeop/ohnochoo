@@ -48,8 +48,250 @@ main {
 .card {
     background: color-mix(in srgb, var(--panel) 85%, black 15%);
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 8px;
     padding: 1rem;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+body.needs-profile main > :not(#profileSelectScreen) {
+    display: none !important;
+}
+
+.profile-select-screen,
+.dashboard-card {
+    border-color: rgba(34, 211, 238, 0.45);
+}
+
+.profile-card-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.7rem;
+    margin: 1rem 0;
+}
+
+.profile-card {
+    display: grid;
+    place-items: center;
+    align-items: center;
+    min-height: 4.25rem;
+    background: #0b1221;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+}
+
+#profileAddShortcutBtn {
+    display: block;
+    width: min(220px, 100%);
+    margin: 1rem auto 0;
+}
+
+.profile-bar,
+.section-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+}
+
+.eyebrow {
+    margin: 0 0 0.2rem;
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin: 0.9rem 0;
+}
+
+.dashboard-grid article {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem;
+    background: #0b1221;
+}
+
+.dashboard-grid span {
+    display: block;
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #a5f3fc;
+}
+
+.dashboard-grid b {
+    display: block;
+    margin-top: 0.15rem;
+    color: #dbeafe;
+    font-size: 0.9rem;
+}
+
+.filter-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.dashboard-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.95rem;
+}
+
+.dashboard-actions button {
+    width: 100%;
+}
+
+#openAddSongBtn {
+    grid-column: 1 / -1;
+}
+
+#showMySongsBtn {
+    grid-column: 1 / -1;
+}
+
+.notification-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    margin-top: 0.95rem;
+    padding: 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #0b1221;
+}
+
+.notification-panel p {
+    margin: 0.3rem 0 0;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.playlist-title-actions {
+    display: block;
+    margin: 0.65rem 0 0.75rem;
+}
+
+.playlist-card > .section-title-row + .table-wrap {
+    margin-top: 0.75rem;
+}
+
+.secondary-btn,
+.icon-like-btn {
+    background: #0b1221;
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.filter-tab {
+    width: 100%;
+    min-width: 0;
+    background: linear-gradient(45deg, var(--accent), var(--accent-2));
+    color: #020617;
+    border: 0;
+    padding: 0.42rem 0.25rem;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    text-align: center;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.filter-tab.active {
+    filter: brightness(1.08);
+}
+
+.info-circle-btn {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    padding: 0;
+    border-radius: 999px;
+    background: #0b1221;
+    color: #a5f3fc;
+    border: 1px solid rgba(34, 211, 238, 0.55);
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.info-circle-btn:hover {
+    border-color: var(--accent);
+}
+
+.icon-like-btn {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    padding: 0;
+    border-radius: 999px;
+    font-size: 1.25rem;
+}
+
+.compact-title-btn {
+    width: auto;
+    min-width: 4.25rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.modal-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgba(2, 6, 23, 0.72);
+    backdrop-filter: blur(4px);
+}
+
+.add-song-panel.is-open,
+.app-modal.is-open {
+    position: fixed;
+    z-index: 30;
+    left: 50%;
+    top: 50%;
+    width: min(560px, calc(100vw - 2rem));
+    max-height: min(82vh, 760px);
+    overflow: auto;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.rule-list {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.rule-list article {
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #0b1221;
+}
+
+.rule-list p {
+    margin: 0.35rem 0 0;
+    color: var(--muted);
 }
 
 #deleteSongCard {
@@ -166,6 +408,10 @@ td {
     word-break: break-word;
 }
 
+.song-row {
+    cursor: pointer;
+}
+
 .song-cell-content {
     display: inline-flex;
     align-items: center;
@@ -193,8 +439,8 @@ td {
 }
 
 .mobile-song-cover {
-    width: 4.75rem;
-    height: 4.75rem;
+    width: 6.2rem;
+    height: 6.2rem;
     margin-top: 0;
 }
 
@@ -330,6 +576,7 @@ fieldset {
     align-items: center;
     justify-content: flex-start;
     gap: 0.35rem;
+    flex-wrap: wrap;
 }
 
 .decision-status {
@@ -365,6 +612,51 @@ fieldset {
     padding: 0.35rem 0.6rem;
     font-size: 0.85rem;
     border-radius: 8px;
+    white-space: nowrap;
+}
+
+.evaluate-song-btn {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.18rem 0.55rem;
+    border: 1px solid var(--border);
+    font-size: 0.8rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.status-badge.promote {
+    background: rgba(16, 185, 129, 0.22);
+    border-color: rgba(16, 185, 129, 0.65);
+}
+
+.status-badge.ready {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: rgba(56, 189, 248, 0.65);
+}
+
+.status-badge.release {
+    background: rgba(248, 113, 113, 0.18);
+    border-color: rgba(248, 113, 113, 0.6);
+}
+
+.status-badge.pending {
+    background: rgba(148, 163, 184, 0.12);
+    border-color: rgba(148, 163, 184, 0.4);
+}
+
+.rating-summary,
+.status-hint {
+    color: var(--muted);
+    font-size: 0.78rem;
     white-space: nowrap;
 }
 
@@ -493,13 +785,13 @@ fieldset {
 
     .playlist-table .status-actions {
         display: inline-flex;
-        flex-wrap: nowrap;
-        gap: 0.2rem;
+        flex-wrap: wrap;
+        gap: 0.25rem;
     }
 
     .playlist-table .status-actions .decision-status {
         gap: 0.2rem;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
     }
 
     .playlist-table .status-actions .toggle-votes-btn {
@@ -511,7 +803,8 @@ fieldset {
         padding: 0.16rem 0.48rem;
     }
 
-    .playlist-table .toggle-votes-btn {
+    .playlist-table .toggle-votes-btn,
+    .playlist-table .evaluate-song-btn {
         font-size: 0.8rem;
         padding: 0.32rem 0.56rem;
     }
@@ -536,6 +829,77 @@ fieldset {
 
     .card {
         padding: 0.85rem;
+    }
+
+    .profile-bar,
+    .section-title-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .profile-bar,
+    .add-song-panel > .section-title-row,
+    .app-modal > .section-title-row {
+        align-items: center;
+        flex-direction: row;
+    }
+
+    .profile-bar > div,
+    .add-song-panel > .section-title-row h2,
+    .app-modal > .section-title-row h2 {
+        min-width: 0;
+    }
+
+    .profile-bar .secondary-btn,
+    .add-song-panel > .section-title-row .icon-like-btn,
+    .app-modal > .section-title-row .icon-like-btn {
+        align-self: center;
+        flex-shrink: 0;
+    }
+
+    .playlist-card > .section-title-row {
+        align-items: center;
+        flex-direction: row;
+    }
+
+    .playlist-card > .section-title-row h2 {
+        margin-bottom: 0;
+    }
+
+    .section-title-row .secondary-btn {
+        align-self: flex-end;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .notification-panel {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .notification-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        justify-content: stretch;
+    }
+
+    .notification-actions button:first-child {
+        grid-column: 1 / -1;
+    }
+
+    .filter-tabs button {
+        flex: 1 1 auto;
+    }
+
+    .playlist-title-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .playlist-title-actions .filter-tabs {
+        flex: 1;
     }
 
     .playlist-card {
