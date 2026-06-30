@@ -219,6 +219,7 @@ songForm.addEventListener("submit", async (event) => {
     const title = songTitle.value.trim();
     const artist = songArtist.value.trim();
     const adder = selectedProfile.name || songAdder.value;
+    const coverImageUrl = getSelectedFetchedCoverForSubmit(title, artist);
 
     if (!title || !artist || !adder) return;
 
@@ -228,6 +229,7 @@ songForm.addEventListener("submit", async (event) => {
         title,
         artist,
         adder,
+        coverImageUrl,
     });
 
     if (error) {
@@ -237,6 +239,7 @@ songForm.addEventListener("submit", async (event) => {
 
     await reloadAllData();
     songForm.reset();
+    selectedFetchedSong = null;
     if (selectedProfile.name) songAdder.value = selectedProfile.name;
     closeOverlayPanels();
     setStatus("노래가 추가되었습니다.");
@@ -391,7 +394,6 @@ async function bootstrap() {
         supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
         setStatus("Supabase 연결 중...");
         await reloadAllData();
-        await syncCoverMapFromApple({ silent: true });
         setStatus("Supabase 연결 완료");
     } catch (error) {
         setStatus(`초기화 실패: ${error.message}`, true);
@@ -421,7 +423,7 @@ async function reloadAllData() {
     if (!supabaseClient) return;
 
     const [songsResult, votesResult, membersResult, mutigoeulResult] = await Promise.all([
-        supabaseClient.from("songs").select("id,title,artist,adder,createdAt").order("createdAt", { ascending: true }),
+        supabaseClient.from("songs").select("id,title,artist,adder,createdAt,coverImageUrl").order("createdAt", { ascending: true }),
         supabaseClient.from("votes").select("id,songId,voter,decision,rating,reason,createdAt").order("createdAt", { ascending: false }),
         supabaseClient.from("members").select("id,name,createdAt").order("name", { ascending: true }),
         supabaseClient.from("mutigoeul_songs").select("id,songId,createdAt").order("createdAt", { ascending: true }),
@@ -933,39 +935,50 @@ function formatShortDate(value) {
 }
 
 function getSongCoverKey(title, artist) {
-    return `${String(title ?? "").trim()}|${String(artist ?? "").trim()}`;
+    return `${String(title ?? "").trim().toLowerCase()}|${String(artist ?? "").trim().toLowerCase()}`;
 }
 
-const songCoverMap = new Map();
+function normalizeCoverImageUrl(url, size = 300) {
+    const value = typeof url === "string" ? url.trim() : "";
+    if (!value) return null;
 
-function upsertSongCoverMap(songs) {
-    if (!Array.isArray(songs)) return;
-    for (const song of songs) {
-        const key = getSongCoverKey(song.title, song.artist);
-        const coverImageUrl = typeof song.coverImageUrl === "string" && song.coverImageUrl.trim() ? song.coverImageUrl.trim() : null;
-        if (!key || !coverImageUrl) continue;
-        songCoverMap.set(key, coverImageUrl);
-    }
+    return value
+        .replace("{w}", String(size))
+        .replace("{h}", String(size))
+        .replace("{f}", "jpg")
+        .replace(/\/\d+x\d+(bb|cc)?\.(jpg|jpeg|png|webp)$/i, `/${size}x${size}bb.jpg`);
 }
 
 function getSongCoverImageUrl(song) {
-    const ownCoverImageUrl = typeof song.coverImageUrl === "string" && song.coverImageUrl.trim() ? song.coverImageUrl.trim() : null;
-    if (ownCoverImageUrl) return ownCoverImageUrl;
-    return songCoverMap.get(getSongCoverKey(song.title, song.artist)) ?? null;
+    return normalizeCoverImageUrl(song?.coverImageUrl);
 }
 
-function buildSongCellContent(song, titleClassName = "", includeCoverImage = true) {
+function buildCoverMarkup(song, className = "", loading = "lazy", fetchPriority = "") {
     const safeTitle = escapeHtml(song.title);
-    const coverImageUrl = includeCoverImage ? getSongCoverImageUrl(song) : null;
+    const coverImageUrl = getSongCoverImageUrl(song);
+    const classNames = ["song-cover-image", className].filter(Boolean).join(" ");
+    const priorityAttr = fetchPriority ? ` fetchpriority="${fetchPriority}"` : "";
+    const placeholder = `<div class="${classNames} song-cover-placeholder" aria-hidden="true"${coverImageUrl ? " hidden" : ""}>♪</div>`;
+
+    if (!coverImageUrl) return placeholder;
+
+    return `
+        <img class="${classNames}" src="${escapeHtml(coverImageUrl)}" alt="${safeTitle} 앨범 커버" loading="${loading}"${priorityAttr} width="300" height="300" onerror="this.hidden=true; this.nextElementSibling.hidden=false;" />
+        ${placeholder}
+    `;
+}
+
+function buildSongCellContent(song, titleClassName = "", includeCoverImage = true, loading = "lazy") {
+    const safeTitle = escapeHtml(song.title);
     const classAttr = titleClassName ? ` class="${titleClassName}"` : "";
 
-    if (!coverImageUrl) {
+    if (!includeCoverImage) {
         return `<span${classAttr}>${safeTitle}</span>`;
     }
 
     return `
         <div class="song-cell-content">
-            <img class="song-cover-image" src="${escapeHtml(coverImageUrl)}" alt="${safeTitle} 앨범 커버" loading="lazy" />
+            ${buildCoverMarkup(song, "", loading)}
             <span${classAttr}>${safeTitle}</span>
         </div>
     `;
@@ -1049,7 +1062,7 @@ function renderSongs() {
         return;
     }
 
-    for (const song of onochuSongs) {
+    for (const [songIndex, song] of onochuSongs.entries()) {
         const { votes: songVotes, promotedCount, releasedCount, heldCount } = getVoteStats(song.id);
         const isTarget = isPromotionTarget(promotedCount, releasedCount);
         const isMutigoeulCandidate = isMutigoeulReady(song, promotedCount, releasedCount, nowMs);
@@ -1061,11 +1074,12 @@ function renderSongs() {
         row.className = `song-row${isTarget ? " promotion-target" : ""}${isMutigoeulCandidate ? " mutigoeul-ready" : ""}${isRelease ? " release-target" : ""}${isExpanded ? " is-expanded" : ""}`;
         if (mobileView) {
             row.classList.add("mobile-collapsible");
-            const coverImageUrl = getSongCoverImageUrl(song);
+            const loading = songIndex < 2 ? "eager" : "lazy";
+            const fetchPriority = songIndex < 2 ? "high" : "";
             row.innerHTML = `
                 <td class="mobile-line mobile-main-cell">
                     <div class="mobile-song-layout">
-                        ${coverImageUrl ? `<img class="song-cover-image mobile-song-cover" src="${escapeHtml(coverImageUrl)}" alt="${escapeHtml(song.title)} 앨범 커버" loading="eager" />` : ""}
+                        ${buildCoverMarkup(song, "mobile-song-cover", loading, fetchPriority)}
                         <div class="mobile-song-meta">
                             <div class="mobile-top-row">
                                 <div class="mobile-summary-head">
@@ -1088,7 +1102,7 @@ function renderSongs() {
         } else {
             row.innerHTML = `
                 <td data-label="날짜">${formatShortDate(song.createdAt)}</td>
-                <td data-label="노래">${buildSongCellContent(song)}</td>
+                <td data-label="노래">${buildSongCellContent(song, "", true, songIndex < 2 ? "eager" : "lazy")}</td>
                 <td data-label="아티스트">${escapeHtml(song.artist)}</td>
                 <td data-label="추가자">${escapeHtml(song.adder)}</td>
                 <td data-label="현황"></td>
@@ -1153,7 +1167,7 @@ function renderMutigoeulSongs() {
 
     const songsById = new Map(state.songs.map((song) => [song.id, song]));
 
-    for (const mutigoeulSong of state.mutigoeulSongs) {
+    for (const [songIndex, mutigoeulSong] of state.mutigoeulSongs.entries()) {
         const song = songsById.get(mutigoeulSong.songId);
         if (!song) continue;
         const { votes: songVotes, promotedCount, releasedCount, heldCount } = getVoteStats(song.id);
@@ -1164,11 +1178,12 @@ function renderMutigoeulSongs() {
         row.className = `song-row${isExpanded ? " is-expanded" : ""}`;
         if (mobileView) {
             row.classList.add("mobile-collapsible");
-            const coverImageUrl = getSongCoverImageUrl(song);
+            const loading = songIndex < 2 ? "eager" : "lazy";
+            const fetchPriority = songIndex < 2 ? "high" : "";
             row.innerHTML = `
                 <td class="mobile-line mobile-main-cell">
                     <div class="mobile-song-layout">
-                        ${coverImageUrl ? `<img class="song-cover-image mobile-song-cover" src="${escapeHtml(coverImageUrl)}" alt="${escapeHtml(song.title)} 앨범 커버" loading="eager" />` : ""}
+                        ${buildCoverMarkup(song, "mobile-song-cover", loading, fetchPriority)}
                         <div class="mobile-song-meta">
                             <div class="mobile-top-row">
                                 <div class="mobile-summary-head">
@@ -1191,7 +1206,7 @@ function renderMutigoeulSongs() {
         } else {
             row.innerHTML = `
                 <td data-label="날짜">${formatShortDate(song.createdAt)}</td>
-                <td data-label="노래">${buildSongCellContent(song)}</td>
+                <td data-label="노래">${buildSongCellContent(song, "", true, songIndex < 2 ? "eager" : "lazy")}</td>
                 <td data-label="아티스트">${escapeHtml(song.artist)}</td>
                 <td data-label="추가자">${escapeHtml(song.adder)}</td>
                 <td data-label="현황"></td>
@@ -1421,6 +1436,7 @@ const ONOCHU_APPLE_MUSIC_PLAYLIST_URL = "https://music.apple.com/kr/playlist/o-n
 const MUTIGOEUL_APPLE_MUSIC_PLAYLIST_URL = "https://music.apple.com/kr/playlist/muti9oeul/pl.u-06oxDW6uWPKDjZe";
 
 let fetchedSongsList = []; // 파싱해온 곡 목록 임시 저장
+let selectedFetchedSong = null;
 
 async function fetchPlaylistSongs(url) {
     const response = await fetchWithTimeout(`/api/fetch-playlist?url=${encodeURIComponent(url)}&t=${Date.now()}`, 10000);
@@ -1429,22 +1445,37 @@ async function fetchPlaylistSongs(url) {
     return Array.isArray(data.songs) ? data.songs : [];
 }
 
-async function syncCoverMapFromApple({ silent = false } = {}) {
-    const [onochuSongs, mutigoeulSongs] = await Promise.all([
-        fetchPlaylistSongs(ONOCHU_APPLE_MUSIC_PLAYLIST_URL),
-        fetchPlaylistSongs(MUTIGOEUL_APPLE_MUSIC_PLAYLIST_URL),
-    ]);
+function getSelectedFetchedCoverForSubmit(title, artist) {
+    if (!selectedFetchedSong) return null;
+    if (getSongCoverKey(selectedFetchedSong.title, selectedFetchedSong.artist) !== getSongCoverKey(title, artist)) return null;
+    return selectedFetchedSong.coverImageUrl || null;
+}
 
-    const allSongs = [...onochuSongs, ...mutigoeulSongs];
-    if (allSongs.length === 0) return;
+async function persistFetchedCoverImageUrls(fetchedSongs) {
+    if (!supabaseClient || !Array.isArray(fetchedSongs) || fetchedSongs.length === 0) return 0;
 
-    upsertSongCoverMap(allSongs);
-    renderSongs();
-    renderMutigoeulSongs();
+    const coverPayload = fetchedSongs
+        .map((song) => ({
+            title: song.title,
+            artist: song.artist,
+            coverImageUrl: normalizeCoverImageUrl(song.coverImageUrl),
+        }))
+        .filter((song) => song.title && song.artist && song.coverImageUrl);
 
-    if (!silent) {
-        showFetchStatus(`추가되지 않은 ${onochuSongs.length}곡을 불러왔습니다.`, false, "#86efac");
+    if (coverPayload.length === 0) return 0;
+
+    const response = await fetch("/api/update-song-covers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ songs: coverPayload }),
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+        throw new Error(data.error || "커버 저장 실패");
     }
+
+    return Number(data.updated || 0);
 }
 
 // 상태 메시지 띄워주는 함수
@@ -1462,6 +1493,7 @@ if (fetchAppleMusicBtn) {
         showFetchStatus("Apple Music에서 곡 정보를 가져오는 중...", false);
         fetchedSongsContainer.style.display = "none";
         fetchedSongSelect.innerHTML = '<option value="">곡을 선택하면 아래 폼에 자동 입력됩니다</option>';
+        selectedFetchedSong = null;
 
         try {
             const [onochuSongs, mutigoeulSongs] = await Promise.all([
@@ -1471,22 +1503,27 @@ if (fetchAppleMusicBtn) {
 
             if (onochuSongs.length === 0) throw new Error("오노추 플레이리스트 곡을 찾지 못했습니다.");
 
-            upsertSongCoverMap([...onochuSongs, ...mutigoeulSongs]);
-            renderSongs();
-            renderMutigoeulSongs();
+            const updatedCoverCount = await persistFetchedCoverImageUrls([...onochuSongs, ...mutigoeulSongs]);
 
             // 이미 DB에 있는 곡 필터링 (중복 방지)
-            const existingSongs = new Set(state.songs.map(s => `${s.title}|${s.artist}`));
+            const existingSongs = new Set(state.songs.map(s => getSongCoverKey(s.title, s.artist)));
             fetchedSongsList = onochuSongs
-                .filter(s => !existingSongs.has(`${s.title}|${s.artist}`))
+                .filter(s => !existingSongs.has(getSongCoverKey(s.title, s.artist)))
                 .map((song) => ({
                     title: song.title,
                     artist: song.artist,
-                    coverImageUrl: song.coverImageUrl ?? null,
+                    coverImageUrl: normalizeCoverImageUrl(song.coverImageUrl),
                 }));
 
+            if (updatedCoverCount > 0) {
+                await reloadAllData();
+            } else {
+                renderSongs();
+                renderMutigoeulSongs();
+            }
+
             if (fetchedSongsList.length === 0) {
-                showFetchStatus("추가되지 않은 0곡을 불러왔습니다.", false, "#86efac");
+                showFetchStatus(`추가되지 않은 0곡을 불러왔습니다.${updatedCoverCount > 0 ? ` 커버 ${updatedCoverCount}개를 저장했습니다.` : ""}`, false, "#86efac");
                 return;
             }
 
@@ -1499,7 +1536,7 @@ if (fetchAppleMusicBtn) {
             }
 
             fetchedSongsContainer.style.display = "block";
-            showFetchStatus(`추가되지 않은 ${fetchedSongsList.length}곡을 불러왔습니다.`, false, "#86efac");
+            showFetchStatus(`추가되지 않은 ${fetchedSongsList.length}곡을 불러왔습니다.${updatedCoverCount > 0 ? ` 커버 ${updatedCoverCount}개를 저장했습니다.` : ""}`, false, "#86efac");
 
         } catch (error) {
             showFetchStatus(`실패: ${error.message} (아래 폼에서 수동으로 입력해주세요)`, true);
@@ -1522,6 +1559,7 @@ if (fetchedSongSelect) {
         if (index === "") return;
 
         const selectedSong = fetchedSongsList[index];
+        selectedFetchedSong = selectedSong;
         const songTitleInput = document.getElementById("songTitle");
         const songArtistInput = document.getElementById("songArtist");
 

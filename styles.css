@@ -436,9 +436,18 @@ td {
 .song-cover-image {
     width: 2rem;
     height: 2rem;
+    aspect-ratio: 1 / 1;
     border-radius: 6px;
     object-fit: cover;
     flex-shrink: 0;
+}
+
+.song-cover-placeholder {
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.28), rgba(167, 139, 250, 0.28));
+    color: #dbeafe;
+    font-weight: 800;
 }
 
 .mobile-song-layout {
@@ -455,6 +464,7 @@ td {
 .mobile-song-cover {
     width: 6.2rem;
     height: 6.2rem;
+    aspect-ratio: 1 / 1;
     margin-top: 0;
 }
 

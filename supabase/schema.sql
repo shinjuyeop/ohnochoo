@@ -47,6 +47,9 @@ create table if not exists public.mutigoeul_songs (
   "createdAt" timestamptz not null default now()
 );
 
+alter table public.songs
+  add column if not exists "coverImageUrl" text;
+
 create table if not exists public.push_subscriptions (
   id uuid primary key default gen_random_uuid(),
   member_id uuid references public.members(id) on delete cascade,
