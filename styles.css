@@ -98,6 +98,17 @@ body.needs-profile main > :not(#profileSelectScreen) {
     gap: 0.8rem;
 }
 
+.profile-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+}
+
+.profile-actions button {
+    white-space: nowrap;
+}
+
 .eyebrow {
     margin: 0 0 0.2rem;
     color: var(--muted);
@@ -163,7 +174,7 @@ body.needs-profile main > :not(#profileSelectScreen) {
     align-items: center;
     justify-content: space-between;
     gap: 0.85rem;
-    margin-top: 0.95rem;
+    margin-top: 0.75rem;
     padding: 0.85rem;
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -850,11 +861,20 @@ fieldset {
         min-width: 0;
     }
 
-    .profile-bar .secondary-btn,
+    .profile-actions,
     .add-song-panel > .section-title-row .icon-like-btn,
     .app-modal > .section-title-row .icon-like-btn {
         align-self: center;
         flex-shrink: 0;
+    }
+
+    .profile-actions {
+        gap: 0.35rem;
+    }
+
+    .profile-actions button {
+        padding-inline: 0.55rem;
+        font-size: 0.9rem;
     }
 
     .playlist-card > .section-title-row {

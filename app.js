@@ -62,6 +62,9 @@ const showMySongsBtn = document.getElementById("showMySongsBtn");
 const openAddSongBtn = document.getElementById("openAddSongBtn");
 const closeAddSongBtn = document.getElementById("closeAddSongBtn");
 const addSongCard = document.getElementById("addSongCard");
+const openNotificationSettingsBtn = document.getElementById("openNotificationSettingsBtn");
+const closeNotificationSettingsBtn = document.getElementById("closeNotificationSettingsBtn");
+const notificationSettingsModal = document.getElementById("notificationSettingsModal");
 const notificationStatusText = document.getElementById("notificationStatusText");
 const notificationHint = document.getElementById("notificationHint");
 const enableNotificationsBtn = document.getElementById("enableNotificationsBtn");
@@ -122,6 +125,17 @@ if (openAddSongBtn) {
     openAddSongBtn.addEventListener("click", () => {
         openOverlayPanel(addSongCard);
     });
+}
+
+if (openNotificationSettingsBtn) {
+    openNotificationSettingsBtn.addEventListener("click", async () => {
+        openOverlayPanel(notificationSettingsModal);
+        await updateNotificationUi();
+    });
+}
+
+if (closeNotificationSettingsBtn) {
+    closeNotificationSettingsBtn.addEventListener("click", closeOverlayPanels);
 }
 
 if (enableNotificationsBtn) {
@@ -623,7 +637,7 @@ function openOverlayPanel(panel) {
 
 function closeOverlayPanels() {
     if (modalScrim) modalScrim.hidden = true;
-    for (const panel of [addSongCard, ruleInfoModal, memberManageCard, mutigoeulAddModal]) {
+    for (const panel of [addSongCard, ruleInfoModal, memberManageCard, mutigoeulAddModal, notificationSettingsModal]) {
         if (!panel) continue;
         panel.classList.remove("is-open");
         panel.hidden = true;
@@ -749,7 +763,12 @@ async function enableNotifications() {
         const publicKeyResponse = await fetch("/api/vapid-public-key", { cache: "no-store" });
         const { publicKey, error } = await publicKeyResponse.json();
         if (!publicKeyResponse.ok || !publicKey) {
-            throw new Error(error || "VAPID public key가 설정되지 않았습니다.");
+            setNotificationUi({
+                status: "알림 설정 필요",
+                hint: error || "서버에 VAPID_PUBLIC_KEY가 아직 설정되지 않았어요.",
+                enabled: false,
+            });
+            return;
         }
 
         const registration = await getServiceWorkerRegistration();
@@ -765,8 +784,11 @@ async function enableNotifications() {
         await updateNotificationUi();
         window.alert("알림이 켜졌어요.");
     } catch (error) {
-        window.alert(`알림 설정 실패: ${error.message}`);
-        await updateNotificationUi();
+        setNotificationUi({
+            status: "알림 설정 실패",
+            hint: error.message,
+            enabled: false,
+        });
     }
 }
 

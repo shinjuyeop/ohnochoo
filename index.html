@@ -51,24 +51,16 @@
                     <p class="eyebrow">현재 프로필</p>
                     <h2 id="currentProfileName">-</h2>
                 </div>
-                <button type="button" id="changeProfileBtn" class="secondary-btn">프로필 변경</button>
+                <div class="profile-actions">
+                    <button type="button" id="changeProfileBtn" class="secondary-btn">프로필 변경</button>
+                    <button type="button" id="openNotificationSettingsBtn" class="secondary-btn">알림 설정</button>
+                </div>
             </div>
             <div class="dashboard-actions">
                 <button type="button" id="showPendingSongsBtn" class="secondary-btn">평가하지 않은 곡 0</button>
                 <button type="button" id="showVotedSongsBtn" class="secondary-btn">평가한 곡 0</button>
                 <button type="button" id="showMySongsBtn" class="secondary-btn">내가 추가한 곡</button>
                 <button type="button" id="openAddSongBtn">노래 추가</button>
-            </div>
-            <div id="notificationPanel" class="notification-panel">
-                <div>
-                    <b id="notificationStatusText">알림 상태 확인 중</b>
-                    <p id="notificationHint" class="muted">평가하지 않은 곡이 하루 이상 남아 있으면 매일 자정에 알려드려요.</p>
-                </div>
-                <div class="notification-actions">
-                    <button type="button" id="enableNotificationsBtn">알림 받기</button>
-                    <button type="button" id="disableNotificationsBtn" class="secondary-btn" hidden>알림 끄기</button>
-                    <button type="button" id="sendTestNotificationBtn" class="secondary-btn" hidden>테스트</button>
-                </div>
             </div>
         </section>
 
@@ -238,6 +230,24 @@
     </main>
 
     <div id="modalScrim" class="modal-scrim" hidden></div>
+    <section id="notificationSettingsModal" class="card app-modal" hidden role="dialog" aria-modal="true" aria-labelledby="notificationSettingsTitle">
+        <div class="section-title-row">
+            <h2 id="notificationSettingsTitle">알림 설정</h2>
+            <button type="button" id="closeNotificationSettingsBtn" class="icon-like-btn" aria-label="알림 설정 닫기">×</button>
+        </div>
+        <div id="notificationPanel" class="notification-panel">
+            <div>
+                <b id="notificationStatusText">알림 상태 확인 중</b>
+                <p id="notificationHint" class="muted">평가하지 않은 곡이 하루 이상 남아 있으면 매일 자정에 알려드려요.</p>
+            </div>
+            <div class="notification-actions">
+                <button type="button" id="enableNotificationsBtn">알림 받기</button>
+                <button type="button" id="disableNotificationsBtn" class="secondary-btn" hidden>알림 끄기</button>
+                <button type="button" id="sendTestNotificationBtn" class="secondary-btn" hidden>테스트</button>
+            </div>
+        </div>
+    </section>
+
     <section id="mutigoeulAddModal" class="card app-modal" hidden role="dialog" aria-modal="true" aria-labelledby="mutigoeulAddTitle">
         <div class="section-title-row">
             <h2 id="mutigoeulAddTitle">무티고을로 보내기</h2>
