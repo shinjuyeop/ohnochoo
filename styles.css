@@ -209,6 +209,9 @@ body.needs-profile main > :not(#profileSelectScreen) {
 }
 
 .filter-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     min-width: 0;
     background: linear-gradient(45deg, var(--accent), var(--accent-2));
@@ -911,6 +914,11 @@ fieldset {
 
     .filter-tabs button {
         flex: 1 1 auto;
+    }
+
+    .filter-tab {
+        font-size: 0.72rem;
+        padding-inline: 0.12rem;
     }
 
     .playlist-title-actions {
