@@ -13,6 +13,10 @@
     box-sizing: border-box;
 }
 
+html {
+    background: linear-gradient(135deg, #020617, #111827 45%, #1e1b4b);
+}
+
 body {
     margin: 0;
     font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
