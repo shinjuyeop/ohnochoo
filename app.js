@@ -415,19 +415,13 @@ voteForm.addEventListener("submit", async (event) => {
             return;
         }
 
-        const { data, error } = await supabaseClient
-            .from("votes")
-            .update(votePayload)
-            .eq("id", existingVote.id)
-            .select("id")
-            .single();
-
-        if (error) {
-            setStatus(`투표 저장 실패: ${error.message}`, true);
+        const saveResult = await saveExistingVote([existingVote.id], votePayload);
+        if (saveResult.error) {
+            setStatus(`투표 저장 실패: ${saveResult.error.message}`, true);
             return;
         }
 
-        await afterVoteSave({ isNewVote: false, isChanged: true, insertedVoteId: data?.id, song: targetSong, votePayload });
+        await afterVoteSave({ isNewVote: false, isChanged: true, insertedVoteId: saveResult.voteId, song: targetSong, votePayload });
         return;
     }
 
@@ -451,25 +445,13 @@ voteForm.addEventListener("submit", async (event) => {
             return;
         }
 
-        const [primaryVoteId, ...duplicateVoteIds] = existingVoteIds;
-        const { error: updateError } = await supabaseClient
-            .from("votes")
-            .update(votePayload)
-            .eq("id", primaryVoteId);
-        if (updateError) {
-            setStatus(`기존 투표 수정 실패: ${updateError.message}`, true);
+        const saveResult = await saveExistingVote(existingVoteIds, votePayload);
+        if (saveResult.error) {
+            setStatus(`기존 투표 수정 실패: ${saveResult.error.message}`, true);
             return;
         }
 
-        if (duplicateVoteIds.length > 0) {
-            const { error: deleteError } = await supabaseClient.from("votes").delete().in("id", duplicateVoteIds);
-            if (deleteError) {
-                setStatus(`중복 투표 정리 실패: ${deleteError.message}`, true);
-                return;
-            }
-        }
-
-        await afterVoteSave({ isNewVote: false, isChanged: true, insertedVoteId: primaryVoteId, song: targetSong, votePayload });
+        await afterVoteSave({ isNewVote: false, isChanged: true, insertedVoteId: saveResult.voteId, song: targetSong, votePayload });
         return;
     }
 
@@ -495,6 +477,37 @@ function hasVoteChanged(existingVote, votePayload) {
     return existingVote.decision !== votePayload.decision
         || Number(existingVote.rating) !== Number(votePayload.rating)
         || String(existingVote.reason || "").trim() !== String(votePayload.reason || "").trim();
+}
+
+async function saveExistingVote(voteIds, votePayload) {
+    const [primaryVoteId, ...duplicateVoteIds] = voteIds;
+    const updateResult = await supabaseClient
+        .from("votes")
+        .update(votePayload)
+        .eq("id", primaryVoteId)
+        .select("id")
+        .single();
+
+    if (!updateResult.error) {
+        if (duplicateVoteIds.length > 0) {
+            const { error: deleteError } = await supabaseClient.from("votes").delete().in("id", duplicateVoteIds);
+            if (deleteError) return { error: deleteError };
+        }
+
+        return { voteId: updateResult.data?.id || primaryVoteId };
+    }
+
+    const { error: deleteError } = await supabaseClient.from("votes").delete().in("id", voteIds);
+    if (deleteError) return { error: updateResult.error };
+
+    const { data: insertedVote, error: insertError } = await supabaseClient
+        .from("votes")
+        .insert(votePayload)
+        .select("id")
+        .single();
+
+    if (insertError) return { error: insertError };
+    return { voteId: insertedVote?.id };
 }
 
 async function afterVoteSave({ isNewVote, isChanged = true, insertedVoteId, song, votePayload }) {
