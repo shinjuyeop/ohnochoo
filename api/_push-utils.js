@@ -65,9 +65,123 @@ async function sendPushToSubscription({ supabase, subscription, payload }) {
     }
 }
 
+function getKstDateParts(date = new Date()) {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Seoul",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    });
+    const [year, month, day] = formatter.format(date).split("-").map(Number);
+
+    return { year, month, day, dateKey: formatter.format(date) };
+}
+
+function getKstDayRange(date = new Date()) {
+    const { year, month, day, dateKey } = getKstDateParts(date);
+    const startUtc = new Date(Date.UTC(year, month - 1, day, -9, 0, 0, 0));
+    const nextStartUtc = new Date(startUtc.getTime() + 24 * 60 * 60 * 1000);
+    const reminderCutoffUtc = new Date(Date.UTC(year, month - 1, day, 11, 0, 0, 0));
+
+    return {
+        dateKey,
+        startIso: startUtc.toISOString(),
+        nextStartIso: nextStartUtc.toISOString(),
+        reminderCutoffIso: reminderCutoffUtc.toISOString(),
+    };
+}
+
+async function hasNotificationLog(supabase, dedupeKey) {
+    const { data, error } = await supabase
+        .from("notification_logs")
+        .select("id")
+        .eq("dedupe_key", dedupeKey)
+        .maybeSingle();
+
+    if (error) throw error;
+    return Boolean(data);
+}
+
+async function writeNotificationLog(supabase, log) {
+    const { error } = await supabase.from("notification_logs").insert({
+        member_id: log.memberId,
+        type: log.type,
+        dedupe_key: log.dedupeKey,
+        title: log.title,
+        body: log.body,
+        related_song_id: log.relatedSongId || null,
+        related_vote_id: log.relatedVoteId || null,
+        sent_at: new Date().toISOString(),
+        status: log.status || "sent",
+    });
+
+    if (error && error.code !== "23505") throw error;
+    return !error;
+}
+
+async function sendDedupedNotification({
+    supabase,
+    subscriptions,
+    memberId,
+    type,
+    dedupeKey,
+    title,
+    body,
+    url = "/",
+    relatedSongId = null,
+    relatedVoteId = null,
+}) {
+    if (await hasNotificationLog(supabase, dedupeKey)) {
+        return { skipped: true, reason: "deduped", count: 0 };
+    }
+
+    const activeSubscriptions = subscriptions ?? [];
+    if (activeSubscriptions.length === 0) {
+        return { skipped: true, reason: "no-subscriptions", count: 0 };
+    }
+
+    const logInserted = await writeNotificationLog(supabase, {
+        memberId,
+        type,
+        dedupeKey,
+        title,
+        body,
+        relatedSongId,
+        relatedVoteId,
+        status: "sending",
+    });
+
+    if (!logInserted) {
+        return { skipped: true, reason: "deduped", count: 0 };
+    }
+
+    let count = 0;
+    for (const subscription of activeSubscriptions) {
+        try {
+            await sendPushToSubscription({
+                supabase,
+                subscription,
+                payload: { title, body, url },
+            });
+            count += 1;
+        } catch (error) {
+            console.error("push failed:", error);
+        }
+    }
+
+    await supabase
+        .from("notification_logs")
+        .update({ status: count > 0 ? "sent" : "failed" })
+        .eq("dedupe_key", dedupeKey);
+
+    return { skipped: false, count };
+}
+
 module.exports = {
     configureWebPush,
+    getKstDayRange,
     getServiceSupabase,
     readJsonBody,
+    sendDedupedNotification,
     sendPushToSubscription,
 };

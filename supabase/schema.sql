@@ -50,6 +50,12 @@ create table if not exists public.mutigoeul_songs (
 alter table public.songs
   add column if not exists "coverImageUrl" text;
 
+alter table public.songs
+  add column if not exists adder_member_id uuid references public.members(id) on delete set null;
+
+alter table public.votes
+  add column if not exists member_id uuid references public.members(id) on delete set null;
+
 create table if not exists public.push_subscriptions (
   id uuid primary key default gen_random_uuid(),
   member_id uuid references public.members(id) on delete cascade,
@@ -68,11 +74,28 @@ create index if not exists push_subscriptions_member_id_idx
 create index if not exists push_subscriptions_is_active_idx
   on public.push_subscriptions(is_active);
 
+create table if not exists public.notification_logs (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid references public.members(id) on delete cascade,
+  type text not null,
+  dedupe_key text not null unique,
+  title text not null,
+  body text not null,
+  related_song_id uuid references public.songs(id) on delete set null,
+  related_vote_id uuid references public.votes(id) on delete set null,
+  sent_at timestamptz not null default now(),
+  status text not null default 'sent'
+);
+
+create index if not exists notification_logs_member_id_idx
+  on public.notification_logs(member_id);
+
 alter table public.songs enable row level security;
 alter table public.members enable row level security;
 alter table public.votes enable row level security;
 alter table public.mutigoeul_songs enable row level security;
 alter table public.push_subscriptions enable row level security;
+alter table public.notification_logs enable row level security;
 
 drop policy if exists "songs_select" on public.songs;
 drop policy if exists "songs_insert" on public.songs;
@@ -81,10 +104,12 @@ drop policy if exists "members_select" on public.members;
 drop policy if exists "members_insert" on public.members;
 drop policy if exists "votes_select" on public.votes;
 drop policy if exists "votes_insert" on public.votes;
+drop policy if exists "votes_update" on public.votes;
 drop policy if exists "votes_delete" on public.votes;
 drop policy if exists "mutigoeul_songs_select" on public.mutigoeul_songs;
 drop policy if exists "mutigoeul_songs_insert" on public.mutigoeul_songs;
 drop policy if exists "push_subscriptions_no_anon_access" on public.push_subscriptions;
+drop policy if exists "notification_logs_no_anon_access" on public.notification_logs;
 
 create policy "songs_select"
   on public.songs
@@ -128,6 +153,13 @@ create policy "votes_insert"
   to anon
   with check (true);
 
+create policy "votes_update"
+  on public.votes
+  for update
+  to anon
+  using (true)
+  with check (true);
+
 create policy "votes_delete"
   on public.votes
   for delete
@@ -148,6 +180,13 @@ create policy "mutigoeul_songs_insert"
 
 create policy "push_subscriptions_no_anon_access"
   on public.push_subscriptions
+  for all
+  to anon
+  using (false)
+  with check (false);
+
+create policy "notification_logs_no_anon_access"
+  on public.notification_logs
   for all
   to anon
   using (false)
