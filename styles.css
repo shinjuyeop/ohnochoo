@@ -259,6 +259,16 @@ body.needs-profile main > :not(#profileSelectScreen) {
     margin: 0.65rem 0 0.75rem;
 }
 
+.mutigoeul-title-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 0.5rem;
+}
+
+#mutigoeulPlaylistTitle {
+    min-width: 0;
+}
+
 .playlist-card > .section-title-row + .table-wrap {
     margin-top: 0.75rem;
 }
@@ -495,7 +505,7 @@ body.needs-profile main > :not(#profileSelectScreen) {
 }
 
 #deleteSongCard {
-    margin-top: 1rem;
+    margin-top: 0;
 }
 
 h2 {
@@ -1061,6 +1071,15 @@ fieldset {
         align-self: flex-end;
     }
 
+    .mutigoeul-title-actions {
+        gap: 0.35rem;
+    }
+
+    .mutigoeul-title-actions .compact-title-btn {
+        min-width: 3.6rem;
+        padding-inline: 0.55rem;
+    }
+
     .dashboard-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1098,10 +1117,15 @@ fieldset {
         flex: 1;
     }
 
-    .playlist-card {
+    .playlist-card,
+    #deleteSongCard {
         width: 100vw;
         margin-left: calc(50% - 50vw);
         margin-right: calc(50% - 50vw);
+    }
+
+    .playlist-card {
+        box-shadow: 0 0 0 1px rgba(2, 6, 23, 0.28);
     }
 
     .inline-form {

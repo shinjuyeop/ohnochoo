@@ -16,6 +16,7 @@ let supabaseClient = null;
 let activeSongFilter = "all";
 let isVoteSaveInFlight = false;
 let lockedBodyScrollY = 0;
+let isMutigoeulPlaylistExpanded = localStorage.getItem("mutigoeulPlaylistExpanded") === "true";
 
 const songForm = document.getElementById("songForm");
 const songTitle = document.getElementById("songTitle");
@@ -51,7 +52,10 @@ const statusMessage = document.getElementById("statusMessage");
 const mutigoeulForm = document.getElementById("mutigoeulForm");
 const mutigoeulSongId = document.getElementById("mutigoeulSongId");
 const mutigoeulTableBody = document.getElementById("mutigoeulTableBody");
+const mutigoeulPlaylistTitle = document.getElementById("mutigoeulPlaylistTitle");
+const mutigoeulTableWrap = document.getElementById("mutigoeulTableWrap");
 const openMutigoeulAddBtn = document.getElementById("openMutigoeulAddBtn");
+const toggleMutigoeulPlaylistBtn = document.getElementById("toggleMutigoeulPlaylistBtn");
 const closeMutigoeulAddBtn = document.getElementById("closeMutigoeulAddBtn");
 const mutigoeulAddModal = document.getElementById("mutigoeulAddModal");
 const toggleManualAddBtn = document.getElementById("toggleManualAddBtn");
@@ -183,6 +187,14 @@ if (sendTestNotificationBtn) {
 if (openMutigoeulAddBtn) {
     openMutigoeulAddBtn.addEventListener("click", () => {
         openOverlayPanel(mutigoeulAddModal);
+    });
+}
+
+if (toggleMutigoeulPlaylistBtn) {
+    toggleMutigoeulPlaylistBtn.addEventListener("click", () => {
+        isMutigoeulPlaylistExpanded = !isMutigoeulPlaylistExpanded;
+        localStorage.setItem("mutigoeulPlaylistExpanded", String(isMutigoeulPlaylistExpanded));
+        renderMutigoeulAccordion();
     });
 }
 
@@ -719,6 +731,7 @@ function renderAll() {
     renderFilterTabs();
     renderSongs();
     renderMutigoeulSongs();
+    renderMutigoeulAccordion();
     renderVoteSongOptions();
     renderDeleteSongOptions();
     renderMutigoeulSongOptions();
@@ -1441,6 +1454,21 @@ function renderMutigoeulSongs() {
         wireSongRowActions(row, song.id, { enableInlineVote: false });
 
         mutigoeulTableBody.appendChild(row);
+    }
+}
+
+function renderMutigoeulAccordion() {
+    if (mutigoeulPlaylistTitle) {
+        mutigoeulPlaylistTitle.textContent = `무티고을 플레이리스트 ${state.mutigoeulSongs.length}곡`;
+    }
+
+    if (mutigoeulTableWrap) {
+        mutigoeulTableWrap.hidden = !isMutigoeulPlaylistExpanded;
+    }
+
+    if (toggleMutigoeulPlaylistBtn) {
+        toggleMutigoeulPlaylistBtn.textContent = isMutigoeulPlaylistExpanded ? "접기" : "펼치기";
+        toggleMutigoeulPlaylistBtn.setAttribute("aria-expanded", String(isMutigoeulPlaylistExpanded));
     }
 }
 

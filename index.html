@@ -210,11 +210,14 @@
 
         <section class="card playlist-card">
             <div class="section-title-row">
-                <h2>무티고을 플레이리스트</h2>
-                <button type="button" id="openMutigoeulAddBtn" class="secondary-btn compact-title-btn">추가</button>
+                <h2 id="mutigoeulPlaylistTitle">무티고을 플레이리스트 0곡</h2>
+                <div class="mutigoeul-title-actions">
+                    <button type="button" id="openMutigoeulAddBtn" class="secondary-btn compact-title-btn">추가</button>
+                    <button type="button" id="toggleMutigoeulPlaylistBtn" class="secondary-btn compact-title-btn" aria-expanded="false" aria-controls="mutigoeulTableWrap">펼치기</button>
+                </div>
             </div>
 
-            <div class="table-wrap">
+            <div id="mutigoeulTableWrap" class="table-wrap" hidden>
                 <table class="playlist-table">
                     <colgroup>
                         <col class="col-date" />
