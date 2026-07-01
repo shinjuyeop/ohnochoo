@@ -17,6 +17,9 @@ let activeSongFilter = "all";
 let isVoteSaveInFlight = false;
 let lockedBodyScrollY = 0;
 let isMutigoeulPlaylistExpanded = localStorage.getItem("mutigoeulPlaylistExpanded") === "true";
+let isReloadingForUpdate = false;
+let realtimeChannel = null;
+let realtimeReloadTimer = null;
 
 const songForm = document.getElementById("songForm");
 const songTitle = document.getElementById("songTitle");
@@ -620,9 +623,37 @@ async function bootstrap() {
         supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
         setStatus("Supabase 연결 중...");
         await reloadAllData();
+        setupRealtimeSubscriptions();
         setStatus("Supabase 연결 완료");
     } catch (error) {
         setStatus(`초기화 실패: ${error.message}`, true);
+    }
+}
+
+async function checkForAppUpdate() {
+    if (isReloadingForUpdate) return;
+
+    try {
+        const response = await fetch("/version.json", { cache: "no-store" });
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const currentVersion = String(data.version || "").trim();
+        if (!currentVersion) return;
+
+        const savedVersion = localStorage.getItem("appVersion");
+        if (!savedVersion) {
+            localStorage.setItem("appVersion", currentVersion);
+            return;
+        }
+
+        if (savedVersion !== currentVersion) {
+            isReloadingForUpdate = true;
+            localStorage.setItem("appVersion", currentVersion);
+            window.location.reload();
+        }
+    } catch {
+        // 버전 확인 실패는 앱 사용을 막지 않습니다.
     }
 }
 
@@ -669,6 +700,31 @@ async function reloadAllData() {
     state.voteStatsBySongId = buildVoteStatsBySongId(state.votes);
     refreshSelectedProfileFromMembers();
     renderAll();
+}
+
+function scheduleRealtimeReload() {
+    window.clearTimeout(realtimeReloadTimer);
+    realtimeReloadTimer = window.setTimeout(() => {
+        reloadAllData();
+    }, 400);
+}
+
+function setupRealtimeSubscriptions() {
+    if (!supabaseClient || realtimeChannel) return;
+
+    const changeOptions = [
+        { event: "*", schema: "public", table: "songs" },
+        { event: "*", schema: "public", table: "votes" },
+        { event: "*", schema: "public", table: "mutigoeul_songs" },
+        { event: "*", schema: "public", table: "members" },
+    ];
+
+    realtimeChannel = supabaseClient.channel("ohnochoo-db-changes");
+    for (const options of changeOptions) {
+        realtimeChannel.on("postgres_changes", options, scheduleRealtimeReload);
+    }
+
+    realtimeChannel.subscribe();
 }
 
 function buildVoteStatsBySongId(votes) {
@@ -1749,6 +1805,13 @@ window.addEventListener("resize", () => {
     renderMutigoeulSongs();
 });
 
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") return;
+    checkForAppUpdate();
+    reloadAllData();
+});
+
+checkForAppUpdate();
 bootstrap();
 
 if ("serviceWorker" in navigator) {
