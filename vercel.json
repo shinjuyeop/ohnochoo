@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/send-add-song-reminders",
-      "schedule": "0 11 * * *"
+      "schedule": "0 14 * * *"
     },
     {
       "path": "/api/send-reminders",

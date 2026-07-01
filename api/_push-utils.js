@@ -81,7 +81,7 @@ function getKstDayRange(date = new Date()) {
     const { year, month, day, dateKey } = getKstDateParts(date);
     const startUtc = new Date(Date.UTC(year, month - 1, day, -9, 0, 0, 0));
     const nextStartUtc = new Date(startUtc.getTime() + 24 * 60 * 60 * 1000);
-    const reminderCutoffUtc = new Date(Date.UTC(year, month - 1, day, 11, 0, 0, 0));
+    const reminderCutoffUtc = new Date(Date.UTC(year, month - 1, day, 14, 0, 0, 0));
 
     return {
         dateKey,
