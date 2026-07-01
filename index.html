@@ -103,6 +103,10 @@
                             <option value="">추가자를 선택하세요</option>
                         </select>
                     </label>
+                    <label>
+                        왜 이 곡을 추천하나요?
+                        <textarea id="recommendationReason" rows="4" required placeholder="추천 이유를 적어주세요"></textarea>
+                    </label>
                     <button type="submit">추가하기</button>
                 </form>
             </div>
@@ -177,7 +181,7 @@
                             <th>노래</th>
                             <th>아티스트</th>
                             <th>추가자</th>
-                            <th>현황</th>
+                            <th aria-label="투표 현황"></th>
                         </tr>
                     </thead>
                     <tbody id="songTableBody"></tbody>

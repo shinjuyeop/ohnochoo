@@ -66,8 +66,8 @@ module.exports = async (req, res) => {
 
             const firstSong = pendingSongs[0];
             const body = pendingSongs.length === 1
-                ? `${firstSong.title} - ${firstSong.artist} 평가가 기다리고 있어요.`
-                : `${firstSong.title} 외 ${pendingSongs.length - 1}곡의 평가가 기다리고 있어요.`;
+                ? `${firstSong.title} - ${firstSong.artist} 평가해 주세요.`
+                : `${firstSong.title} 외 ${pendingSongs.length - 1}곡을 평가해 주세요.`;
             const result = await sendDedupedNotification({
                 supabase,
                 subscriptions: subscriptionsByMemberId.get(member.id) ?? [],

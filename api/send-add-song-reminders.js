@@ -69,8 +69,8 @@ module.exports = async (req, res) => {
                 memberId: member.id,
                 type: "add-song-reminder",
                 dedupeKey: `add-song-reminder:${dateKey}:${member.id}`,
-                title: "오노추",
-                body: "오노추 안 올렸제, 빨리 올려라.",
+                title: "오노추 올리쇼.",
+                body: "오늘 안 올렸제, 빨리 올리쇼.",
                 url: "/",
             });
 

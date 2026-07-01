@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
                     supabase,
                     subscription,
                     payload: {
-                        title: "오노추 알림 테스트",
+                        title: "알림 테스트",
                         body: "알림 설정이 잘 되었어요.",
                         url: "/",
                     },

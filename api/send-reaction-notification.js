@@ -11,10 +11,21 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const { voteId, songId, voterName, voterMemberId, decision } = await readJsonBody(req);
+        const {
+            voteId,
+            songId,
+            voterName,
+            voterMemberId,
+            decision,
+            isUpdate: requestedIsUpdate = false,
+            notificationKind = "new",
+            notificationEventId,
+        } = await readJsonBody(req);
         if (!voteId || !songId || !voterName || !decision) {
             return res.status(400).json({ error: "voteId, songId, voterName, decision이 필요합니다." });
         }
+
+        const isUpdate = requestedIsUpdate || notificationKind === "update";
 
         configureWebPush();
         const supabase = getServiceSupabase();
@@ -65,14 +76,21 @@ module.exports = async (req, res) => {
 
         if (subscriptionsError) throw subscriptionsError;
 
-        const body = `${voterName}이 ${song.title}에 ${decision} 평가를 남겼어요.`;
+        const title = isUpdate ? "내가 올린 곡 평가가 수정됐어요 ✏️" : "내가 올린 곡에 새 평가가 달렸어요 💬";
+        const body = isUpdate
+            ? `${voterName}이 ${song.title} 평가를 ${decision}로 수정했어요.`
+            : `${voterName}이 ${song.title}에 ${decision} 평가를 남겼어요.`;
+        const dedupeKey = isUpdate
+            ? `reaction-update:${voteId}:${notificationEventId || Date.now()}`
+            : `reaction-new:${voteId}`;
+
         const result = await sendDedupedNotification({
             supabase,
             subscriptions: subscriptions ?? [],
             memberId: recipientMember.id,
-            type: "reaction",
-            dedupeKey: `reaction:${voteId}`,
-            title: "내가 올린 곡에 새 평가가 달렸어요 💬",
+            type: isUpdate ? "reaction-update" : "reaction-new",
+            dedupeKey,
+            title,
             body,
             url: "/",
             relatedSongId: song.id,
@@ -86,6 +104,6 @@ module.exports = async (req, res) => {
         });
     } catch (error) {
         console.error("send-reaction-notification failed:", error);
-        return res.status(500).json({ ok: false, error: error.message || "새 평가 알림 전송 실패" });
+        return res.status(500).json({ ok: false, error: error.message || "평가 반응 알림 전송 실패" });
     }
 };

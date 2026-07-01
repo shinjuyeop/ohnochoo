@@ -15,11 +15,13 @@ const selectedProfile = {
 
 let supabaseClient = null;
 let activeSongFilter = "all";
+let isVoteSaveInFlight = false;
 
 const songForm = document.getElementById("songForm");
 const songTitle = document.getElementById("songTitle");
 const songArtist = document.getElementById("songArtist");
 const songAdder = document.getElementById("songAdder");
+const recommendationReason = document.getElementById("recommendationReason");
 const manualAddContainer = document.getElementById("manualAddContainer");
 
 const memberForm = document.getElementById("memberForm");
@@ -218,6 +220,7 @@ songForm.addEventListener("submit", async (event) => {
 
     const title = songTitle.value.trim();
     const artist = songArtist.value.trim();
+    const reason = recommendationReason.value.trim();
     const coverImageUrl = getSelectedFetchedCoverForSubmit(title, artist);
 
     if (!hasSelectedProfile()) {
@@ -225,26 +228,46 @@ songForm.addEventListener("submit", async (event) => {
         return;
     }
 
-    if (!title || !artist) return;
+    if (!title || !artist || !reason) return;
 
     if (!supabaseClient) return;
 
-    const { error } = await supabaseClient.from("songs").insert({
-        title,
-        artist,
-        adder: selectedProfile.name,
-        adder_member_id: selectedProfile.id,
-        coverImageUrl,
+    const { data: insertedSong, error: songError } = await supabaseClient
+        .from("songs")
+        .insert({
+            title,
+            artist,
+            adder: selectedProfile.name,
+            adder_member_id: selectedProfile.id,
+            coverImageUrl,
+        })
+        .select("id,title,artist,adder,adder_member_id")
+        .single();
+
+    if (songError) {
+        setStatus(`노래 추가 실패: ${songError.message}`, true);
+        return;
+    }
+
+    const { error: voteError } = await supabaseClient.from("votes").insert({
+        songId: insertedSong.id,
+        voter: selectedProfile.name,
+        member_id: selectedProfile.id,
+        decision: "승격",
+        rating: 5.0,
+        reason,
     });
 
-    if (error) {
-        setStatus(`노래 추가 실패: ${error.message}`, true);
+    if (voteError) {
+        await reloadAllData();
+        setStatus(`노래는 추가됐지만 추천 이유 저장에 실패했습니다: ${voteError.message}`, true);
         return;
     }
 
     await reloadAllData();
     songForm.reset();
     selectedFetchedSong = null;
+    if (fetchedSongSelect) fetchedSongSelect.value = "";
     if (selectedProfile.name) songAdder.value = selectedProfile.name;
     closeOverlayPanels();
     setStatus("노래가 추가되었습니다.");
@@ -297,6 +320,10 @@ deleteSongForm.addEventListener("submit", async (event) => {
 voteForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
+    if (isVoteSaveInFlight) return;
+    isVoteSaveInFlight = true;
+
+    try {
     const songId = voteSongId.value;
     const decision = decisionValue.value;
     const rating = Number(ratingValue.value);
@@ -323,6 +350,12 @@ voteForm.addEventListener("submit", async (event) => {
     const existingVote = getSelectedProfileVote(songId);
 
     if (existingVote) {
+        const hasChanged = hasVoteChanged(existingVote, votePayload);
+        if (!hasChanged) {
+            await afterVoteSave({ isNewVote: false, isChanged: false, insertedVoteId: existingVote.id, song: targetSong, votePayload });
+            return;
+        }
+
         const { data, error } = await supabaseClient
             .from("votes")
             .update(votePayload)
@@ -335,13 +368,13 @@ voteForm.addEventListener("submit", async (event) => {
             return;
         }
 
-        await afterVoteSave({ isNewVote: false, insertedVoteId: data?.id, song: targetSong, votePayload });
+        await afterVoteSave({ isNewVote: false, isChanged: true, insertedVoteId: data?.id, song: targetSong, votePayload });
         return;
     }
 
     const existingVoteResult = await supabaseClient
         .from("votes")
-        .select("id,member_id,voter")
+        .select("id,member_id,voter,decision,rating,reason")
         .eq("songId", songId);
 
     if (existingVoteResult.error) {
@@ -349,10 +382,16 @@ voteForm.addEventListener("submit", async (event) => {
         return;
     }
 
-    const existingVoteIds = (existingVoteResult.data ?? [])
-        .filter(isVoteBySelectedProfile)
-        .map((vote) => vote.id);
+    const existingVotes = (existingVoteResult.data ?? []).filter(isVoteBySelectedProfile);
+    const existingVoteIds = existingVotes.map((vote) => vote.id);
     if (existingVoteIds.length > 0) {
+        const primaryExistingVote = existingVotes[0];
+        const hasChanged = hasVoteChanged(primaryExistingVote, votePayload);
+        if (!hasChanged) {
+            await afterVoteSave({ isNewVote: false, isChanged: false, insertedVoteId: primaryExistingVote.id, song: targetSong, votePayload });
+            return;
+        }
+
         const [primaryVoteId, ...duplicateVoteIds] = existingVoteIds;
         const { error: updateError } = await supabaseClient
             .from("votes")
@@ -371,7 +410,7 @@ voteForm.addEventListener("submit", async (event) => {
             }
         }
 
-        await afterVoteSave({ isNewVote: false, insertedVoteId: primaryVoteId, song: targetSong, votePayload });
+        await afterVoteSave({ isNewVote: false, isChanged: true, insertedVoteId: primaryVoteId, song: targetSong, votePayload });
         return;
     }
 
@@ -387,16 +426,28 @@ voteForm.addEventListener("submit", async (event) => {
     }
 
     await afterVoteSave({ isNewVote: true, insertedVoteId: insertedVote?.id, song: targetSong, votePayload });
+    } finally {
+        isVoteSaveInFlight = false;
+    }
 });
 
-async function afterVoteSave({ isNewVote, insertedVoteId, song, votePayload }) {
-    if (isNewVote && insertedVoteId && !isSongAddedBySelectedProfile(song)) {
+function hasVoteChanged(existingVote, votePayload) {
+    if (!existingVote) return true;
+    return existingVote.decision !== votePayload.decision
+        || Number(existingVote.rating) !== Number(votePayload.rating)
+        || String(existingVote.reason || "").trim() !== String(votePayload.reason || "").trim();
+}
+
+async function afterVoteSave({ isNewVote, isChanged = true, insertedVoteId, song, votePayload }) {
+    if (insertedVoteId && (isNewVote || isChanged) && !isSongAddedBySelectedProfile(song)) {
         sendReactionNotification({
             voteId: insertedVoteId,
             songId: votePayload.songId,
             voterName: votePayload.voter,
             voterMemberId: votePayload.member_id,
             decision: votePayload.decision,
+            notificationKind: isNewVote ? "new" : "update",
+            notificationEventId: isNewVote ? "" : String(Date.now()),
         });
     }
 
@@ -411,7 +462,7 @@ async function afterVoteSave({ isNewVote, insertedVoteId, song, votePayload }) {
     for (const button of decisionButtons) {
         button.classList.remove("active");
     }
-    setStatus(isNewVote ? "투표가 저장되었습니다." : "기존 투표가 수정되었습니다.");
+    setStatus(isNewVote ? "투표가 저장되었습니다." : isChanged ? "기존 투표가 수정되었습니다." : "변경된 내용이 없습니다.");
 }
 
 async function sendReactionNotification(payload) {
@@ -1086,6 +1137,18 @@ function buildSongCellContent(song, titleClassName = "", includeCoverImage = tru
     `;
 }
 
+function buildDecisionStatusMarkup(promotedCount, releasedCount, heldCount) {
+    return `
+        <div class="status-actions">
+            <div class="decision-status">
+                <span class="decision-pill promote">승격 ${promotedCount}</span>
+                <span class="decision-pill release">방출 ${releasedCount}</span>
+                <span class="decision-pill hold">보류 ${heldCount}</span>
+            </div>
+        </div>
+    `;
+}
+
 function restoreVoteCardHome() {
     if (!voteRegisterCard || !voteFormHome) return;
     voteRegisterCard.classList.remove("inline-vote-card");
@@ -1207,7 +1270,7 @@ function renderSongs() {
                 <td data-label="노래">${buildSongCellContent(song, "", true, songIndex < 2 ? "eager" : "lazy")}</td>
                 <td data-label="아티스트">${escapeHtml(song.artist)}</td>
                 <td data-label="추가자">${escapeHtml(song.adder)}</td>
-                <td data-label="현황"></td>
+                <td data-label="현황">${buildDecisionStatusMarkup(promotedCount, releasedCount, heldCount)}</td>
             `;
         }
 
@@ -1311,7 +1374,7 @@ function renderMutigoeulSongs() {
                 <td data-label="노래">${buildSongCellContent(song, "", true, songIndex < 2 ? "eager" : "lazy")}</td>
                 <td data-label="아티스트">${escapeHtml(song.artist)}</td>
                 <td data-label="추가자">${escapeHtml(song.adder)}</td>
-                <td data-label="현황"></td>
+                <td data-label="현황">${buildDecisionStatusMarkup(promotedCount, releasedCount, heldCount)}</td>
             `;
         }
 
