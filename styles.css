@@ -367,6 +367,25 @@ body.needs-profile main > :not(#profileSelectScreen) {
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
 }
 
+.add-song-panel.is-open {
+    max-height: min(90vh, 820px);
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.add-song-panel > .section-title-row {
+    align-items: center;
+}
+
+.add-song-panel > .section-title-row h2 {
+    margin: 0;
+    line-height: 2rem;
+}
+
+.add-song-panel > .section-title-row .icon-like-btn {
+    align-self: center;
+}
+
 .rule-list {
     display: grid;
     gap: 0.65rem;
