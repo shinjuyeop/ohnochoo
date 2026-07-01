@@ -45,6 +45,19 @@ header p {
     color: var(--muted);
 }
 
+a {
+    color: #67e8f9;
+    text-underline-offset: 0.18em;
+}
+
+a:visited {
+    color: #67e8f9;
+}
+
+a:hover {
+    color: #a5f3fc;
+}
+
 main {
     width: min(1100px, 94vw);
     margin: 0 auto;
@@ -261,12 +274,15 @@ body.needs-profile main > :not(#profileSelectScreen) {
 
 .mutigoeul-title-actions {
     display: flex;
+    align-items: center;
     flex-shrink: 0;
     gap: 0.5rem;
 }
 
 #mutigoeulPlaylistTitle {
+    margin: 0;
     min-width: 0;
+    line-height: 1.2;
 }
 
 .playlist-card > .section-title-row + .table-wrap {
