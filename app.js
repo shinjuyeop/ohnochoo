@@ -15,6 +15,7 @@ const selectedProfile = {
 let supabaseClient = null;
 let activeSongFilter = "all";
 let isVoteSaveInFlight = false;
+let lockedBodyScrollY = 0;
 
 const songForm = document.getElementById("songForm");
 const songTitle = document.getElementById("songTitle");
@@ -840,14 +841,14 @@ function openOverlayPanel(panel) {
     closeProfileSettingsMenu();
     closeOverlayPanels();
     if (modalScrim) modalScrim.hidden = false;
-    document.body.classList.add("modal-open");
+    lockBodyScroll();
     panel.hidden = false;
     panel.classList.add("is-open");
 }
 
 function closeOverlayPanels() {
     if (modalScrim) modalScrim.hidden = true;
-    document.body.classList.remove("modal-open");
+    unlockBodyScroll();
     inlineVoteSongId = null;
     activeSongDetailId = "";
     activeSongDetailAllowsVote = false;
@@ -858,6 +859,29 @@ function closeOverlayPanels() {
         panel.hidden = true;
     }
     if (songDetailContent) songDetailContent.innerHTML = "";
+}
+
+function lockBodyScroll() {
+    if (document.body.classList.contains("modal-open")) return;
+    lockedBodyScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    document.body.classList.add("modal-open");
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${lockedBodyScrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+}
+
+function unlockBodyScroll() {
+    if (!document.body.classList.contains("modal-open")) return;
+    document.body.classList.remove("modal-open");
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.left = "";
+    document.body.style.right = "";
+    document.body.style.width = "";
+    window.scrollTo(0, lockedBodyScrollY);
+    lockedBodyScrollY = 0;
 }
 
 function supportsPushNotifications() {
@@ -1769,10 +1793,25 @@ if (fetchAppleMusicBtn) {
 
 if (toggleManualAddBtn && manualAddContainer) {
     toggleManualAddBtn.addEventListener("click", () => {
+        if (selectedFetchedSong) {
+            clearFetchedSongSelectionForManualEntry();
+            manualAddContainer.style.display = "block";
+            toggleManualAddBtn.textContent = "수동추가 닫기";
+            songTitle?.focus();
+            return;
+        }
+
         const isHidden = manualAddContainer.style.display === "none";
         manualAddContainer.style.display = isHidden ? "block" : "none";
         toggleManualAddBtn.textContent = isHidden ? "수동추가 닫기" : "수동추가";
     });
+}
+
+function clearFetchedSongSelectionForManualEntry() {
+    selectedFetchedSong = null;
+    if (fetchedSongSelect) fetchedSongSelect.value = "";
+    if (songTitle) songTitle.value = "";
+    if (songArtist) songArtist.value = "";
 }
 
 // 드롭다운에서 곡을 선택하면 수동 입력 폼에 자동으로 글자 채워주기
@@ -1788,9 +1827,10 @@ if (fetchedSongSelect) {
 
         if (manualAddContainer && manualAddContainer.style.display === "none") {
             manualAddContainer.style.display = "block";
-            if (toggleManualAddBtn) {
-                toggleManualAddBtn.textContent = "수동추가 닫기";
-            }
+        }
+
+        if (toggleManualAddBtn) {
+            toggleManualAddBtn.textContent = "수동추가";
         }
 
         songTitleInput.value = selectedSong.title;
