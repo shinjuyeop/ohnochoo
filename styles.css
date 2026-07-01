@@ -1,6 +1,6 @@
 :root {
     color-scheme: light dark;
-    --bg: #0f172a;
+    --bg: #0f1b3d;
     --panel: #111827;
     --muted: #94a3b8;
     --text: #e5e7eb;
@@ -14,13 +14,13 @@
 }
 
 html {
-    background: linear-gradient(135deg, #020617, #111827 45%, #1e1b4b);
+    background: var(--bg);
 }
 
 body {
     margin: 0;
     font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
-    background: linear-gradient(135deg, #020617, #111827 45%, #1e1b4b);
+    background: var(--bg);
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
