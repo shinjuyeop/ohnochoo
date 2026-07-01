@@ -1133,8 +1133,8 @@ fieldset {
     .playlist-card + .playlist-card::before {
         content: "";
         position: absolute;
+        top: calc(-1rem - 1px);
         right: 0;
-        bottom: 100%;
         left: 0;
         height: 1rem;
         background: var(--page-bg);
