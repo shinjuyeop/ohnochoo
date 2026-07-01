@@ -76,9 +76,9 @@ module.exports = async (req, res) => {
 
         if (subscriptionsError) throw subscriptionsError;
 
-        const title = isUpdate ? "내가 올린 곡 평가가 수정됐어요 ✏️" : "내가 올린 곡에 새 평가가 달렸어요 💬";
+        const title = isUpdate ? "내가 올린 곡의 평가가 수정됐어요 ✏️" : "내가 올린 곡에 새 평가가 달렸어요 💬";
         const body = isUpdate
-            ? `${voterName}이 ${song.title} 평가를 ${decision}로 수정했어요.`
+            ? `${voterName}이 ${song.title} 평가를 수정했어요.`
             : `${voterName}이 ${song.title}에 ${decision} 평가를 남겼어요.`;
         const dedupeKey = isUpdate
             ? `reaction-update:${voteId}:${notificationEventId || Date.now()}`
