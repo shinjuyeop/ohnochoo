@@ -7,7 +7,6 @@ const state = {
     voteStatsBySongId: new Map(),
 };
 
-const expandedSongIds = new Set();
 const selectedProfile = {
     id: localStorage.getItem("selectedMemberId") || "",
     name: localStorage.getItem("selectedMemberName") || "",
@@ -66,6 +65,10 @@ const showMySongsBtn = document.getElementById("showMySongsBtn");
 const openAddSongBtn = document.getElementById("openAddSongBtn");
 const closeAddSongBtn = document.getElementById("closeAddSongBtn");
 const addSongCard = document.getElementById("addSongCard");
+const songDetailModal = document.getElementById("songDetailModal");
+const closeSongDetailBtn = document.getElementById("closeSongDetailBtn");
+const songDetailTitle = document.getElementById("songDetailTitle");
+const songDetailContent = document.getElementById("songDetailContent");
 const openNotificationSettingsBtn = document.getElementById("openNotificationSettingsBtn");
 const closeNotificationSettingsBtn = document.getElementById("closeNotificationSettingsBtn");
 const notificationSettingsModal = document.getElementById("notificationSettingsModal");
@@ -81,6 +84,8 @@ const ruleInfoModal = document.getElementById("ruleInfoModal");
 const filterTabs = document.querySelectorAll(".filter-tab");
 
 let inlineVoteSongId = null;
+let activeSongDetailId = "";
+let activeSongDetailAllowsVote = false;
 
 if (voteRegisterCard) {
     voteRegisterCard.hidden = true;
@@ -137,6 +142,10 @@ if (openAddSongBtn) {
     openAddSongBtn.addEventListener("click", () => {
         openOverlayPanel(addSongCard);
     });
+}
+
+if (closeSongDetailBtn) {
+    closeSongDetailBtn.addEventListener("click", closeOverlayPanels);
 }
 
 if (openNotificationSettingsBtn) {
@@ -200,6 +209,7 @@ document.addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
         closeProfileSettingsMenu();
+        closeOverlayPanels();
     }
 });
 
@@ -334,7 +344,6 @@ deleteSongForm.addEventListener("submit", async (event) => {
         return;
     }
 
-    expandedSongIds.delete(songId);
     deleteSongForm.reset();
     await reloadAllData();
     setStatus("노래가 삭제되었습니다.");
@@ -474,10 +483,6 @@ async function afterVoteSave({ isNewVote, isChanged = true, insertedVoteId, song
         });
     }
 
-    // Close inline evaluation panel after a successful save.
-    inlineVoteSongId = null;
-    restoreVoteCardHome();
-
     await reloadAllData();
     voteForm.reset();
     decisionValue.value = "";
@@ -485,6 +490,15 @@ async function afterVoteSave({ isNewVote, isChanged = true, insertedVoteId, song
     for (const button of decisionButtons) {
         button.classList.remove("active");
     }
+
+    if (activeSongDetailId && songDetailModal && !songDetailModal.hidden) {
+        inlineVoteSongId = votePayload.songId;
+        renderSongDetailModalContent(activeSongDetailId, activeSongDetailAllowsVote);
+    } else {
+        inlineVoteSongId = null;
+        restoreVoteCardHome();
+    }
+
     setStatus(isNewVote ? "투표가 저장되었습니다." : isChanged ? "기존 투표가 수정되었습니다." : "변경된 내용이 없습니다.");
 }
 
@@ -829,11 +843,16 @@ function openOverlayPanel(panel) {
 
 function closeOverlayPanels() {
     if (modalScrim) modalScrim.hidden = true;
-    for (const panel of [addSongCard, ruleInfoModal, memberManageCard, mutigoeulAddModal, notificationSettingsModal]) {
+    inlineVoteSongId = null;
+    activeSongDetailId = "";
+    activeSongDetailAllowsVote = false;
+    restoreVoteCardHome();
+    for (const panel of [addSongCard, songDetailModal, ruleInfoModal, memberManageCard, mutigoeulAddModal, notificationSettingsModal]) {
         if (!panel) continue;
         panel.classList.remove("is-open");
         panel.hidden = true;
     }
+    if (songDetailContent) songDetailContent.innerHTML = "";
 }
 
 function supportsPushNotifications() {
@@ -1224,25 +1243,11 @@ function isMobileView() {
     return window.matchMedia("(max-width: 760px)").matches;
 }
 
-function wireSongRowActions(row, songId, rerender) {
+function wireSongRowActions(row, songId, options = {}) {
+    const { enableInlineVote = true } = options;
     row.addEventListener("click", () => {
-        if (expandedSongIds.has(songId)) {
-            expandedSongIds.delete(songId);
-        } else {
-            expandedSongIds.add(songId);
-        }
-        rerender();
+        openSongDetailModal(songId, { enableInlineVote });
     });
-
-    const evaluateButton = row.querySelector(".evaluate-song-btn");
-    if (evaluateButton) {
-        evaluateButton.addEventListener("click", (event) => {
-            event.stopPropagation();
-            inlineVoteSongId = songId;
-            expandedSongIds.add(songId);
-            rerender();
-        });
-    }
 }
 
 function renderSongs() {
@@ -1250,7 +1255,6 @@ function renderSongs() {
     const onochuSongs = getFilteredOnochuSongs();
     const nowMs = Date.now();
     const mobileView = isMobileView();
-    let mountedInlineVoteCard = false;
 
     if (onochuSongs.length === 0) {
         const emptyMessage = activeSongFilter === "my-pending"
@@ -1265,15 +1269,13 @@ function renderSongs() {
     }
 
     for (const [songIndex, song] of onochuSongs.entries()) {
-        const { votes: songVotes, promotedCount, releasedCount, heldCount } = getVoteStats(song.id);
+        const { promotedCount, releasedCount, heldCount } = getVoteStats(song.id);
         const isTarget = isPromotionTarget(promotedCount, releasedCount);
         const isMutigoeulCandidate = isMutigoeulReady(song, promotedCount, releasedCount, nowMs);
         const isRelease = isReleaseTarget(song, promotedCount, releasedCount, nowMs);
-        const isExpanded = expandedSongIds.has(song.id);
-        const detailRowClassName = `vote-detail-row${isTarget ? " promotion-target-detail" : ""}${isMutigoeulCandidate ? " mutigoeul-ready-detail" : ""}${isRelease ? " release-target-detail" : ""}`;
 
         const row = document.createElement("tr");
-        row.className = `song-row${isTarget ? " promotion-target" : ""}${isMutigoeulCandidate ? " mutigoeul-ready" : ""}${isRelease ? " release-target" : ""}${isExpanded ? " is-expanded" : ""}`;
+        row.className = `song-row${isTarget ? " promotion-target" : ""}${isMutigoeulCandidate ? " mutigoeul-ready" : ""}${isRelease ? " release-target" : ""}`;
         if (mobileView) {
             row.classList.add("mobile-collapsible");
             const loading = songIndex < 2 ? "eager" : "lazy";
@@ -1311,50 +1313,9 @@ function renderSongs() {
             `;
         }
 
-        wireSongRowActions(row, song.id, renderSongs);
+        wireSongRowActions(row, song.id, { enableInlineVote: true });
 
         songTableBody.appendChild(row);
-
-        if (isExpanded) {
-            const detailRow = document.createElement("tr");
-            detailRow.className = detailRowClassName;
-            if (mobileView) {
-                detailRow.innerHTML = `<td colspan="1">${buildSongVoteDetails(songVotes, { enableInlineVote: true, songId: song.id })}</td>`;
-            } else {
-                detailRow.innerHTML = `<td colspan="5">${buildSongVoteDetails(songVotes, { enableInlineVote: true, songId: song.id })}</td>`;
-            }
-            songTableBody.appendChild(detailRow);
-
-            const evaluateButton = detailRow.querySelector(".inline-evaluate-btn");
-            if (evaluateButton) {
-                evaluateButton.addEventListener("click", () => {
-                    if (inlineVoteSongId === song.id) {
-                        inlineVoteSongId = null;
-                        restoreVoteCardHome();
-                        renderSongs();
-                        return;
-                    }
-
-                    inlineVoteSongId = song.id;
-                    renderSongs();
-                });
-            }
-
-            if (inlineVoteSongId === song.id) {
-                const mountTarget = detailRow.querySelector(".inline-vote-card-mount");
-                if (mountTarget) {
-                    mountVoteCardInline(mountTarget, song.id);
-                    mountedInlineVoteCard = true;
-                }
-            }
-        }
-    }
-
-    if (!mountedInlineVoteCard) {
-        if (inlineVoteSongId) {
-            inlineVoteSongId = null;
-        }
-        restoreVoteCardHome();
     }
 }
 
@@ -1372,12 +1333,10 @@ function renderMutigoeulSongs() {
     for (const [songIndex, mutigoeulSong] of state.mutigoeulSongs.entries()) {
         const song = songsById.get(mutigoeulSong.songId);
         if (!song) continue;
-        const { votes: songVotes, promotedCount, releasedCount, heldCount } = getVoteStats(song.id);
-        const isExpanded = expandedSongIds.has(song.id);
-        const detailRowClassName = "vote-detail-row";
+        const { promotedCount, releasedCount, heldCount } = getVoteStats(song.id);
 
         const row = document.createElement("tr");
-        row.className = `song-row${isExpanded ? " is-expanded" : ""}`;
+        row.className = "song-row";
         if (mobileView) {
             row.classList.add("mobile-collapsible");
             const loading = songIndex < 2 ? "eager" : "lazy";
@@ -1415,21 +1374,78 @@ function renderMutigoeulSongs() {
             `;
         }
 
-        wireSongRowActions(row, song.id, renderMutigoeulSongs);
+        wireSongRowActions(row, song.id, { enableInlineVote: false });
 
         mutigoeulTableBody.appendChild(row);
+    }
+}
 
-        if (isExpanded) {
-            const detailRow = document.createElement("tr");
-            detailRow.className = detailRowClassName;
-            if (mobileView) {
-                detailRow.innerHTML = `<td colspan="1">${buildSongVoteDetails(songVotes)}</td>`;
-            } else {
-                detailRow.innerHTML = `<td colspan="5">${buildSongVoteDetails(songVotes)}</td>`;
-            }
-            mutigoeulTableBody.appendChild(detailRow);
+function openSongDetailModal(songId, options = {}) {
+    const { enableInlineVote = true } = options;
+    if (!songDetailModal || !songDetailContent) return;
+
+    openOverlayPanel(songDetailModal);
+    activeSongDetailId = songId;
+    activeSongDetailAllowsVote = enableInlineVote;
+    inlineVoteSongId = null;
+    renderSongDetailModalContent(songId, enableInlineVote);
+}
+
+function renderSongDetailModalContent(songId, enableInlineVote = true) {
+    if (!songDetailContent) return;
+
+    const song = state.songs.find((item) => item.id === songId);
+    if (!song) {
+        songDetailContent.innerHTML = "<p class='muted'>노래 정보를 찾지 못했습니다.</p>";
+        return;
+    }
+
+    const { votes: songVotes, promotedCount, releasedCount, heldCount } = getVoteStats(song.id);
+    if (songDetailTitle) {
+        songDetailTitle.textContent = "노래 상세";
+    }
+    songDetailContent.innerHTML = `
+        ${buildSongDetailSummary(song, promotedCount, releasedCount, heldCount)}
+        ${buildSongVoteDetails(songVotes, { enableInlineVote, songId: song.id })}
+    `;
+
+    const evaluateButton = songDetailContent.querySelector(".inline-evaluate-btn");
+    if (evaluateButton) {
+        evaluateButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            inlineVoteSongId = inlineVoteSongId === song.id ? null : song.id;
+            if (!inlineVoteSongId) restoreVoteCardHome();
+            renderSongDetailModalContent(song.id, enableInlineVote);
+        });
+    }
+
+    if (inlineVoteSongId === song.id) {
+        const mountTarget = songDetailContent.querySelector(".inline-vote-card-mount");
+        if (mountTarget) {
+            mountVoteCardInline(mountTarget, song.id);
         }
     }
+}
+
+function buildSongDetailSummary(song, promotedCount, releasedCount, heldCount) {
+    return `
+        <article class="song-detail-summary">
+            ${buildCoverMarkup(song, "song-detail-summary-cover", "eager", "high")}
+            <div class="song-detail-summary-meta">
+                <div class="mobile-summary-head">
+                    <div class="decision-status">
+                        <span class="decision-pill promote">승격 ${promotedCount}</span>
+                        <span class="decision-pill release">방출 ${releasedCount}</span>
+                        <span class="decision-pill hold">보류 ${heldCount}</span>
+                    </div>
+                    <span class="mobile-date">${formatShortDate(song.createdAt)}</span>
+                </div>
+                <div class="mobile-title">${escapeHtml(song.title)}</div>
+                <div class="mobile-artist">${escapeHtml(song.artist)}</div>
+                <div class="mobile-adder">${escapeHtml(song.adder)}</div>
+            </div>
+        </article>
+    `;
 }
 
 function buildSongVoteDetails(songVotes, options = {}) {

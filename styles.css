@@ -384,6 +384,85 @@ body.needs-profile main > :not(#profileSelectScreen) {
     color: var(--muted);
 }
 
+.song-detail-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-top: 0.75rem;
+    overflow-y: auto;
+    padding-right: 0.15rem;
+}
+
+.song-detail-modal.is-open {
+    display: flex;
+    flex-direction: column;
+    width: min(520px, calc(100vw - 2.5rem));
+    max-height: min(82vh, 760px);
+    overflow: hidden;
+}
+
+.song-detail-modal > .section-title-row {
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+.song-detail-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.75rem;
+}
+
+.song-detail-summary .song-detail-summary-cover {
+    width: 5.6rem;
+    height: 5.6rem;
+    aspect-ratio: 1 / 1;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.song-detail-summary-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.song-detail-summary .mobile-summary-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.4rem;
+    padding-bottom: 0.15rem;
+}
+
+.song-detail-summary .decision-status {
+    gap: 0.3rem;
+    flex-wrap: wrap;
+}
+
+.song-detail-summary .decision-pill {
+    font-size: 0.74rem;
+    padding: 0.14rem 0.5rem;
+}
+
+.song-detail-summary .mobile-date {
+    color: var(--muted);
+    font-size: 0.84rem;
+    white-space: nowrap;
+    padding-top: 0.08rem;
+}
+
+.song-detail-summary .mobile-title {
+    display: block;
+    font-size: 1.03rem;
+    font-weight: 650;
+    line-height: 1.28;
+    padding-top: 0.05rem;
+}
+
+.song-detail-summary .mobile-artist,
+.song-detail-summary .mobile-adder {
+    color: #d9e2f2;
+}
+
 #deleteSongCard {
     margin-top: 1rem;
 }
@@ -455,6 +534,18 @@ button {
 
 button:hover {
     filter: brightness(1.08);
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 .table-wrap {
@@ -708,20 +799,6 @@ fieldset {
     border-color: rgba(148, 163, 184, 0.4);
 }
 
-.toggle-votes-btn {
-    padding: 0.35rem 0.6rem;
-    font-size: 0.85rem;
-    border-radius: 8px;
-    white-space: nowrap;
-}
-
-.evaluate-song-btn {
-    padding: 0.35rem 0.6rem;
-    font-size: 0.85rem;
-    border-radius: 8px;
-    white-space: nowrap;
-}
-
 .status-badge {
     display: inline-flex;
     align-items: center;
@@ -760,20 +837,12 @@ fieldset {
     white-space: nowrap;
 }
 
-.vote-detail-row td {
-    background: #0a1020;
-}
-
 .song-row.promotion-target td {
     background: rgba(16, 185, 129, 0.09);
 }
 
 .song-row.promotion-target td:first-child {
     box-shadow: inset 4px 0 0 rgba(16, 185, 129, 0.7);
-}
-
-.vote-detail-row.promotion-target-detail td {
-    background: rgba(9, 59, 45, 0.5);
 }
 
 .song-row.mutigoeul-ready td {
@@ -784,20 +853,12 @@ fieldset {
     box-shadow: inset 4px 0 0 rgba(56, 189, 248, 0.78);
 }
 
-.vote-detail-row.mutigoeul-ready-detail td {
-    background: rgba(11, 53, 84, 0.5);
-}
-
 .song-row.release-target td {
     background: rgba(248, 113, 113, 0.1);
 }
 
 .song-row.release-target td:first-child {
     box-shadow: inset 4px 0 0 rgba(248, 113, 113, 0.78);
-}
-
-.vote-detail-row.release-target-detail td {
-    background: rgba(88, 28, 28, 0.45);
 }
 
 .vote-inline-list {
@@ -894,19 +955,9 @@ fieldset {
         flex-wrap: wrap;
     }
 
-    .playlist-table .status-actions .toggle-votes-btn {
-        margin-left: 0.3rem;
-    }
-
     .playlist-table .decision-pill {
         font-size: 0.75rem;
         padding: 0.16rem 0.48rem;
-    }
-
-    .playlist-table .toggle-votes-btn,
-    .playlist-table .evaluate-song-btn {
-        font-size: 0.8rem;
-        padding: 0.32rem 0.56rem;
     }
 }
 
@@ -1042,6 +1093,24 @@ fieldset {
     .grid-form .rating-star {
         width: 1.45rem;
         min-width: 1.45rem;
+    }
+
+    .song-detail-content {
+        padding-right: 0;
+    }
+
+    .song-detail-modal.is-open {
+        width: calc(100vw - 2rem);
+        max-height: min(88vh, 760px);
+    }
+
+    .song-detail-summary {
+        align-items: center;
+    }
+
+    .song-detail-summary-cover {
+        width: 5.6rem;
+        height: 5.6rem;
     }
 
     .vote-result-controls .decision-toggle-group {
@@ -1214,56 +1283,4 @@ fieldset {
         justify-content: flex-start;
     }
 
-    .toggle-votes-btn {
-        padding: 0.28rem 0.5rem;
-        font-size: 0.78rem;
-    }
-
-    .vote-detail-row {
-        margin: -0.15rem 0 0.55rem;
-    }
-
-    .vote-detail-row td {
-        border: 0;
-        background: transparent;
-        padding: 0.2rem 0 0;
-    }
-
-    .vote-detail-row td::before {
-        content: none;
-    }
-
-    .song-row.mobile-collapsible.is-expanded {
-        border-bottom-left-radius: 0;
-        border-bottom-right-radius: 0;
-        margin-bottom: 0;
-        border-bottom-color: transparent;
-    }
-
-    .song-row.mobile-collapsible.is-expanded+.vote-detail-row {
-        margin: 0 0 0.55rem;
-    }
-
-    .song-row.mobile-collapsible.is-expanded+.vote-detail-row td {
-        border: 1px solid var(--border);
-        border-top: 0;
-        border-radius: 0 0 12px 12px;
-        background: #0b1221;
-        padding: 0.15rem 0.6rem 0.6rem;
-    }
-
-    .song-row.mobile-collapsible.promotion-target.is-expanded+.vote-detail-row td {
-        border-color: rgba(16, 185, 129, 0.7);
-        background: rgba(16, 185, 129, 0.12);
-    }
-
-    .song-row.mobile-collapsible.mutigoeul-ready.is-expanded+.vote-detail-row td {
-        border-color: rgba(56, 189, 248, 0.75);
-        background: rgba(56, 189, 248, 0.14);
-    }
-
-    .song-row.mobile-collapsible.release-target.is-expanded+.vote-detail-row td {
-        border-color: rgba(248, 113, 113, 0.68);
-        background: rgba(248, 113, 113, 0.12);
-    }
 }
