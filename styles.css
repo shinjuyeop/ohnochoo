@@ -387,9 +387,8 @@ body.needs-profile main > :not(#profileSelectScreen) {
 .song-detail-content {
     flex: 1 1 auto;
     min-height: 0;
-    margin-top: 0.75rem;
     overflow-y: auto;
-    padding-right: 0.15rem;
+    padding: 0.15rem 0.15rem 0.15rem 0;
 }
 
 .song-detail-modal.is-open {
@@ -397,6 +396,7 @@ body.needs-profile main > :not(#profileSelectScreen) {
     flex-direction: column;
     width: min(520px, calc(100vw - 2.5rem));
     max-height: min(82vh, 760px);
+    padding: 0.65rem;
     overflow: hidden;
 }
 
@@ -1099,12 +1099,13 @@ fieldset {
     }
 
     .song-detail-content {
-        padding-right: 0;
+        padding: 0;
     }
 
     .song-detail-modal.is-open {
         width: calc(100vw - 2rem);
         max-height: min(88vh, 760px);
+        padding: 0.55rem;
     }
 
     .song-detail-summary {
