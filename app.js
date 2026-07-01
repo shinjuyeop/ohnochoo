@@ -57,6 +57,8 @@ const profileAddShortcutBtn = document.getElementById("profileAddShortcutBtn");
 const closeMemberManageBtn = document.getElementById("closeMemberManageBtn");
 const profileDashboard = document.getElementById("profileDashboard");
 const currentProfileName = document.getElementById("currentProfileName");
+const openProfileSettingsBtn = document.getElementById("openProfileSettingsBtn");
+const profileSettingsMenu = document.getElementById("profileSettingsMenu");
 const changeProfileBtn = document.getElementById("changeProfileBtn");
 const showPendingSongsBtn = document.getElementById("showPendingSongsBtn");
 const showVotedSongsBtn = document.getElementById("showVotedSongsBtn");
@@ -95,8 +97,16 @@ if (closeMemberManageBtn) {
     closeMemberManageBtn.addEventListener("click", closeOverlayPanels);
 }
 
+if (openProfileSettingsBtn) {
+    openProfileSettingsBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        toggleProfileSettingsMenu();
+    });
+}
+
 if (changeProfileBtn) {
     changeProfileBtn.addEventListener("click", () => {
+        closeProfileSettingsMenu();
         clearSelectedProfile();
         renderAll();
     });
@@ -131,6 +141,7 @@ if (openAddSongBtn) {
 
 if (openNotificationSettingsBtn) {
     openNotificationSettingsBtn.addEventListener("click", async () => {
+        closeProfileSettingsMenu();
         openOverlayPanel(notificationSettingsModal);
         await updateNotificationUi();
     });
@@ -179,6 +190,18 @@ if (closeRuleInfoBtn) {
 if (modalScrim) {
     modalScrim.addEventListener("click", closeOverlayPanels);
 }
+
+document.addEventListener("click", (event) => {
+    if (!profileSettingsMenu || profileSettingsMenu.hidden) return;
+    if (profileSettingsMenu.contains(event.target) || openProfileSettingsBtn?.contains(event.target)) return;
+    closeProfileSettingsMenu();
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+        closeProfileSettingsMenu();
+    }
+});
 
 for (const tab of filterTabs) {
     tab.addEventListener("click", () => {
@@ -782,8 +805,22 @@ function setActiveSongFilter(filter) {
     renderSongs();
 }
 
+function toggleProfileSettingsMenu() {
+    if (!profileSettingsMenu || !openProfileSettingsBtn) return;
+    const isOpen = !profileSettingsMenu.hidden;
+    profileSettingsMenu.hidden = isOpen;
+    openProfileSettingsBtn.setAttribute("aria-expanded", String(!isOpen));
+}
+
+function closeProfileSettingsMenu() {
+    if (!profileSettingsMenu || !openProfileSettingsBtn) return;
+    profileSettingsMenu.hidden = true;
+    openProfileSettingsBtn.setAttribute("aria-expanded", "false");
+}
+
 function openOverlayPanel(panel) {
     if (!panel) return;
+    closeProfileSettingsMenu();
     closeOverlayPanels();
     if (modalScrim) modalScrim.hidden = false;
     panel.hidden = false;

@@ -52,8 +52,13 @@
                     <h2 id="currentProfileName">-</h2>
                 </div>
                 <div class="profile-actions">
-                    <button type="button" id="changeProfileBtn" class="secondary-btn">프로필 변경</button>
-                    <button type="button" id="openNotificationSettingsBtn" class="secondary-btn">알림 설정</button>
+                    <button type="button" id="openProfileSettingsBtn" class="profile-settings-btn" aria-label="프로필 설정 열기" aria-expanded="false" aria-controls="profileSettingsMenu">
+                        <span class="gear-icon" aria-hidden="true"></span>
+                    </button>
+                    <div id="profileSettingsMenu" class="profile-settings-menu" hidden>
+                        <button type="button" id="changeProfileBtn" class="secondary-btn">프로필 변경</button>
+                        <button type="button" id="openNotificationSettingsBtn" class="secondary-btn">알림 설정</button>
+                    </div>
                 </div>
             </div>
             <div class="dashboard-actions">
