@@ -66,7 +66,6 @@ const openAddSongBtn = document.getElementById("openAddSongBtn");
 const closeAddSongBtn = document.getElementById("closeAddSongBtn");
 const addSongCard = document.getElementById("addSongCard");
 const songDetailModal = document.getElementById("songDetailModal");
-const closeSongDetailBtn = document.getElementById("closeSongDetailBtn");
 const songDetailTitle = document.getElementById("songDetailTitle");
 const songDetailContent = document.getElementById("songDetailContent");
 const openNotificationSettingsBtn = document.getElementById("openNotificationSettingsBtn");
@@ -144,8 +143,12 @@ if (openAddSongBtn) {
     });
 }
 
-if (closeSongDetailBtn) {
-    closeSongDetailBtn.addEventListener("click", closeOverlayPanels);
+if (songDetailContent) {
+    songDetailContent.addEventListener("click", (event) => {
+        const interactiveTarget = event.target.closest("button, input, select, textarea, label, form, .inline-vote-card, .inline-vote-card-mount");
+        if (interactiveTarget) return;
+        closeOverlayPanels();
+    });
 }
 
 if (openNotificationSettingsBtn) {

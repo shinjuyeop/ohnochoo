@@ -401,7 +401,10 @@ body.needs-profile main > :not(#profileSelectScreen) {
 }
 
 .song-detail-modal > .section-title-row {
-    justify-content: flex-end;
+    display: block;
+    height: 0;
+    margin: 0;
+    overflow: hidden;
     flex-shrink: 0;
 }
 
