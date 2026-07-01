@@ -22,6 +22,10 @@ const songTitle = document.getElementById("songTitle");
 const songArtist = document.getElementById("songArtist");
 const songAdder = document.getElementById("songAdder");
 const recommendationReason = document.getElementById("recommendationReason");
+const addRatingPicker = document.getElementById("addRatingPicker");
+const addRatingStars = document.querySelectorAll("#addRatingPicker .rating-star");
+const addRatingValue = document.getElementById("addRatingValue");
+const addRatingValueLabel = document.getElementById("addRatingValueLabel");
 const manualAddContainer = document.getElementById("manualAddContainer");
 
 const memberForm = document.getElementById("memberForm");
@@ -39,7 +43,7 @@ const voteFormHome = document.getElementById("voteFormHome");
 const decisionValue = document.getElementById("decisionValue");
 const decisionButtons = document.querySelectorAll(".decision-toggle-btn");
 const ratingPicker = document.getElementById("ratingPicker");
-const ratingStars = document.querySelectorAll(".rating-star");
+const ratingStars = document.querySelectorAll("#ratingPicker .rating-star");
 const ratingValue = document.getElementById("ratingValue");
 const ratingValueLabel = document.getElementById("ratingValueLabel");
 const memberList = document.getElementById("memberList");
@@ -250,7 +254,24 @@ for (const starButton of ratingStars) {
     });
 }
 
+for (const starButton of addRatingStars) {
+    starButton.addEventListener("click", (event) => {
+        const starIndex = Number(starButton.dataset.starIndex);
+        const rect = starButton.getBoundingClientRect();
+        const isLeftHalf = event.clientX - rect.left < rect.width / 2;
+        const currentScore = Number(addRatingValue.value || 0);
+        let score = starIndex - (isLeftHalf ? 0.5 : 0);
+
+        if (starIndex === 1 && isLeftHalf && currentScore === 0.5) {
+            score = 0;
+        }
+
+        setAddRating(score);
+    });
+}
+
 setRating(0);
+setAddRating(5);
 
 songForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -258,6 +279,7 @@ songForm.addEventListener("submit", async (event) => {
     const title = songTitle.value.trim();
     const artist = songArtist.value.trim();
     const reason = recommendationReason.value.trim();
+    const addRating = Number(addRatingValue.value);
     const coverImageUrl = getSelectedFetchedCoverForSubmit(title, artist);
 
     if (!hasSelectedProfile()) {
@@ -265,7 +287,7 @@ songForm.addEventListener("submit", async (event) => {
         return;
     }
 
-    if (!title || !artist || !reason) return;
+    if (!title || !artist || !reason || Number.isNaN(addRating)) return;
 
     if (!supabaseClient) return;
 
@@ -291,7 +313,7 @@ songForm.addEventListener("submit", async (event) => {
         voter: selectedProfile.name,
         member_id: selectedProfile.id,
         decision: "승격",
-        rating: 5.0,
+        rating: addRating,
         reason,
     });
 
@@ -303,6 +325,7 @@ songForm.addEventListener("submit", async (event) => {
 
     await reloadAllData();
     songForm.reset();
+    setAddRating(5);
     selectedFetchedSong = null;
     if (fetchedSongSelect) fetchedSongSelect.value = "";
     if (selectedProfile.name) songAdder.value = selectedProfile.name;
@@ -1640,6 +1663,22 @@ function setRating(score) {
     }
 
     for (const starButton of ratingStars) {
+        const index = Number(starButton.dataset.starIndex);
+        const isFull = normalized >= index;
+        const isHalf = !isFull && normalized >= index - 0.5;
+        starButton.classList.toggle("full", isFull);
+        starButton.classList.toggle("half", isHalf);
+    }
+}
+
+function setAddRating(score) {
+    const normalized = Math.max(0, Math.min(5, Math.round(score * 2) / 2));
+    addRatingValue.value = String(normalized);
+    if (addRatingValueLabel) {
+        addRatingValueLabel.textContent = `${normalized.toFixed(1)}점`;
+    }
+
+    for (const starButton of addRatingStars) {
         const index = Number(starButton.dataset.starIndex);
         const isFull = normalized >= index;
         const isHalf = !isFull && normalized >= index - 0.5;
