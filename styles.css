@@ -1,6 +1,5 @@
 :root {
     color-scheme: light dark;
-    --page-bg: linear-gradient(135deg, #020617, #111827 45%, #1e1b4b);
     --bg: #0f172a;
     --panel: #111827;
     --muted: #94a3b8;
@@ -15,13 +14,13 @@
 }
 
 html {
-    background: var(--page-bg);
+    background: linear-gradient(135deg, #020617, #111827 45%, #1e1b4b);
 }
 
 body {
     margin: 0;
     font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
-    background: var(--page-bg);
+    background: linear-gradient(135deg, #020617, #111827 45%, #1e1b4b);
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
@@ -1126,19 +1125,7 @@ fieldset {
     }
 
     .playlist-card {
-        position: relative;
         box-shadow: 0 0 0 1px rgba(2, 6, 23, 0.28);
-    }
-
-    .playlist-card + .playlist-card::before {
-        content: "";
-        position: absolute;
-        top: calc(-1rem - 1px);
-        right: 0;
-        left: 0;
-        height: 1rem;
-        background: var(--page-bg);
-        pointer-events: none;
     }
 
     .inline-form {
