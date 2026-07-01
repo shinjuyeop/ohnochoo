@@ -840,12 +840,14 @@ function openOverlayPanel(panel) {
     closeProfileSettingsMenu();
     closeOverlayPanels();
     if (modalScrim) modalScrim.hidden = false;
+    document.body.classList.add("modal-open");
     panel.hidden = false;
     panel.classList.add("is-open");
 }
 
 function closeOverlayPanels() {
     if (modalScrim) modalScrim.hidden = true;
+    document.body.classList.remove("modal-open");
     inlineVoteSongId = null;
     activeSongDetailId = "";
     activeSongDetailAllowsVote = false;

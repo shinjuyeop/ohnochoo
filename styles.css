@@ -22,6 +22,10 @@ body {
     overflow-x: hidden;
 }
 
+body.modal-open {
+    overflow: hidden;
+}
+
 header {
     text-align: center;
     padding: 2rem 1rem 1rem;
@@ -375,6 +379,7 @@ body.needs-profile main > :not(#profileSelectScreen) {
 
 .add-song-panel > .section-title-row {
     align-items: center;
+    margin-bottom: 0.8rem;
 }
 
 .add-song-panel > .section-title-row h2 {
