@@ -1293,14 +1293,13 @@ function populateVoteFormForSong(songId) {
         voterName.value = selectedProfile.name;
     }
 
-    const existingVote = getSelectedProfileVote(songId);
     const reasonInput = document.getElementById("reason");
-    decisionValue.value = existingVote?.decision || "";
-    if (reasonInput) reasonInput.value = existingVote?.reason || "";
-    setRating(Number(existingVote?.rating || 0));
+    decisionValue.value = "";
+    if (reasonInput) reasonInput.value = "";
+    setRating(0);
 
     for (const button of decisionButtons) {
-        button.classList.toggle("active", Boolean(existingVote) && button.dataset.value === existingVote.decision);
+        button.classList.remove("active");
     }
 }
 
@@ -1515,10 +1514,16 @@ function buildSongDetailSummary(song, promotedCount, releasedCount, heldCount) {
 
 function buildSongVoteDetails(songVotes, options = {}) {
     const { enableInlineVote = false, songId = "" } = options;
+    const existingVote = getSelectedProfileVote(songId);
+    const evaluateButtonLabel = inlineVoteSongId === songId
+        ? "평가 창 닫기"
+        : existingVote
+            ? "평가 수정하기"
+            : "평가하기";
     const inlineVoteButtonBlock = enableInlineVote
         ? `
             <div class="vote-cta-wrap">
-                <button type="button" class="inline-evaluate-btn">${inlineVoteSongId === songId ? "평가 창 닫기" : "평가하기"}</button>
+                <button type="button" class="inline-evaluate-btn">${evaluateButtonLabel}</button>
                 <div class="inline-vote-card-mount"></div>
             </div>
         `
