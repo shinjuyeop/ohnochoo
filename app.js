@@ -338,6 +338,11 @@ songForm.addEventListener("submit", async (event) => {
         return;
     }
 
+    sendSongAddedNotification({
+        songId: insertedSong.id,
+        adderName: selectedProfile.name,
+    });
+
     await reloadAllData();
     songForm.reset();
     setAddRating(5);
@@ -571,6 +576,23 @@ async function sendReactionNotification(payload) {
         }
     } catch (error) {
         console.warn("reaction notification failed:", error);
+    }
+}
+
+async function sendSongAddedNotification(payload) {
+    try {
+        const response = await fetch("/api/send-song-added-notification", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            console.warn("song added notification failed:", data.error || response.status);
+        }
+    } catch (error) {
+        console.warn("song added notification failed:", error);
     }
 }
 
@@ -1039,7 +1061,7 @@ async function updateNotificationUi() {
         if (subscription) {
             setNotificationUi({
                 status: "알림 켜짐",
-                hint: "평가 리마인드, 오노추 추가 리마인드, 내가 올린 곡의 새 평가 알림을 받을 수 있어요.",
+                hint: "평가 리마인드, 오노추 추가 리마인드, 새 오노추, 내가 올린 곡의 새 평가 알림을 받을 수 있어요.",
                 enabled: true,
             });
             return;
@@ -1050,7 +1072,7 @@ async function updateNotificationUi() {
 
     setNotificationUi({
         status: "알림 꺼짐",
-        hint: "평가 리마인드, 오노추 추가 리마인드, 내가 올린 곡의 새 평가 알림을 받을 수 있어요.",
+        hint: "평가 리마인드, 오노추 추가 리마인드, 새 오노추, 내가 올린 곡의 새 평가 알림을 받을 수 있어요.",
         enabled: false,
     });
 }
