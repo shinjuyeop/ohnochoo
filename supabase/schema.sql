@@ -74,6 +74,9 @@ create index if not exists push_subscriptions_member_id_idx
 create index if not exists push_subscriptions_is_active_idx
   on public.push_subscriptions(is_active);
 
+create index if not exists push_subscriptions_active_updated_at_idx
+  on public.push_subscriptions(is_active, updated_at);
+
 create table if not exists public.notification_logs (
   id uuid primary key default gen_random_uuid(),
   member_id uuid references public.members(id) on delete cascade,
