@@ -1,5 +1,6 @@
 import { AppProviders } from "./providers";
+import { AppErrorBoundary } from "../components/AppErrorBoundary";
 
 export default function App() {
-  return <AppProviders />;
+  return <AppErrorBoundary><AppProviders /></AppErrorBoundary>;
 }

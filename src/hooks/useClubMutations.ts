@@ -2,10 +2,15 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { postJson } from "../lib/api";
 import { getSupabase } from "../lib/supabase";
 import { normalizeCoverUrl } from "../lib/utils";
-import { isVoteByMember } from "../lib/songRules";
+import { findMemberVotes, planVoteSave } from "../lib/voteRules";
 import type { Decision, Member, PlaylistSong, Song, Vote } from "../types";
 
 type Profile = Pick<Member, "id" | "name">;
+type SupabaseErrorLike = { code?: string; message?: string };
+
+function isMissingRpc(error: SupabaseErrorLike | null) {
+  return error?.code === "PGRST202" || Boolean(error?.message?.includes("schema cache"));
+}
 
 function notifySilently(url: string, body: unknown) {
   void postJson(url, body).catch((error) => console.warn("notification failed", error));
@@ -18,6 +23,24 @@ export function useClubMutations() {
   const addSong = useMutation({
     mutationFn: async (input: { title: string; artist: string; reason: string; rating: number; coverImageUrl?: string | null; profile: Profile }) => {
       const supabase = await getSupabase();
+      const coverImageUrl = normalizeCoverUrl(input.coverImageUrl);
+      const atomic = await supabase.rpc("add_song_with_initial_vote", {
+        p_title: input.title,
+        p_artist: input.artist,
+        p_adder: input.profile.name,
+        p_adder_member_id: input.profile.id || null,
+        p_cover_image_url: coverImageUrl,
+        p_rating: input.rating,
+        p_reason: input.reason.trim(),
+      });
+      if (!atomic.error) {
+        const created = (Array.isArray(atomic.data) ? atomic.data[0] : atomic.data) as Song | null;
+        if (!created?.id) throw new Error("추가된 노래 정보를 확인하지 못했어요.");
+        notifySilently("/api/send-song-added-notification", { songId: created.id, adderName: input.profile.name });
+        return created;
+      }
+      if (!isMissingRpc(atomic.error)) throw atomic.error;
+
       const { data: song, error: songError } = await supabase
         .from("songs")
         .insert({
@@ -25,7 +48,7 @@ export function useClubMutations() {
           artist: input.artist,
           adder: input.profile.name,
           adder_member_id: input.profile.id,
-          coverImageUrl: normalizeCoverUrl(input.coverImageUrl),
+          coverImageUrl,
         })
         .select("id,title,artist,adder,adder_member_id,createdAt,coverImageUrl")
         .single();
@@ -38,7 +61,11 @@ export function useClubMutations() {
         rating: input.rating,
         reason: input.reason,
       });
-      if (voteError) throw new Error(`노래는 추가됐지만 추천 이유 저장에 실패했어요: ${voteError.message}`);
+      if (voteError) {
+        const cleanup = await supabase.from("songs").delete().eq("id", song.id);
+        const cleanupMessage = cleanup.error ? " 추가된 노래를 자동으로 정리하지 못했어요." : " 추가된 노래는 자동으로 정리했어요.";
+        throw new Error(`추천 이유 저장에 실패했어요.${cleanupMessage} ${voteError.message}`);
+      }
       notifySilently("/api/send-song-added-notification", { songId: song.id, adderName: input.profile.name });
       return song as Song;
     },
@@ -56,37 +83,61 @@ export function useClubMutations() {
         rating: input.rating,
         reason: input.reason.trim(),
       };
-      let matching = input.votes.filter((vote) => vote.songId === input.song.id && isVoteByMember(vote, input.profile));
+      const atomic = await supabase.rpc("save_member_vote", {
+        p_song_id: input.song.id,
+        p_voter: input.profile.name,
+        p_member_id: input.profile.id || null,
+        p_decision: input.decision,
+        p_rating: input.rating,
+        p_reason: payload.reason,
+      });
+      if (!atomic.error) {
+        const saved = (Array.isArray(atomic.data) ? atomic.data[0] : atomic.data) as { vote_id?: string; is_new?: boolean; changed?: boolean } | null;
+        if (!saved?.vote_id) throw new Error("저장된 평가 정보를 확인하지 못했어요.");
+        if (!saved.changed) return { changed: false, isNew: Boolean(saved.is_new) };
+        notifySilently("/api/send-reaction-notification", {
+          voteId: saved.vote_id,
+          songId: input.song.id,
+          voterName: input.profile.name,
+          voterMemberId: input.profile.id,
+          decision: input.decision,
+          notificationKind: saved.is_new ? "new" : "update",
+          notificationEventId: saved.is_new ? "" : String(Date.now()),
+        });
+        return { changed: true, isNew: Boolean(saved.is_new) };
+      }
+      if (!isMissingRpc(atomic.error)) throw atomic.error;
+
+      let matching = findMemberVotes(input.votes, input.song.id, input.profile);
       if (!matching.length) {
         const existingResult = await supabase
           .from("votes")
           .select("id,songId,voter,member_id,decision,rating,reason,createdAt")
           .eq("songId", input.song.id);
         if (existingResult.error) throw existingResult.error;
-        matching = ((existingResult.data ?? []) as Vote[]).filter((vote) => isVoteByMember(vote, input.profile));
+        matching = findMemberVotes((existingResult.data ?? []) as Vote[], input.song.id, input.profile);
       }
-      const existing = matching[0];
-      if (existing && existing.decision === payload.decision && Number(existing.rating) === payload.rating && existing.reason.trim() === payload.reason) {
+      const plan = planVoteSave(matching, payload);
+      if (plan.action === "unchanged") {
         return { changed: false, isNew: false };
       }
 
       let voteId = "";
-      const isNew = matching.length === 0;
-      if (isNew) {
+      const isNew = plan.action === "insert";
+      if (plan.action === "insert") {
         const result = await supabase.from("votes").insert(payload).select("id").single();
         if (result.error) throw result.error;
         voteId = result.data.id;
       } else {
-        const [primary, ...duplicates] = matching;
-        const result = await supabase.from("votes").update(payload).eq("id", primary.id).select("id").single();
+        const result = await supabase.from("votes").update(payload).eq("id", plan.primary.id).select("id").single();
         if (!result.error) {
           voteId = result.data.id;
-          if (duplicates.length) {
-            const cleanup = await supabase.from("votes").delete().in("id", duplicates.map((vote) => vote.id));
+          if (plan.duplicateIds.length) {
+            const cleanup = await supabase.from("votes").delete().in("id", plan.duplicateIds);
             if (cleanup.error) throw cleanup.error;
           }
         } else {
-          const remove = await supabase.from("votes").delete().in("id", matching.map((vote) => vote.id));
+          const remove = await supabase.from("votes").delete().in("id", plan.matching.map((vote) => vote.id));
           if (remove.error) throw result.error;
           const insert = await supabase.from("votes").insert(payload).select("id").single();
           if (insert.error) throw insert.error;

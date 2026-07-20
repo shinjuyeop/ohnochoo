@@ -7,16 +7,31 @@ import type { Song, VoteStats } from "../types";
 
 export function SongCard({ song, stats, hasVoted, onOpen, compact = false, hideStatus = false }: { song: Song; stats: VoteStats; hasVoted: boolean; onOpen: () => void; compact?: boolean; hideStatus?: boolean }) {
   const avg = averageRating(stats.votes);
+  const handleOpenKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    onOpen();
+  };
+
   return (
-    <article className={`song-card ${compact ? "song-card-compact" : ""}`} onClick={onOpen}>
-      <SongCover song={song} eager={compact} />
-      <div className={`song-card-main ${hideStatus ? "song-card-main-plain" : ""}`}>
-        {!hideStatus ? <div className="song-card-top"><StatusBadge song={song} stats={stats} /><span>{formatCompactDate(song.createdAt)}</span></div> : null}
-        <div className="song-title-row"><h3>{song.title}</h3>{hideStatus ? <span className="song-title-date">{formatCompactDate(song.createdAt)}</span> : null}</div>
-        <p>{song.artist}</p>
-        <div className="song-card-meta"><span>by {song.adder}</span><span><MessageCircle size={14} /> {stats.votes.length}</span>{avg !== null ? <span><Star size={14} /> {avg.toFixed(1)}</span> : null}</div>
+    <article className={`song-card ${compact ? "song-card-compact" : ""}`}>
+      <div
+        className="song-card-open"
+        role="button"
+        tabIndex={0}
+        aria-label={`${song.title} - ${song.artist} 상세 보기`}
+        onClick={onOpen}
+        onKeyDown={handleOpenKeyDown}
+      >
+        <SongCover song={song} eager={compact} />
+        <div className={`song-card-main ${hideStatus ? "song-card-main-plain" : ""}`}>
+          {!hideStatus ? <div className="song-card-top"><StatusBadge song={song} stats={stats} /><span>{formatCompactDate(song.createdAt)}</span></div> : null}
+          <div className="song-title-row"><h3>{song.title}</h3>{hideStatus ? <span className="song-title-date">{formatCompactDate(song.createdAt)}</span> : null}</div>
+          <p>{song.artist}</p>
+          <div className="song-card-meta"><span>by {song.adder}</span><span><MessageCircle size={14} /> {stats.votes.length}</span>{avg !== null ? <span><Star size={14} /> {avg.toFixed(1)}</span> : null}</div>
+        </div>
       </div>
-      {!hasVoted ? <button className="evaluate-button" onClick={(event) => { event.stopPropagation(); onOpen(); }}>평가하기</button> : <button className="card-arrow" aria-label={`${song.title} 상세 보기`}><ChevronRight /></button>}
+      {!hasVoted ? <button className="evaluate-button" onClick={onOpen}>평가하기</button> : <button className="card-arrow" aria-label={`${song.title} 상세 보기`} onClick={onOpen}><ChevronRight /></button>}
     </article>
   );
 }

@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
@@ -53,6 +53,24 @@ function localVercelFunctions(): Plugin {
   };
 }
 
+function generatedBuildVersion(): Plugin {
+  let version = "";
+
+  return {
+    name: "ohnochoo-build-version",
+    apply: "build",
+    buildStart() {
+      version = new Date().toISOString();
+    },
+    closeBundle() {
+      writeFileSync(
+        resolve(process.cwd(), "dist", "version.json"),
+        `${JSON.stringify({ version }, null, 2)}\n`,
+      );
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   for (const key of ["SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY", "VAPID_SUBJECT"]) {
@@ -60,7 +78,7 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [localVercelFunctions(), react()],
+    plugins: [localVercelFunctions(), generatedBuildVersion(), react()],
     build: {
       rolldownOptions: {
         output: {

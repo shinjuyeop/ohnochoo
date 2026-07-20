@@ -9,6 +9,7 @@
 - Apple Music 플레이리스트 동기화 및 수동 곡 추가
 - 추천 이유, 0.5점 단위 별점, 최초 승격 평가 저장
 - 평가 등록·수정 및 변경 없는 중복 저장 방지
+- DB RPC를 통한 곡·최초 평가 원자적 저장
 - 오노추 필터와 곡 상세 평가 목록
 - 무티고을 그리드·목록 보기 및 추가일 정렬
 - Supabase Realtime 자동 갱신
@@ -39,7 +40,8 @@
 | Backend | Vercel Serverless Functions, Node.js |
 | Database | Supabase PostgreSQL |
 | Push | Web Push, VAPID, Service Worker |
-| Apple Music parser | Axios, Cheerio |
+| Apple Music parser | Node.js Fetch, JSON |
+| Test | Vitest |
 
 ## 프로젝트 구조
 
@@ -60,7 +62,7 @@ ohnochoo/
 │  ├─ service-worker.js
 │  └─ version.json
 ├─ scripts/
-│  └─ update-version.js         # public/version.json 갱신
+│  └─ update-version.js         # 개발용 public/version.json 갱신
 ├─ src/
 │  ├─ app/                      # Router, Provider, 앱 UI Context
 │  ├─ pages/                    # 홈, 오노추, 무티고을, 내 정보
@@ -69,9 +71,12 @@ ohnochoo/
 │  │  └─ ui/                    # Dialog, Toast, Avatar 등 UI 요소
 │  ├─ hooks/                    # Query, mutation, Push, PWA 동작
 │  ├─ lib/                      # Supabase, 규칙, API, 유틸리티
+│  │  └─ *.test.ts              # 핵심 규칙 단위 테스트
 │  ├─ styles/globals.css        # 디자인 시스템과 반응형 스타일
 │  └─ types/                    # 공통 TypeScript 타입
-├─ supabase/schema.sql          # DB 테이블, RLS, 정책
+├─ supabase/
+│  ├─ schema.sql                # 새 환경용 전체 DB 스키마
+│  └─ migrations/               # 운영 DB에 순서대로 적용할 변경 SQL
 ├─ index.html                   # Vite 진입 문서
 ├─ vite.config.ts               # Vite 및 로컬 API 어댑터
 ├─ vercel.json                  # 빌드, SPA rewrite, Cron
@@ -99,6 +104,8 @@ VAPID_SUBJECT=mailto:you@example.com
 
 ## 로컬 실행
 
+Node.js 20 이상과 npm 10 이상을 권장합니다.
+
 ```bash
 npm install
 cp .env.example .env.local
@@ -112,12 +119,16 @@ npm run dev
 ```bash
 npm run dev          # 개발 서버
 npm run typecheck    # TypeScript 검사
+npm run test         # Vitest 단위 테스트 1회 실행
+npm run test:watch   # 변경을 감지하며 테스트
 npm run build        # 타입 검사 후 프로덕션 빌드
 npm run preview      # dist 미리보기
 npm run update-version
 ```
 
-`npm run update-version`은 KST 타임스탬프로 `public/version.json`을 갱신합니다. 앱은 화면으로 복귀할 때 이 파일을 확인하고 저장된 버전과 다르면 새로고침합니다.
+프로덕션 빌드는 배포 시각을 `dist/version.json`에 자동으로 기록합니다. `npm run update-version`은 개발 중 `public/version.json`을 수동으로 갱신할 때만 사용합니다. 앱은 화면으로 복귀할 때 버전을 확인하고 저장된 값과 다르면 새로고침합니다.
+
+`npm run preview`는 정적 `dist/`만 제공하므로 `/api/*` Vercel Functions를 실행하지 않습니다. API까지 확인할 때는 환경 변수를 설정한 뒤 `npm run dev`를 사용합니다.
 
 ## 데이터베이스
 
@@ -133,6 +144,15 @@ npm run update-version
 | `notification_logs` | 알림 중복 방지 및 발송 상태 |
 
 `songs.adder_member_id`와 `votes.member_id`를 우선 사용하며, 이전 데이터는 `adder`와 `voter` 이름으로 호환합니다. Realtime publication에는 `songs`, `votes`, `members`, `mutigoeul_songs`가 포함되어야 합니다.
+
+`supabase/schema.sql`에는 다음 데이터 정합성 규칙이 포함됩니다.
+
+- 기존 중복 평가는 프로필·곡별 최신 항목 하나만 유지
+- 프로필·곡별 평가 고유 인덱스
+- `add_song_with_initial_vote`: 곡과 최초 평가를 하나의 트랜잭션으로 저장
+- `save_member_vote`: 같은 평가는 건너뛰고 기존 평가는 원자적으로 수정
+
+운영 DB에 새 RPC를 적용하기 전에도 앱은 기존 저장 방식으로 동작하며, 최초 평가 저장이 실패하면 추가된 곡을 자동 정리합니다. 완전한 원자성과 DB 수준 중복 방지를 활성화하려면 Supabase SQL Editor에서 `supabase/migrations/20260720190000_atomic_song_votes.sql`을 적용해야 합니다.
 
 ## API
 
@@ -178,6 +198,12 @@ Vercel은 다음 설정을 사용합니다.
 - 평가자 추가, 노래 삭제, 무티고을 이동은 현재 클라이언트 비밀번호 확인 방식입니다.
 - 공개 범위가 커지면 Supabase Auth와 서버 권한 검증으로 교체해야 합니다.
 - `supabase/schema.sql`과 실제 운영 데이터는 별도의 명시적인 마이그레이션 없이 변경하지 않습니다.
+
+## 문제 해결
+
+- Supabase 연결 실패: `/api/config` 응답과 `SUPABASE_URL`, `SUPABASE_ANON_KEY` 설정을 확인합니다.
+- Push 미수신: 브라우저 알림 권한, HTTPS 환경, VAPID 환경 변수와 설정 화면의 구독 상태를 확인합니다.
+- 새 배포 미반영: 앱을 다시 열거나 `version.json` 응답과 서비스 워커 등록 상태를 확인합니다.
 
 ## License
 
