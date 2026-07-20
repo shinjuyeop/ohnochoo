@@ -5,6 +5,18 @@ const {
     sendDedupedNotification,
 } = require("./_push-utils");
 
+function groupSubscriptionsByMemberId(subscriptions) {
+    const subscriptionsByMemberId = new Map();
+    for (const subscription of subscriptions ?? []) {
+        if (!subscription.member_id) continue;
+        if (!subscriptionsByMemberId.has(subscription.member_id)) {
+            subscriptionsByMemberId.set(subscription.member_id, []);
+        }
+        subscriptionsByMemberId.get(subscription.member_id).push(subscription);
+    }
+    return subscriptionsByMemberId;
+}
+
 module.exports = async (req, res) => {
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Method not allowed" });
@@ -15,7 +27,6 @@ module.exports = async (req, res) => {
             voteId,
             songId,
             voterName,
-            voterMemberId,
             decision,
             isUpdate: requestedIsUpdate = false,
             notificationKind = "new",
@@ -32,75 +43,60 @@ module.exports = async (req, res) => {
 
         const { data: song, error: songError } = await supabase
             .from("songs")
-            .select("id,title,artist,adder,adder_member_id")
+            .select("id,title")
             .eq("id", songId)
             .maybeSingle();
 
         if (songError) throw songError;
         if (!song) return res.status(404).json({ error: "곡을 찾을 수 없습니다." });
 
-        let recipientMember = null;
-        if (song.adder_member_id) {
-            const { data, error } = await supabase
-                .from("members")
-                .select("id,name")
-                .eq("id", song.adder_member_id)
-                .maybeSingle();
-            if (error) throw error;
-            recipientMember = data;
-        }
-
-        if (!recipientMember && song.adder) {
-            const { data, error } = await supabase
-                .from("members")
-                .select("id,name")
-                .eq("name", song.adder)
-                .maybeSingle();
-            if (error) throw error;
-            recipientMember = data;
-        }
-
-        if (!recipientMember) {
-            return res.status(200).json({ ok: true, count: 0, skipped: "no-recipient" });
-        }
-
-        if ((voterMemberId && recipientMember.id === voterMemberId) || (!voterMemberId && recipientMember.name === voterName)) {
-            return res.status(200).json({ ok: true, count: 0, skipped: "self-vote" });
-        }
-
         const { data: subscriptions, error: subscriptionsError } = await supabase
             .from("push_subscriptions")
             .select("member_id,endpoint,p256dh,auth")
-            .eq("member_id", recipientMember.id)
             .eq("is_active", true);
 
         if (subscriptionsError) throw subscriptionsError;
 
-        const title = isUpdate ? "내가 올린 곡의 평가가 수정됐어요 ✏️" : "내가 올린 곡에 새 평가가 달렸어요 💬";
+        const title = isUpdate ? "평가가 수정됐어요 ✏️" : "새 평가가 등록됐어요 💬";
         const body = isUpdate
             ? `${voterName}님이 ${song.title}의 평가를 수정했어요.`
             : `${voterName}님이 ${song.title}에 ${decision} 평가를 남겼어요.`;
-        const dedupeKey = isUpdate
+        const notificationKey = isUpdate
             ? `reaction-update:${voteId}:${notificationEventId || Date.now()}`
             : `reaction-new:${voteId}`;
+        const subscriptionsByMemberId = groupSubscriptionsByMemberId(subscriptions);
+        let sentCount = 0;
+        let memberCount = 0;
+        let skippedCount = 0;
 
-        const result = await sendDedupedNotification({
-            supabase,
-            subscriptions: subscriptions ?? [],
-            memberId: recipientMember.id,
-            type: isUpdate ? "reaction-update" : "reaction-new",
-            dedupeKey,
-            title,
-            body,
-            url: "/",
-            relatedSongId: song.id,
-            relatedVoteId: voteId,
-        });
+        for (const [memberId, memberSubscriptions] of subscriptionsByMemberId) {
+            const result = await sendDedupedNotification({
+                supabase,
+                subscriptions: memberSubscriptions,
+                memberId,
+                type: isUpdate ? "reaction-update" : "reaction-new",
+                dedupeKey: `${notificationKey}:${memberId}`,
+                title,
+                body,
+                url: "/",
+                relatedSongId: song.id,
+                relatedVoteId: voteId,
+            });
+
+            if (result.skipped) {
+                skippedCount += 1;
+                continue;
+            }
+
+            memberCount += 1;
+            sentCount += result.count;
+        }
 
         return res.status(200).json({
             ok: true,
-            count: result.count,
-            skipped: result.skipped ? result.reason : false,
+            members: memberCount,
+            count: sentCount,
+            skipped: skippedCount,
         });
     } catch (error) {
         console.error("send-reaction-notification failed:", error);

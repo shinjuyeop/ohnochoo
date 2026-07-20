@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { postJson } from "../lib/api";
 import { getSupabase } from "../lib/supabase";
 import { getSongKey, normalizeCoverUrl } from "../lib/utils";
-import { isSongByMember, isVoteByMember } from "../lib/songRules";
+import { isVoteByMember } from "../lib/songRules";
 import type { ClubData, Decision, Member, PlaylistSong, Song, Vote } from "../types";
 
 type Profile = Pick<Member, "id" | "name">;
@@ -93,17 +93,15 @@ export function useClubMutations() {
           voteId = insert.data.id;
         }
       }
-      if (!isSongByMember(input.song, input.profile)) {
-        notifySilently("/api/send-reaction-notification", {
-          voteId,
-          songId: input.song.id,
-          voterName: input.profile.name,
-          voterMemberId: input.profile.id,
-          decision: input.decision,
-          notificationKind: isNew ? "new" : "update",
-          notificationEventId: isNew ? "" : String(Date.now()),
-        });
-      }
+      notifySilently("/api/send-reaction-notification", {
+        voteId,
+        songId: input.song.id,
+        voterName: input.profile.name,
+        voterMemberId: input.profile.id,
+        decision: input.decision,
+        notificationKind: isNew ? "new" : "update",
+        notificationEventId: isNew ? "" : String(Date.now()),
+      });
       return { changed: true, isNew };
     },
     onSuccess: refresh,
