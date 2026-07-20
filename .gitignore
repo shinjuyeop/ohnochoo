@@ -7,3 +7,4 @@ dist
 *.tsbuildinfo
 .env*.local
 .env*
+/supabase/.temp/
