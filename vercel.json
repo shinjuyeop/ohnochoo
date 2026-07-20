@@ -1,4 +1,13 @@
 {
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/onochoo", "destination": "/index.html" },
+    { "source": "/mutigoeul", "destination": "/index.html" },
+    { "source": "/settings", "destination": "/index.html" }
+  ],
   "crons": [
     {
       "path": "/api/send-add-song-reminders",
