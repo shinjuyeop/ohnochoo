@@ -12,18 +12,13 @@ const min = String(kst.getUTCMinutes()).padStart(2, '0');
 const ss = String(kst.getUTCSeconds()).padStart(2, '0');
 
 const versionStr = `${yyyy}-${mm}-${dd}-${hh}${min}${ss}`;
-const filePaths = [
-  path.join(__dirname, '..', 'version.json'),
-  path.join(__dirname, '..', 'public', 'version.json'),
-];
+const filePath = path.join(__dirname, '..', 'public', 'version.json');
 
 try {
   const contents = JSON.stringify({ version: versionStr }, null, 2) + '\n';
-  for (const filePath of filePaths) {
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, contents);
-  }
-  console.log(`[Success] version.json files updated to: ${versionStr}`);
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, contents);
+  console.log(`[Success] public/version.json updated to: ${versionStr}`);
 } catch (err) {
   console.error('[Error] Failed to update version.json:', err);
   process.exit(1);

@@ -1,19 +1,15 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
-import { HomePage } from "../pages/HomePage";
-import { OnochooPage } from "../pages/OnochooPage";
-import { MutigoeulPage } from "../pages/MutigoeulPage";
-import { SettingsPage } from "../pages/SettingsPage";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <AppShell />,
     children: [
-      { index: true, element: <HomePage /> },
-      { path: "onochoo", element: <OnochooPage /> },
-      { path: "mutigoeul", element: <MutigoeulPage /> },
-      { path: "settings", element: <SettingsPage /> },
+      { index: true, lazy: async () => ({ Component: (await import("../pages/HomePage")).HomePage }) },
+      { path: "onochoo", lazy: async () => ({ Component: (await import("../pages/OnochooPage")).OnochooPage }) },
+      { path: "mutigoeul", lazy: async () => ({ Component: (await import("../pages/MutigoeulPage")).MutigoeulPage }) },
+      { path: "settings", lazy: async () => ({ Component: (await import("../pages/SettingsPage")).SettingsPage }) },
     ],
   },
 ]);

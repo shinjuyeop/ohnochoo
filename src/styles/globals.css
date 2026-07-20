@@ -86,7 +86,7 @@ a { color: inherit; text-decoration: none; }
 /* Navigation and shell */
 .app-shell { min-height: 100dvh; }
 .sidebar { display: none; }
-.mobile-topbar { height: calc(60px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 20px 0; display: flex; align-items: center; justify-content: space-between; background: rgba(11,13,18,.94); position: sticky; top: 0; z-index: 20; }
+.mobile-topbar { height: calc(60px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 20px 0; display: flex; align-items: center; justify-content: space-between; background: var(--canvas); position: relative; }
 .mobile-topbar .wordmark { font-size: 20px; font-weight: 850; letter-spacing: -.05em; }
 .mobile-topbar button { padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
 .main-content { width: 100%; padding-bottom: calc(84px + env(safe-area-inset-bottom)); }

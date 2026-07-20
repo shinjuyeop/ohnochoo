@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { postJson } from "../lib/api";
 import { getSupabase } from "../lib/supabase";
-import { getSongKey, normalizeCoverUrl } from "../lib/utils";
+import { normalizeCoverUrl } from "../lib/utils";
 import { isVoteByMember } from "../lib/songRules";
-import type { ClubData, Decision, Member, PlaylistSong, Song, Vote } from "../types";
+import type { Decision, Member, PlaylistSong, Song, Vote } from "../types";
 
 type Profile = Pick<Member, "id" | "name">;
 
@@ -146,5 +146,5 @@ export function useClubMutations() {
     onSuccess: refresh,
   });
 
-  return { addSong, saveVote, addMember, deleteSong, moveToMutigoeul, persistCovers, getSongKey };
+  return { addSong, saveVote, addMember, deleteSong, moveToMutigoeul, persistCovers };
 }

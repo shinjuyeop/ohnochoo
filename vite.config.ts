@@ -61,5 +61,47 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [localVercelFunctions(), react()],
+    build: {
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              {
+                name: "react",
+                test: /node_modules[\\/](?:react|react-dom|react-router|react-router-dom|scheduler)[\\/]/,
+                priority: 40,
+              },
+              {
+                name: "supabase",
+                test: /node_modules[\\/]@supabase[\\/]/,
+                priority: 40,
+              },
+              {
+                name: "forms",
+                test: /node_modules[\\/](?:@hookform|@radix-ui|react-hook-form|zod)[\\/]/,
+                priority: 30,
+              },
+              {
+                name: "query",
+                test: /node_modules[\\/]@tanstack[\\/]/,
+                priority: 30,
+              },
+              {
+                name: "icons",
+                test: /node_modules[\\/]lucide-react[\\/]/,
+                priority: 30,
+              },
+              {
+                name: "vendor",
+                test: /node_modules/,
+                minSize: 50_000,
+                maxSize: 250_000,
+                priority: 10,
+              },
+            ],
+          },
+        },
+      },
+    },
   };
 });

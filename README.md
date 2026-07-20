@@ -1,193 +1,88 @@
-# 🎧 ohnochoo
+# ohnochoo
 
-친구들과 **오늘의 노래를 추천하고, 평가하고, 무티고을로 보내는** 플레이리스트 웹앱입니다.
+친구들과 노래를 추천하고 `승격`·`보류`·`방출`로 평가하는 모바일 우선 플레이리스트 웹앱입니다. 승격 조건을 만족한 곡은 무티고을로 이동할 수 있습니다.
 
-오노추에 곡을 올리면 추가자의 추천 이유와 별점이 자동으로 함께 저장되고, 친구들은 각 곡에 대해 `승격` / `보류` / `방출` 평가를 남길 수 있습니다. 조건을 만족한 곡은 무티고을 플레이리스트로 이동할 수 있습니다.
+## 주요 기능
 
-> 오노추 = 오늘의 노래 추천  
-> 무티고을 = 승격 조건을 통과한 곡이 모이는 플레이리스트
+- 프로필 선택 및 `localStorage` 저장
+- `member_id` 우선 처리와 기존 이름 데이터 fallback
+- Apple Music 플레이리스트 동기화 및 수동 곡 추가
+- 추천 이유, 0.5점 단위 별점, 최초 승격 평가 저장
+- 평가 등록·수정 및 변경 없는 중복 저장 방지
+- 오노추 필터와 곡 상세 평가 목록
+- 무티고을 그리드·목록 보기 및 추가일 정렬
+- Supabase Realtime 자동 갱신
+- 프로필별 Web Push 구독·해제·테스트
+- 새 곡, 새 평가, 평가 수정, 리마인드 알림
+- PWA 설치와 앱 버전 갱신 감지
+- 평가자 추가, 노래 삭제, 무티고을 이동 관리 기능
 
----
-
-## 🔗 서비스 링크
-
-- App: https://ohnochoo.vercel.app
-- 오노추 Apple Music: https://music.apple.com/kr/playlist/o-n0-ch0o%24e/pl.u-Ymb09optgrM3117
-- 무티고을 Apple Music: https://music.apple.com/kr/playlist/muti9oeul/pl.u-06oxDW6uWPKDjZe
-- 무티고을 Instagram: https://www.instagram.com/muti9oeul
-
----
-
-## ✨ 주요 기능
-
-### 👤 프로필 기반 사용
-
-- 앱 진입 시 사용할 프로필 선택
-- 선택한 프로필은 `localStorage`에 저장
-- `member_id` 기반으로 내가 추가한 곡, 내가 평가한 곡, 아직 평가하지 않은 곡을 구분
-- 기존 이름 기반 데이터도 fallback으로 호환
-
-### 🎵 노래 추가
-
-- Apple Music 플레이리스트에서 곡 정보 동기화
-- 수동 곡 추가 지원
-- 앨범 커버 URL 저장
-- 곡 추가 시 추천 이유와 별점 입력
-- 곡 추가와 동시에 추가자의 `승격` 평가 자동 생성
-
-### ⭐ 평가 시스템
-
-- 평가 선택: `승격` / `보류` / `방출`
-- 별점: 0.0 ~ 5.0점, 0.5점 단위
-- 평가 이유 입력
-- 같은 사용자가 같은 곡을 다시 평가하면 기존 평가 수정
-- 실제 변경이 없는 저장은 중복 처리하지 않음
-
-### 📋 플레이리스트 화면
-
-- 오노추 플레이리스트와 무티고을 플레이리스트 분리
-- 곡별 `승격` / `보류` / `방출` 개수 표시
-- 노래 카드 클릭 시 상세 팝업 표시
-- 상세 팝업에서 평가 목록 확인 및 평가 작성/수정
-- 무티고을 플레이리스트는 기본 접힘 상태로 관리
-- 모바일 중심 카드형 레이아웃 지원
-
-### 📲 PWA & Push 알림
-
-- 홈 화면에 앱처럼 설치 가능
-- Service Worker 기반 Web Push 알림
-- 프로필별 알림 구독/해제
-- 테스트 알림 전송
-- 알림 실패/만료 구독 비활성화 처리
-
-### 🔄 자동 갱신
-
-- Supabase Realtime으로 DB 변경 감지
-- 친구가 곡을 추가하거나 평가를 남기면 현재 화면 자동 갱신
-- `version.json` 기반 앱 버전 확인
-- 앱 복귀 시 새 버전이 있으면 자동 새로고침
-
----
-
-## 🧠 판정 기준
+## 판정 기준
 
 | 상태 | 조건 |
 |---|---|
-| 평가 중 | 아직 7일이 지나지 않았거나 판정 조건 미확정 |
+| 평가 중 | 등록 후 7일 미만 또는 판정 조건 미확정 |
 | 승격 후보 | `승격 >= 방출 + 3` |
-| 무티고을 이동 가능 | 등록 후 7일 경과 + 승격 조건 충족 |
-| 방출 예정 | 등록 후 7일 경과 + 승격 조건 미충족 |
+| 무티고을 이동 가능 | 등록 후 7일 경과 및 승격 조건 충족 |
+| 방출 예정 | 등록 후 7일 경과 및 승격 조건 미충족 |
 
----
+평균 별점은 0점 평가를 제외하고 계산합니다.
 
-## 🔔 알림 케이스
+## 기술 구성
 
-| 알림 | 트리거 | 대상 | Title | Body |
-|---|---|---|---|---|
-| 오노추 미등록 리마인드 | 매일 KST 20:00 | 오늘 곡을 안 올린 멤버 | `오노추 올리쇼.` | `오늘 안 올렸제, 빨리 올리쇼.` |
-| 새 오노추 알림 | 누군가 곡 추가 | 곡 추가자를 제외한 멤버 | `새 오노추가 올라왔어요 🎵` | `{추가자}님이 {곡명} - {아티스트}를 추가했어요.` |
-| 평가 리마인드 | 매일 KST 21:00 | 하루 이상 지난 미평가 곡이 있는 멤버 | `평가할 곡이 남아있어요 🎧` | `{곡명} - {아티스트} 평가해 주세요.` / `{곡명} 외 N곡을 평가해 주세요.` |
-| 새 평가 알림 | 누군가 내 곡에 새 평가 저장 | 곡 추가자 | `내가 올린 곡에 새 평가가 달렸어요 💬` | `{평가자}이 {곡명}에 {결정} 평가를 남겼어요.` |
-| 평가 수정 알림 | 누군가 내 곡의 평가 수정 | 곡 추가자 | `내가 올린 곡의 평가가 수정됐어요 ✏️` | `{평가자}이 {곡명} 평가를 수정했어요.` |
-| 테스트 알림 | 알림 설정에서 테스트 클릭 | 현재 프로필 | `알림 테스트` | `알림 설정이 잘 되었어요.` |
-
-Vercel Cron 기준:
-
-```json
-{
-  "crons": [
-    {
-      "path": "/api/send-add-song-reminders",
-      "schedule": "0 11 * * *"
-    },
-    {
-      "path": "/api/send-reminders",
-      "schedule": "0 12 * * *"
-    }
-  ]
-}
-```
-
-> Vercel Cron은 UTC 기준이므로 `0 11 * * *`는 KST 20:00, `0 12 * * *`는 KST 21:00입니다.
-
----
-
-## 🛠 기술 스택
-
-| 영역 | 사용 기술 |
+| 영역 | 기술 |
 |---|---|
-| Frontend | HTML, CSS, Vanilla JavaScript |
-| Backend API | Vercel Serverless Functions, Node.js |
+| Frontend | React, TypeScript, Vite, React Router |
+| Server state | TanStack Query, Supabase Realtime |
+| Forms | React Hook Form, Zod |
+| UI | Tailwind CSS, Radix Dialog, Lucide React |
+| Backend | Vercel Serverless Functions, Node.js |
 | Database | Supabase PostgreSQL |
-| Realtime | Supabase Realtime `postgres_changes` |
 | Push | Web Push, VAPID, Service Worker |
-| Parser | axios, cheerio |
-| Deploy | Vercel |
-| PWA | Web App Manifest, Service Worker |
+| Apple Music parser | Axios, Cheerio |
 
----
-
-## 🗂 프로젝트 구조
+## 프로젝트 구조
 
 ```text
 ohnochoo/
-├─ api/
-│  ├─ _push-utils.js                  # Web Push 공통 유틸
-│  ├─ config.js                       # 클라이언트용 Supabase 설정 반환
-│  ├─ fetch-playlist.js               # Apple Music 플레이리스트 파싱
-│  ├─ remove-subscription.js          # 푸시 구독 비활성화
-│  ├─ save-subscription.js            # 푸시 구독 저장
-│  ├─ send-add-song-reminders.js      # 오노추 미등록 리마인드
-│  ├─ send-reaction-notification.js   # 새 평가/수정 평가 알림
-│  ├─ send-reminders.js               # 미평가 곡 리마인드
-│  ├─ send-song-added-notification.js # 새 오노추 추가 알림
-│  ├─ send-test-notification.js       # 테스트 알림
-│  ├─ update-song-covers.js           # 앨범 커버 URL 동기화
-│  └─ vapid-public-key.js             # VAPID public key 반환
-├─ assets/
-│  └─ icons/                          # PWA / favicon / 알림 아이콘
-├─ supabase/
-│  └─ schema.sql                      # DB 테이블, RLS, 정책
-├─ app.js                             # 클라이언트 상태/렌더링/Realtime 로직
-├─ index.html                         # 메인 UI
-├─ manifest.json                      # PWA 설정
-├─ service-worker.js                  # PWA + Push 알림 처리
-├─ styles.css                         # 반응형 스타일
-├─ vercel.json                        # Cron 설정
-├─ version.json                       # 자동 업데이트 감지용 버전 파일
-├─ .env.example
-└─ README.md
+├─ api/                         # Vercel Serverless Functions
+│  ├─ _push-utils.js            # Push 및 service-role 공통 처리
+│  ├─ config.js                 # 클라이언트용 Supabase 설정
+│  ├─ fetch-playlist.js         # Apple Music 파싱
+│  ├─ save-subscription.js      # Push 구독 저장
+│  ├─ remove-subscription.js    # Push 구독 비활성화
+│  ├─ send-*.js                 # 알림 및 리마인드 발송
+│  └─ update-song-covers.js     # 앨범 커버 동기화
+├─ assets/icons/                # 앱 아이콘 원본
+├─ public/                      # Vite가 그대로 배포하는 정적 파일
+│  ├─ assets/icons/             # 실제 사용 중인 PWA 아이콘
+│  ├─ manifest.json
+│  ├─ service-worker.js
+│  └─ version.json
+├─ scripts/
+│  └─ update-version.js         # public/version.json 갱신
+├─ src/
+│  ├─ app/                      # Router, Provider, 앱 UI Context
+│  ├─ pages/                    # 홈, 오노추, 무티고을, 내 정보
+│  ├─ features/profile/         # 선택 프로필 상태
+│  ├─ components/               # 화면 공통 컴포넌트
+│  │  └─ ui/                    # Dialog, Toast, Avatar 등 UI 요소
+│  ├─ hooks/                    # Query, mutation, Push, PWA 동작
+│  ├─ lib/                      # Supabase, 규칙, API, 유틸리티
+│  ├─ styles/globals.css        # 디자인 시스템과 반응형 스타일
+│  └─ types/                    # 공통 TypeScript 타입
+├─ supabase/schema.sql          # DB 테이블, RLS, 정책
+├─ index.html                   # Vite 진입 문서
+├─ vite.config.ts               # Vite 및 로컬 API 어댑터
+├─ vercel.json                  # 빌드, SPA rewrite, Cron
+└─ package.json
 ```
 
----
+`public/`이 manifest, service worker, 배포용 아이콘, 버전 파일의 단일 소스입니다. 최종 서비스 워커 URL과 scope는 각각 `/service-worker.js`, `/`입니다.
 
-## 🧩 데이터베이스
+## 환경 변수
 
-`supabase/schema.sql`에서 사용하는 주요 테이블입니다.
-
-| 테이블 | 역할 |
-|---|---|
-| `songs` | 오노추/무티고을 곡 정보 |
-| `members` | 사용자 프로필 |
-| `votes` | 곡별 평가, 별점, 이유 |
-| `mutigoeul_songs` | 무티고을로 이동된 곡 |
-| `push_subscriptions` | 멤버별 Web Push 구독 정보 |
-| `notification_logs` | 알림 중복 방지 및 발송 상태 기록 |
-
-### member_id 전환 구조
-
-기존 데이터 호환을 위해 이름 기반 컬럼도 유지합니다.
-
-- `songs.adder` + `songs.adder_member_id`
-- `votes.voter` + `votes.member_id`
-
-앱에서는 `member_id`를 우선 사용하고, 값이 없으면 기존 이름 기반 데이터로 fallback합니다.
-
----
-
-## ⚙️ 환경 변수
-
-`.env.local` 또는 Vercel Environment Variables에 아래 값을 설정합니다.
+`.env.local`과 Vercel Environment Variables에 다음 값을 설정합니다.
 
 ```env
 SUPABASE_URL=https://your-project-ref.supabase.co
@@ -198,241 +93,91 @@ VAPID_PRIVATE_KEY=your-web-push-private-key
 VAPID_SUBJECT=mailto:you@example.com
 ```
 
-### 보안 주의
-
-- `SUPABASE_ANON_KEY`는 클라이언트에서 사용할 수 있습니다.
-- `SUPABASE_SERVICE_ROLE_KEY`는 서버 API에서만 사용해야 합니다.
-- `VAPID_PRIVATE_KEY`도 서버/Vercel 환경변수에만 보관해야 합니다.
+- `SUPABASE_ANON_KEY`만 브라우저 연결에 사용합니다.
+- `SUPABASE_SERVICE_ROLE_KEY`와 `VAPID_PRIVATE_KEY`는 Serverless Function에서만 사용합니다.
 - `.env.local`은 Git에 커밋하지 않습니다.
 
----
-
-## 🧱 Supabase 설정
-
-1. Supabase 프로젝트 생성
-2. SQL Editor에서 `supabase/schema.sql` 실행
-3. Project Settings → API에서 아래 값 확인
-   - Project URL
-   - anon public key
-   - service role key
-4. Web Push용 VAPID key 생성 후 Vercel 환경변수에 등록
-
-### Realtime 설정
-
-실시간 화면 갱신을 사용하려면 Supabase Realtime publication에 아래 테이블을 추가해야 합니다.
-
-- `public.songs`
-- `public.votes`
-- `public.mutigoeul_songs`
-- `public.members`
-
-SQL로 추가하는 경우:
-
-```sql
-alter publication supabase_realtime add table public.songs;
-alter publication supabase_realtime add table public.votes;
-alter publication supabase_realtime add table public.mutigoeul_songs;
-alter publication supabase_realtime add table public.members;
-```
-
-또는 Supabase Dashboard에서 `Database → Publications → supabase_realtime`에 들어가 위 테이블을 켜면 됩니다.
-
----
-
-## 💻 로컬 실행
-
-### 1. 저장소 클론
-
-```bash
-git clone https://github.com/shinjuyeop/ohnochoo.git
-cd ohnochoo
-```
-
-### 2. 의존성 설치
+## 로컬 실행
 
 ```bash
 npm install
-```
-
-### 3. 환경변수 파일 생성
-
-```bash
 cp .env.example .env.local
+npm run dev
 ```
 
-Windows PowerShell에서는:
+기본 주소는 `http://localhost:5173`입니다. Vite 개발 서버는 `api/`의 기존 CommonJS Serverless Functions를 로컬에서 실행하는 어댑터를 포함합니다.
 
-```powershell
-copy .env.example .env.local
-```
-
-### 4. `.env.local` 값 입력
-
-```env
-SUPABASE_URL=...
-SUPABASE_ANON_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...
-VAPID_PUBLIC_KEY=...
-VAPID_PRIVATE_KEY=...
-VAPID_SUBJECT=mailto:...
-```
-
-### 5. 개발 서버 실행
+## 명령어
 
 ```bash
-npx vercel dev
-```
-
-브라우저에서 접속:
-
-```text
-http://localhost:3000
-```
-
-> **💡 로컬 환경 Push 알림 테스트 팁**
-> - Web Push 알림 및 Service Worker 동작은 일반적으로 HTTPS 환경이나 `localhost`에서만 작동합니다.
-> - 로컬 개발 중 모바일 기기 등 외부 디바이스에서 접속하여 알림을 테스트하려면 `ngrok` 등의 포트 포워딩 도구를 활용해 임시 HTTPS 주소로 연결해야 합니다.
-
-
----
-
-## 🚀 배포
-
-1. GitHub 저장소를 Vercel에 Import
-2. Vercel Environment Variables 등록
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `VAPID_PUBLIC_KEY`
-   - `VAPID_PRIVATE_KEY`
-   - `VAPID_SUBJECT`
-3. Deploy
-4. Cron 동작 확인
-5. PWA 설치 및 테스트 알림 확인
-
----
-
-## 📡 API
-
-| Method | Path | 설명 |
-|---|---|---|
-| `GET` | `/api/config` | 클라이언트에 Supabase URL / anon key 반환 |
-| `GET` | `/api/fetch-playlist?url=...` | Apple Music 플레이리스트 파싱 |
-| `POST` | `/api/update-song-covers` | Apple Music 커버 URL 저장 |
-| `GET` | `/api/vapid-public-key` | Web Push public key 반환 |
-| `POST` | `/api/save-subscription` | 현재 프로필의 푸시 구독 저장 |
-| `POST` | `/api/remove-subscription` | 푸시 구독 비활성화 |
-| `POST` | `/api/send-test-notification` | 테스트 알림 전송 |
-| `GET/POST` | `/api/send-add-song-reminders` | 오늘 오노추 미등록 멤버에게 리마인드 |
-| `GET/POST` | `/api/send-reminders` | 미평가 곡 리마인드 |
-| `POST` | `/api/send-reaction-notification` | 새 평가/수정 평가 알림 |
-
----
-
-## 🔄 업데이트 정책
-
-앱은 `version.json`의 값을 기준으로 새 버전을 감지합니다.
-
-배포하기 전 아래 명령어를 실행하면 한국 시간(KST) 기준의 타임스탬프로 `version.json` 버전명이 자동 갱신됩니다.
-
-```bash
+npm run dev          # 개발 서버
+npm run typecheck    # TypeScript 검사
+npm run build        # 타입 검사 후 프로덕션 빌드
+npm run preview      # dist 미리보기
 npm run update-version
 ```
 
-갱신 후 생성되는 `version.json` 예시:
+`npm run update-version`은 KST 타임스탬프로 `public/version.json`을 갱신합니다. 앱은 화면으로 복귀할 때 이 파일을 확인하고 저장된 버전과 다르면 새로고침합니다.
 
-```json
-{
-  "version": "2026-07-07-112939"
-}
-```
+## 데이터베이스
 
-배포 시 버전을 변경하면, 사용자가 앱에 다시 들어오거나 화면으로 복귀했을 때 새 버전을 감지하고 자동으로 새로고침됩니다.
+주요 테이블은 다음과 같습니다.
 
+| 테이블 | 역할 |
+|---|---|
+| `songs` | 곡, 추가자, 앨범 커버 |
+| `members` | 평가자 프로필 |
+| `votes` | 결정, 별점, 평가 이유 |
+| `mutigoeul_songs` | 무티고을 이동 정보 |
+| `push_subscriptions` | 프로필별 Push 구독 |
+| `notification_logs` | 알림 중복 방지 및 발송 상태 |
 
-> 자동 업데이트 기능이 들어가기 전 버전을 이미 켜둔 사용자는 한 번 직접 새로고침하거나 앱을 완전히 종료 후 다시 열어야 합니다.
+`songs.adder_member_id`와 `votes.member_id`를 우선 사용하며, 이전 데이터는 `adder`와 `voter` 이름으로 호환합니다. Realtime publication에는 `songs`, `votes`, `members`, `mutigoeul_songs`가 포함되어야 합니다.
 
----
+## API
 
-## 🧪 테스트 체크리스트
+| Method | Path | 설명 |
+|---|---|---|
+| `GET` | `/api/config` | Supabase URL과 anon key 반환 |
+| `GET` | `/api/fetch-playlist` | Apple Music 플레이리스트 파싱 |
+| `POST` | `/api/update-song-covers` | 앨범 커버 URL 갱신 |
+| `GET` | `/api/vapid-public-key` | VAPID public key 반환 |
+| `POST` | `/api/save-subscription` | Push 구독 저장 |
+| `POST` | `/api/remove-subscription` | Push 구독 비활성화 |
+| `POST` | `/api/send-test-notification` | 테스트 알림 전송 |
+| `POST` | `/api/send-song-added-notification` | 새 곡 알림 |
+| `POST` | `/api/send-reaction-notification` | 새 평가·수정 알림을 활성 구독 전체에 전송 |
+| `GET/POST` | `/api/send-add-song-reminders` | 곡 추가 리마인드 |
+| `GET/POST` | `/api/send-reminders` | 미평가 곡 리마인드 |
+| `GET/POST` | `/api/cleanup-push-subscriptions` | 오래된 구독 정리 |
 
-- [ ] 프로필 선택/변경
-- [ ] Apple Music 동기화
-- [ ] 수동 노래 추가
-- [ ] 노래 추가 시 자동 승격 평가 생성
-- [ ] 평가 저장/수정
-- [ ] 노래 상세 팝업 열기/닫기
-- [ ] 무티고을 접기/펼치기
-- [ ] 무티고을 이동
-- [ ] 알림 켜기/끄기
-- [ ] 테스트 알림 수신
-- [ ] Realtime 자동 갱신
-- [ ] 앱 버전 업데이트 감지
+Cron 일정은 `vercel.json`을 기준으로 관리합니다.
 
----
+## 알림 동작
 
-## 🛡 운영 메모
+- 새 곡: 곡 추가자를 제외하고 활성 구독자에게 전송
+- 새 평가 및 평가 수정: 활성 구독이 있는 모든 평가자에게 전송
+- 테스트 알림: 현재 프로필의 활성 기기로 전송
+- 만료된 endpoint: Push 발송 중 404 또는 410 응답 시 비활성화
+- 중복 발송: `notification_logs.dedupe_key`로 평가자별 방지
 
-- 현재 관리자성 동작(평가자 추가, 노래 삭제, 무티고을 이동)은 클라이언트에서 비밀번호를 확인하는 간단한 방식입니다.
-- 친구들끼리 쓰는 소규모 앱 기준으로는 충분하지만, 공개 서비스로 확장하려면 서버 인증 또는 Supabase Auth + RLS 강화가 필요합니다.
-- 알림 발송에는 service role key가 필요하므로 서버 API 외부로 노출되면 안 됩니다.
-- **Supabase RLS 주의**: `push_subscriptions` 및 `notification_logs` 테이블은 보안상 클라이언트(`anon`)에서 직접 접근이 불가능하며(`using (false)`), `service_role` 키를 사용하는 백엔드 API를 통해서만 CRUD가 가능하도록 설계되어 있습니다.
-- 홈 화면 앱 아이콘은 브라우저/OS 캐시 때문에 늦게 바뀔 수 있습니다. 아이콘을 바꿀 때는 파일명을 변경하고 `manifest.json`도 함께 수정하는 것을 권장합니다.
+## 배포
 
----
+Vercel은 다음 설정을 사용합니다.
 
-## 🧯 트러블슈팅
+- Install: `npm install`
+- Build: `npm run build`
+- Output: `dist`
+- SPA routes: `/onochoo`, `/mutigoeul`, `/settings`
+- API routes: `/api/*`
 
-### Supabase 연결 실패
+배포 전에 `npm run update-version`을 실행하면 기존 사용자가 새 버전을 자동으로 감지할 수 있습니다.
 
-- Vercel 환경변수 확인
-  - `SUPABASE_URL`
-  - `SUPABASE_ANON_KEY`
-- `/api/config` 응답 확인
-- 배포 보호 설정으로 API 접근이 막히지 않았는지 확인
+## 운영 주의
 
-### Apple Music 동기화 실패
-
-- 플레이리스트 URL 확인
-- Apple Music 페이지 구조 변경 가능성 확인
-- 잠시 후 재시도
-
-### 알림이 오지 않음
-
-- 앱에서 알림 권한이 허용되어 있는지 확인
-- 브라우저/OS 알림 설정 확인
-- Vercel 환경변수 확인
-  - `VAPID_PUBLIC_KEY`
-  - `VAPID_PRIVATE_KEY`
-  - `VAPID_SUBJECT`
-  - `SUPABASE_SERVICE_ROLE_KEY`
-- `push_subscriptions`에 현재 멤버의 active 구독이 있는지 확인
-- `notification_logs`의 dedupe key로 이미 발송 처리되었는지 확인
-
-### 실시간 갱신이 안 됨
-
-- Supabase Realtime publication에 `songs`, `votes`, `mutigoeul_songs`, `members` 테이블이 추가되어 있는지 확인
-- 브라우저 콘솔에서 Realtime 연결 오류 확인
-- 앱을 한 번 새로고침 후 재시도
-
-### 새 버전이 바로 안 보임
-
-- `version.json`의 `version` 값을 변경했는지 확인
-- iOS/Android PWA는 앱을 완전히 종료 후 다시 실행
-- 필요 시 브라우저 강력 새로고침
-
----
-
-## 🗺 앞으로 개선하면 좋은 점
-
-- 알림 종류별 on/off 설정
-- 노래 추가 + 자동 평가 저장을 서버 API 또는 DB 함수로 transaction 처리
-- 관리자 기능 서버 인증화
-- 테스트 코드 추가
-- 더 세밀한 변경 알림 UI
-- Apple Music API 기반 정식 연동 검토
-
----
+- 평가자 추가, 노래 삭제, 무티고을 이동은 현재 클라이언트 비밀번호 확인 방식입니다.
+- 공개 범위가 커지면 Supabase Auth와 서버 권한 검증으로 교체해야 합니다.
+- `supabase/schema.sql`과 실제 운영 데이터는 별도의 명시적인 마이그레이션 없이 변경하지 않습니다.
 
 ## License
 
