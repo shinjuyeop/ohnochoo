@@ -29,7 +29,7 @@ export function HomePage() {
           </section>
           <section className="content-section">
             <div className="section-heading"><div><span className="eyebrow"><Clock3 size={13} /> YOUR QUEUE</span><h2>평가를 기다리는 곡</h2></div><Link to="/onochoo?filter=pending">전체 보기 <ArrowRight size={16} /></Link></div>
-            <div className="song-list full-list queue-list">{pending.slice(0, 3).map((song) => <SongCard key={song.id} song={song} stats={voteStats.get(song.id) ?? emptyVoteStats()} hasVoted={false} onOpen={() => setDetailId(song.id)} compact />)}{!pending.length ? <div className="empty-card"><Disc3 /><p>대기 중인 평가가 없어요.<br />여유롭게 음악을 즐겨보세요.</p></div> : null}</div>
+            <div className="song-list full-list queue-list">{pending.slice(0, 3).map((song) => <SongCard key={song.id} song={song} stats={voteStats.get(song.id) ?? emptyVoteStats()} hasVoted={false} onOpen={() => setDetailId(song.id)} compact showDecisionCounts />)}{!pending.length ? <div className="empty-card"><Disc3 /><p>대기 중인 평가가 없어요.<br />여유롭게 음악을 즐겨보세요.</p></div> : null}</div>
           </section>
           <section className="content-section home-links-section" aria-label="외부 링크">
             <div className="section-heading"><div><span className="eyebrow">LINKS</span><h2>바로가기</h2></div></div>

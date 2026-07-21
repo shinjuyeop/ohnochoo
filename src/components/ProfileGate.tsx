@@ -23,7 +23,7 @@ export function ProfileGate({ children }: { children: ReactNode }) {
     if (!profile || !data) return;
     const match = data.members.find((member) => member.id === profile.id || member.name === profile.name);
     if (!match) clearProfile();
-    else if (match.id !== profile.id || match.name !== profile.name) selectProfile(match);
+    else if (match.id !== profile.id || match.name !== profile.name || match.avatar_url !== profile.avatar_url || match.avatar_updated_at !== profile.avatar_updated_at) selectProfile(match);
   }, [data, profile, clearProfile, selectProfile]);
 
   const createMember = async (event: React.FormEvent) => {
@@ -67,7 +67,7 @@ export function ProfileGate({ children }: { children: ReactNode }) {
           <div className="profile-grid">
             {data.members.map((member) => (
               <button key={member.id} className="profile-choice" onClick={() => selectProfile(member)}>
-                <Avatar name={member.name} size="lg" />
+                <Avatar name={member.name} imageUrl={member.avatar_url} imageVersion={member.avatar_updated_at} size="lg" />
                 <span>{member.name}</span>
               </button>
             ))}

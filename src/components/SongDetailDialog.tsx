@@ -38,12 +38,15 @@ export function SongDetailDialog({ songId, onOpenChange, allowVote = true }: { s
         {allowVote ? <section className="detail-section"><h3>{existingVote ? "내 평가 수정" : "이 곡 평가하기"}</h3><VoteForm song={song} votes={data.votes} existingVote={existingVote} /></section> : null}
         <section className="detail-section friend-votes">
           <div className="section-heading"><h3>평가</h3><span><MessageCircle size={15} /> {sortedVotes.length}</span></div>
-          {sortedVotes.length ? sortedVotes.map((vote) => (
-            <article className="friend-vote" key={vote.id}>
-              <Avatar name={vote.voter} size="sm" />
-              <div><div className="friend-vote-head"><b>{vote.voter}</b><span className={`decision-label decision-label-${vote.decision}`}>{vote.decision}</span><StarRating value={Number(vote.rating)} readOnly /></div><p>{vote.reason}</p><time>{formatKoreanDate(vote.createdAt, true)}</time></div>
-            </article>
-          )) : <div className="empty-inline"><MessageCircle /><p>아직 남겨진 평가가 없어요.</p></div>}
+          {sortedVotes.length ? sortedVotes.map((vote) => {
+            const voterMember = data.members.find((member) => member.id === vote.member_id || member.name === vote.voter);
+            return (
+              <article className="friend-vote" key={vote.id}>
+                <Avatar name={vote.voter} imageUrl={voterMember?.avatar_url} imageVersion={voterMember?.avatar_updated_at} size="vote" />
+                <div><div className="friend-vote-head"><b>{vote.voter}</b><span className={`decision-label decision-label-${vote.decision}`}>{vote.decision}</span><StarRating value={Number(vote.rating)} readOnly /></div><p>{vote.reason}</p><time>{formatKoreanDate(vote.createdAt, true)}</time></div>
+              </article>
+            );
+          }) : <div className="empty-inline"><MessageCircle /><p>아직 남겨진 평가가 없어요.</p></div>}
         </section>
       </div>
     </Dialog>

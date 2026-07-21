@@ -17,7 +17,7 @@ export function AppShell() {
         <AppNavigation onAdd={() => setAddOpen(true)} />
         <div className="mobile-topbar">
           <span className="wordmark">ohnochoo</span>
-          <button onClick={() => navigate("/settings")} aria-label={`${profile.name} 내 정보`}><Avatar name={profile.name} size="sm" /></button>
+          <button onClick={() => navigate("/settings")} aria-label={`${profile.name} 내 정보`}><Avatar name={profile.name} imageUrl={profile.avatar_url} imageVersion={profile.avatar_updated_at} size="sm" /></button>
         </div>
         <main className="main-content"><Outlet /></main>
         <AddSongDialog open={addOpen} onOpenChange={setAddOpen} />

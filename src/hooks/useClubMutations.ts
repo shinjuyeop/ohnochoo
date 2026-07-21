@@ -3,6 +3,7 @@ import { postJson } from "../lib/api";
 import { getSupabase } from "../lib/supabase";
 import { normalizeCoverUrl } from "../lib/utils";
 import { findMemberVotes, planVoteSave } from "../lib/voteRules";
+import { prepareProfileImage } from "../lib/profileImage";
 import type { Decision, Member, PlaylistSong, Song, Vote } from "../types";
 
 type Profile = Pick<Member, "id" | "name">;
@@ -167,6 +168,47 @@ export function useClubMutations() {
     onSuccess: refresh,
   });
 
+  const updateProfileImage = useMutation({
+    mutationFn: async (input: { memberId: string; file: File }) => {
+      const supabase = await getSupabase();
+      const image = await prepareProfileImage(input.file);
+      const path = `${input.memberId}/avatar.webp`;
+      const uploaded = await supabase.storage.from("profile-images").upload(path, image, {
+        cacheControl: "3600",
+        contentType: "image/webp",
+        upsert: true,
+      });
+      if (uploaded.error) throw uploaded.error;
+      const avatarUrl = supabase.storage.from("profile-images").getPublicUrl(path).data.publicUrl;
+      const updatedAt = new Date().toISOString();
+      const updated = await supabase
+        .from("members")
+        .update({ avatar_url: avatarUrl, avatar_updated_at: updatedAt })
+        .eq("id", input.memberId)
+        .select("id")
+        .single();
+      if (updated.error) throw updated.error;
+      return { avatarUrl, updatedAt };
+    },
+    onSuccess: refresh,
+  });
+
+  const removeProfileImage = useMutation({
+    mutationFn: async (memberId: string) => {
+      const supabase = await getSupabase();
+      const removed = await supabase.storage.from("profile-images").remove([`${memberId}/avatar.webp`]);
+      if (removed.error) throw removed.error;
+      const updated = await supabase
+        .from("members")
+        .update({ avatar_url: null, avatar_updated_at: new Date().toISOString() })
+        .eq("id", memberId)
+        .select("id")
+        .single();
+      if (updated.error) throw updated.error;
+    },
+    onSuccess: refresh,
+  });
+
   const deleteSongs = useMutation({
     mutationFn: async (songIds: string[]) => {
       if (!songIds.length) return 0;
@@ -224,5 +266,5 @@ export function useClubMutations() {
     onSuccess: refresh,
   });
 
-  return { addSong, saveVote, addMember, deleteSongs, updateSong, moveToMutigoeul, persistCovers };
+  return { addSong, saveVote, addMember, updateProfileImage, removeProfileImage, deleteSongs, updateSong, moveToMutigoeul, persistCovers };
 }

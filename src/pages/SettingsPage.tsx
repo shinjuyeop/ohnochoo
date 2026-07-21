@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Bell, BellOff, CalendarClock, ChevronRight, CircleAlert, LoaderCircle, LockKeyhole, LogOut, Music2, PencilLine, Save, Search, Send, Shield, Trash2, UserPlus, UsersRound } from "lucide-react";
+import { useRef, useState } from "react";
+import { Bell, BellOff, CalendarClock, ChevronRight, CircleAlert, ImageOff, ImagePlus, LoaderCircle, LockKeyhole, LogOut, Music2, PencilLine, Save, Search, Send, Shield, Trash2, UserPlus, UsersRound } from "lucide-react";
 import { Avatar } from "../components/ui/Avatar";
 import { Dialog } from "../components/ui/Dialog";
 import { AdminLoginForm } from "../features/admin/AdminLoginForm";
@@ -29,6 +29,7 @@ export function SettingsPage() {
   const mutations = useClubMutations();
   const notifications = useNotifications(profile);
   const toast = useToast();
+  const profileImageInput = useRef<HTMLInputElement>(null);
   const [dialog, setDialog] = useState<AdminDialog>(null);
   const [memberName, setMemberName] = useState("");
   const [songId, setSongId] = useState("");
@@ -42,6 +43,7 @@ export function SettingsPage() {
   const [deleteSearch, setDeleteSearch] = useState("");
   const [selectedSongIds, setSelectedSongIds] = useState<string[]>([]);
   if (!profile || !data) return null;
+  const currentMember = data.members.find((member) => member.id === profile.id || member.name === profile.name) ?? profile;
 
   const eligible = onochuSongs.filter((song) => {
     const stats = voteStats.get(song.id) ?? emptyVoteStats();
@@ -112,6 +114,22 @@ export function SettingsPage() {
     try { await mutations.addMember.mutateAsync(name); setMemberName(""); toast("평가자를 추가했어요.", "success"); }
     catch (error) { toast(errorMessage(error), "error"); }
   };
+  const changeProfileImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      await mutations.updateProfileImage.mutateAsync({ memberId: currentMember.id, file });
+      toast("프로필 사진을 바꿨어요.", "success");
+    } catch (error) { toast(`사진 변경 실패: ${errorMessage(error)}`, "error"); }
+  };
+  const deleteProfileImage = async () => {
+    if (!window.confirm("현재 프로필 사진을 삭제할까요?")) return;
+    try {
+      await mutations.removeProfileImage.mutateAsync(currentMember.id);
+      toast("프로필 사진을 삭제했어요.", "success");
+    } catch (error) { toast(`사진 삭제 실패: ${errorMessage(error)}`, "error"); }
+  };
   const moveSong = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!songId || !isAdmin) return;
@@ -168,7 +186,14 @@ export function SettingsPage() {
       <div className="settings-layout">
         <div className="settings-main">
           <section className="settings-card profile-settings-card">
-            <Avatar name={profile.name} size="lg" /><div><span>현재 프로필</span><h2>{profile.name}</h2><p>평가자</p></div><button className="secondary-button" onClick={clearProfile}><LogOut size={17} /> 프로필 변경</button>
+            <Avatar name={profile.name} imageUrl={currentMember.avatar_url} imageVersion={currentMember.avatar_updated_at} size="lg" />
+            <div><span>현재 프로필</span><h2>{profile.name}</h2><p>평가자</p></div>
+            <div className="profile-card-actions">
+              <input ref={profileImageInput} type="file" accept="image/*" onChange={(event) => void changeProfileImage(event)} hidden />
+              <button className="secondary-button" onClick={() => profileImageInput.current?.click()} disabled={mutations.updateProfileImage.isPending}>{mutations.updateProfileImage.isPending ? <LoaderCircle className="spin" /> : <ImagePlus />} 사진 변경</button>
+              {currentMember.avatar_url ? <button className="ghost-danger-button" onClick={() => void deleteProfileImage()} disabled={mutations.removeProfileImage.isPending}>{mutations.removeProfileImage.isPending ? <LoaderCircle className="spin" /> : <ImageOff />} 사진 삭제</button> : null}
+              <button className="secondary-button" onClick={clearProfile}><LogOut size={17} /> 프로필 변경</button>
+            </div>
           </section>
           <section className="settings-card">
             <div className="settings-title"><span className="settings-icon"><Bell /></span><div><h2>알림</h2><p>이 브라우저에 연결된 푸시 알림을 관리해요.</p></div></div>
@@ -194,7 +219,7 @@ export function SettingsPage() {
       </div>
 
       <Dialog open={dialog === "members"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="평가자 관리" description="현재 평가자와 새 평가자를 관리해요.">
-        <div className="dialog-body"><div className="member-list">{data.members.map((member) => <div key={member.id}><Avatar name={member.name} size="sm" /><span>{member.name}</span></div>)}</div><form className="inline-add-form" onSubmit={addMember}><input value={memberName} onChange={(event) => setMemberName(event.target.value)} placeholder="새 평가자 이름" /><button className="primary-button" disabled={mutations.addMember.isPending}>{mutations.addMember.isPending ? <LoaderCircle className="spin" /> : <UserPlus size={17} />} 추가</button></form></div>
+        <div className="dialog-body"><div className="member-list">{data.members.map((member) => <div key={member.id}><Avatar name={member.name} imageUrl={member.avatar_url} imageVersion={member.avatar_updated_at} size="sm" /><span>{member.name}</span></div>)}</div><form className="inline-add-form" onSubmit={addMember}><input value={memberName} onChange={(event) => setMemberName(event.target.value)} placeholder="새 평가자 이름" /><button className="primary-button" disabled={mutations.addMember.isPending}>{mutations.addMember.isPending ? <LoaderCircle className="spin" /> : <UserPlus size={17} />} 추가</button></form></div>
       </Dialog>
       <Dialog open={dialog === "edit"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="곡 정보 수정" description="앱에 저장된 곡 정보를 바로잡아요." className="admin-edit-dialog">
         <form className="dialog-body form-stack admin-edit-form" onSubmit={saveSongInfo}>

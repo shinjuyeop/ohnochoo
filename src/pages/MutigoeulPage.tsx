@@ -36,10 +36,12 @@ export function MutigoeulPage() {
       <header className="page-header"><div><span className="eyebrow">THE ARCHIVE</span><h1>무티고을</h1></div></header>
       <section className="content-section archive-section">
         <div className="archive-toolbar">
-          <div className="view-toggle" role="group" aria-label="보기 형식"><button className={viewMode === "grid" ? "active" : ""} onClick={() => changeView("grid")} aria-label="블록 보기" aria-pressed={viewMode === "grid"}><Grid2X2 /><span>블록</span></button><button className={viewMode === "list" ? "active" : ""} onClick={() => changeView("list")} aria-label="세로 목록 보기" aria-pressed={viewMode === "list"}><List /><span>목록</span></button></div>
-          <label className="archive-sort"><ArrowDownUp size={15} /><span className="visually-hidden">정렬</span><select value={sortOrder} onChange={(event) => changeSort(event.target.value as SortOrder)} aria-label="추가일 정렬"><option value="desc">추가일 내림차순</option><option value="asc">추가일 오름차순</option></select></label>
+          <div className="archive-control-group">
+            <div className="view-toggle" role="group" aria-label="보기 형식"><button className={viewMode === "grid" ? "active" : ""} onClick={() => changeView("grid")} aria-label="블록 보기" aria-pressed={viewMode === "grid"}><Grid2X2 /><span>블록</span></button><button className={viewMode === "list" ? "active" : ""} onClick={() => changeView("list")} aria-label="세로 목록 보기" aria-pressed={viewMode === "list"}><List /><span>목록</span></button></div>
+            <label className="archive-sort"><ArrowDownUp size={15} /><span className="visually-hidden">정렬</span><select value={sortOrder} onChange={(event) => changeSort(event.target.value as SortOrder)} aria-label="추가일 정렬"><option value="desc">추가일 내림차순</option><option value="asc">추가일 오름차순</option></select></label>
+          </div>
+          <label className="search-field archive-search"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="곡, 아티스트 검색" /></label>
         </div>
-        <label className="search-field archive-search"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="곡, 아티스트 검색" /></label>
         {sortedSongs.length ? viewMode === "grid"
           ? <div className="album-grid">{sortedSongs.map((song) => <button className="album-tile" key={song.id} onClick={() => setDetailId(song.id)}><SongCover song={song} /><b>{song.title}</b><span>{song.artist}</span></button>)}</div>
           : <div className="song-list full-list archive-list">{sortedSongs.map((song) => <SongCard key={song.id} song={song} stats={voteStats.get(song.id) ?? emptyVoteStats()} hasVoted onOpen={() => setDetailId(song.id)} hideStatus />)}</div>

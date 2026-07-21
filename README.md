@@ -4,7 +4,7 @@
 
 ## 주요 기능
 
-- 프로필 선택 및 `localStorage` 저장
+- 프로필 선택, `localStorage` 저장 및 프로필 사진 등록
 - `member_id` 우선 처리와 기존 이름 데이터 fallback
 - Apple Music 플레이리스트 동기화 및 수동 곡 추가
 - 추천 이유, 0.5점 단위 별점, 최초 승격 평가 저장
@@ -138,7 +138,7 @@ npm run update-version
 | 테이블 | 역할 |
 |---|---|
 | `songs` | 곡, 추가자, 앨범 커버 |
-| `members` | 평가자 프로필 |
+| `members` | 평가자 프로필과 프로필 사진 URL |
 | `votes` | 결정, 별점, 평가 이유 |
 | `mutigoeul_songs` | 무티고을 이동 정보 |
 | `push_subscriptions` | 프로필별 Push 구독 |
@@ -154,6 +154,8 @@ npm run update-version
 - `save_member_vote`: 같은 평가는 건너뛰고 기존 평가는 원자적으로 수정
 
 운영 DB에 새 RPC를 적용하기 전에도 앱은 기존 저장 방식으로 동작하며, 최초 평가 저장이 실패하면 추가된 곡을 자동 정리합니다. 완전한 원자성과 DB 수준 중복 방지를 활성화하려면 Supabase SQL Editor에서 `supabase/migrations/20260720190000_atomic_song_votes.sql`을 적용해야 합니다.
+
+프로필 사진은 Supabase Storage의 공개 `profile-images` 버킷에 `member-id/avatar.webp` 경로로 저장합니다. 버킷의 파일 크기 제한은 1MB, MIME 제한은 `image/webp`로 설정하고 `20260721220000_profile_images.sql`을 적용해야 합니다. 업로드 전 브라우저에서 512×512 WebP로 변환하며 같은 경로를 덮어써 이전 사진이 누적되지 않습니다.
 
 ## API
 

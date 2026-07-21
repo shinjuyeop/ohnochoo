@@ -9,7 +9,7 @@ async function fetchClubData(): Promise<ClubData> {
   const [songs, votes, members, mutigoeul] = await Promise.all([
     supabase.from("songs").select("id,title,artist,adder,adder_member_id,createdAt,coverImageUrl").order("createdAt", { ascending: true }),
     supabase.from("votes").select("id,songId,voter,member_id,decision,rating,reason,createdAt").order("createdAt", { ascending: false }),
-    supabase.from("members").select("id,name,createdAt").order("name", { ascending: true }),
+    supabase.from("members").select("*").order("name", { ascending: true }),
     supabase.from("mutigoeul_songs").select("id,songId,createdAt").order("createdAt", { ascending: true }),
   ]);
   const error = songs.error || votes.error || members.error || mutigoeul.error;

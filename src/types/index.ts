@@ -25,6 +25,8 @@ export interface Member {
   id: string;
   name: string;
   createdAt: string;
+  avatar_url?: string | null;
+  avatar_updated_at?: string | null;
 }
 
 export interface MutigoeulEntry {

@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import type { Member } from "../../types";
 
-type SelectedProfile = Pick<Member, "id" | "name">;
+type SelectedProfile = Pick<Member, "id" | "name" | "avatar_url" | "avatar_updated_at">;
 
 interface ProfileContextValue {
   profile: SelectedProfile | null;
@@ -14,7 +14,9 @@ const ProfileContext = createContext<ProfileContextValue | null>(null);
 function readStoredProfile(): SelectedProfile | null {
   const id = localStorage.getItem("selectedMemberId") || "";
   const name = localStorage.getItem("selectedMemberName") || "";
-  return id || name ? { id, name } : null;
+  const avatar_url = localStorage.getItem("selectedMemberAvatarUrl") || null;
+  const avatar_updated_at = localStorage.getItem("selectedMemberAvatarUpdatedAt") || null;
+  return id || name ? { id, name, avatar_url, avatar_updated_at } : null;
 }
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
@@ -26,11 +28,17 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       selectProfile(member) {
         localStorage.setItem("selectedMemberId", member.id);
         localStorage.setItem("selectedMemberName", member.name);
+        if (member.avatar_url) localStorage.setItem("selectedMemberAvatarUrl", member.avatar_url);
+        else localStorage.removeItem("selectedMemberAvatarUrl");
+        if (member.avatar_updated_at) localStorage.setItem("selectedMemberAvatarUpdatedAt", member.avatar_updated_at);
+        else localStorage.removeItem("selectedMemberAvatarUpdatedAt");
         setProfile(member);
       },
       clearProfile() {
         localStorage.removeItem("selectedMemberId");
         localStorage.removeItem("selectedMemberName");
+        localStorage.removeItem("selectedMemberAvatarUrl");
+        localStorage.removeItem("selectedMemberAvatarUpdatedAt");
         setProfile(null);
       },
     }),

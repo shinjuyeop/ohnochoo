@@ -14,6 +14,12 @@ create table if not exists public.members (
   "createdAt" timestamptz not null default now()
 );
 
+alter table public.members
+  add column if not exists avatar_url text;
+
+alter table public.members
+  add column if not exists avatar_updated_at timestamptz;
+
 create table if not exists public.votes (
   id uuid primary key default gen_random_uuid(),
   "songId" uuid not null references public.songs(id) on delete cascade,
@@ -164,6 +170,7 @@ drop policy if exists "songs_update" on public.songs;
 drop policy if exists "songs_delete" on public.songs;
 drop policy if exists "members_select" on public.members;
 drop policy if exists "members_insert" on public.members;
+drop policy if exists "members_update_avatar" on public.members;
 drop policy if exists "votes_select" on public.votes;
 drop policy if exists "votes_insert" on public.votes;
 drop policy if exists "votes_update" on public.votes;
@@ -210,6 +217,13 @@ create policy "members_insert"
   for insert
   to authenticated
   with check ((select private.is_admin()));
+
+create policy "members_update_avatar"
+  on public.members
+  for update
+  to anon, authenticated
+  using (true)
+  with check (true);
 
 create policy "votes_select"
   on public.votes
@@ -261,6 +275,8 @@ grant select, insert on public.songs to anon, authenticated;
 grant update, delete on public.songs to authenticated;
 grant select on public.members to anon, authenticated;
 grant insert on public.members to authenticated;
+revoke update on public.members from anon, authenticated;
+grant update (avatar_url, avatar_updated_at) on public.members to anon, authenticated;
 grant select, insert, update, delete on public.votes to anon, authenticated;
 grant select on public.mutigoeul_songs to anon, authenticated;
 grant insert on public.mutigoeul_songs to authenticated;
@@ -278,6 +294,42 @@ create policy "notification_logs_no_anon_access"
   to anon
   using (false)
   with check (false);
+
+drop policy if exists "profile_images_select" on storage.objects;
+drop policy if exists "profile_images_insert" on storage.objects;
+drop policy if exists "profile_images_update" on storage.objects;
+drop policy if exists "profile_images_delete" on storage.objects;
+
+create policy "profile_images_select"
+  on storage.objects for select
+  to anon, authenticated
+  using (bucket_id = 'profile-images' and storage.filename(name) = 'avatar.webp' and exists (
+    select 1 from public.members where id::text = (storage.foldername(name))[1]
+  ));
+
+create policy "profile_images_insert"
+  on storage.objects for insert
+  to anon, authenticated
+  with check (bucket_id = 'profile-images' and storage.filename(name) = 'avatar.webp' and exists (
+    select 1 from public.members where id::text = (storage.foldername(name))[1]
+  ));
+
+create policy "profile_images_update"
+  on storage.objects for update
+  to anon, authenticated
+  using (bucket_id = 'profile-images' and storage.filename(name) = 'avatar.webp' and exists (
+    select 1 from public.members where id::text = (storage.foldername(name))[1]
+  ))
+  with check (bucket_id = 'profile-images' and storage.filename(name) = 'avatar.webp' and exists (
+    select 1 from public.members where id::text = (storage.foldername(name))[1]
+  ));
+
+create policy "profile_images_delete"
+  on storage.objects for delete
+  to anon, authenticated
+  using (bucket_id = 'profile-images' and storage.filename(name) = 'avatar.webp' and exists (
+    select 1 from public.members where id::text = (storage.foldername(name))[1]
+  ));
 
 create or replace function public.add_song_with_initial_vote(
   p_title text,
