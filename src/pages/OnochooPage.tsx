@@ -39,7 +39,7 @@ export function OnochooPage() {
       </div>
       <div className="song-list full-list">{filtered.map((song) => {
         const hasVoted = data.votes.some((vote) => vote.songId === song.id && isVoteByMember(vote, profile));
-        return <SongCard key={song.id} song={song} stats={voteStats.get(song.id) ?? emptyVoteStats()} hasVoted={hasVoted} onOpen={() => setDetailId(song.id)} />;
+        return <SongCard key={song.id} song={song} stats={voteStats.get(song.id) ?? emptyVoteStats()} hasVoted={hasVoted} onOpen={() => setDetailId(song.id)} showDecisionCounts />;
       })}{!filtered.length ? <div className="empty-card large"><Music2 /><h3>조건에 맞는 곡이 없어요</h3><p>다른 필터나 검색어를 사용해 보세요.</p></div> : null}</div>
       <SongDetailDialog songId={detailId} onOpenChange={(open) => { if (!open) setDetailId(null); }} />
       <Dialog open={rulesOpen} onOpenChange={setRulesOpen} title="오노추 판정 기준" description="투표 수와 등록 기간을 함께 반영해요.">

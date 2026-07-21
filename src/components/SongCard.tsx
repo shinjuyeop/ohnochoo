@@ -5,7 +5,7 @@ import { formatCompactDate } from "../lib/utils";
 import { averageRating } from "../lib/songRules";
 import type { Song, VoteStats } from "../types";
 
-export function SongCard({ song, stats, hasVoted, onOpen, compact = false, hideStatus = false }: { song: Song; stats: VoteStats; hasVoted: boolean; onOpen: () => void; compact?: boolean; hideStatus?: boolean }) {
+export function SongCard({ song, stats, hasVoted, onOpen, compact = false, hideStatus = false, showDecisionCounts = false }: { song: Song; stats: VoteStats; hasVoted: boolean; onOpen: () => void; compact?: boolean; hideStatus?: boolean; showDecisionCounts?: boolean }) {
   const avg = averageRating(stats.votes);
   const handleOpenKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Enter" && event.key !== " ") return;
@@ -28,7 +28,17 @@ export function SongCard({ song, stats, hasVoted, onOpen, compact = false, hideS
           {!hideStatus ? <div className="song-card-top"><StatusBadge song={song} stats={stats} /><span>{formatCompactDate(song.createdAt)}</span></div> : null}
           <div className="song-title-row"><h3>{song.title}</h3>{hideStatus ? <span className="song-title-date">{formatCompactDate(song.createdAt)}</span> : null}</div>
           <p>{song.artist}</p>
-          <div className="song-card-meta"><span>by {song.adder}</span><span><MessageCircle size={14} /> {stats.votes.length}</span>{avg !== null ? <span><Star size={14} /> {avg.toFixed(1)}</span> : null}</div>
+          <div className={`song-card-meta ${showDecisionCounts ? "song-card-meta-decisions" : ""}`}>
+            <span className="song-card-adder">by {song.adder}</span>
+            {showDecisionCounts ? (
+              <span className="card-decision-counts" aria-label={`승격 ${stats.promotedCount}, 보류 ${stats.heldCount}, 방출 ${stats.releasedCount}`}>
+                <span className="promote">승격 {stats.promotedCount}</span>
+                <span className="hold">보류 {stats.heldCount}</span>
+                <span className="release">방출 {stats.releasedCount}</span>
+              </span>
+            ) : <span><MessageCircle size={14} /> {stats.votes.length}</span>}
+            {avg !== null ? <span className="song-card-rating"><Star size={14} /> {avg.toFixed(1)}</span> : null}
+          </div>
         </div>
       </div>
       {!hasVoted ? <button className="evaluate-button" onClick={onOpen}>평가하기</button> : <button className="card-arrow" aria-label={`${song.title} 상세 보기`} onClick={onOpen}><ChevronRight /></button>}

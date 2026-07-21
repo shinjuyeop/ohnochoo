@@ -109,7 +109,7 @@ export function AddSongDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               <label className="field-label"><span>곡명</span><input {...register("title")} disabled={Boolean(selectedSong)} placeholder="예: NEW DROP" />{errors.title ? <em>{errors.title.message}</em> : null}</label>
               <label className="field-label"><span>아티스트</span><input {...register("artist")} disabled={Boolean(selectedSong)} placeholder="예: Don Toliver" />{errors.artist ? <em>{errors.artist.message}</em> : null}</label>
             </div>
-            <label className="field-label"><span>나의 첫 별점</span><StarRating value={rating} onChange={(value) => setValue("rating", value, { shouldDirty: true })} /></label>
+            <label className="field-label"><span>별점</span><StarRating value={rating} onChange={(value) => setValue("rating", value, { shouldDirty: true })} /></label>
             <label className="field-label"><span>왜 이 곡을 추천하나요?</span><textarea {...register("reason")} rows={4} placeholder="친구들이 궁금해할 추천 포인트를 적어주세요." />{errors.reason ? <em>{errors.reason.message}</em> : null}</label>
             <button className="primary-button submit-button" disabled={addSong.isPending}>{addSong.isPending ? <><LoaderCircle className="spin" /> 저장 중...</> : <><Sparkles size={18} /> 추가하기</>}</button>
           </form>
