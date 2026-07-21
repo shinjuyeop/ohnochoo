@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, BellOff, ChevronRight, LoaderCircle, LockKeyhole, LogOut, Music2, Search, Send, Shield, Trash2, UserPlus, UsersRound } from "lucide-react";
+import { Bell, BellOff, CalendarClock, ChevronRight, CircleAlert, LoaderCircle, LockKeyhole, LogOut, Music2, PencilLine, Save, Search, Send, Shield, Trash2, UserPlus, UsersRound } from "lucide-react";
 import { Avatar } from "../components/ui/Avatar";
 import { Dialog } from "../components/ui/Dialog";
 import { AdminLoginForm } from "../features/admin/AdminLoginForm";
@@ -12,8 +12,15 @@ import { useToast } from "../components/ui/Toast";
 import { emptyVoteStats, getSongStatus, isMutigoeulReady } from "../lib/songRules";
 import { errorMessage } from "../lib/utils";
 
-type AdminDialog = "members" | "move" | "delete" | null;
+type AdminDialog = "members" | "edit" | "move" | "delete" | null;
 type DeleteFilter = "release" | "all";
+
+function toLocalDateTimeInput(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
 
 export function SettingsPage() {
   const { profile, clearProfile } = useProfile();
@@ -25,6 +32,12 @@ export function SettingsPage() {
   const [dialog, setDialog] = useState<AdminDialog>(null);
   const [memberName, setMemberName] = useState("");
   const [songId, setSongId] = useState("");
+  const [editSearch, setEditSearch] = useState("");
+  const [editSongId, setEditSongId] = useState("");
+  const [editTitle, setEditTitle] = useState("");
+  const [editArtist, setEditArtist] = useState("");
+  const [editMemberId, setEditMemberId] = useState("");
+  const [editCreatedAt, setEditCreatedAt] = useState("");
   const [deleteFilter, setDeleteFilter] = useState<DeleteFilter>("release");
   const [deleteSearch, setDeleteSearch] = useState("");
   const [selectedSongIds, setSelectedSongIds] = useState<string[]>([]);
@@ -47,12 +60,38 @@ export function SettingsPage() {
   const visibleIds = visibleDeleteCandidates.map((song) => song.id);
   const selectedIds = new Set(selectedSongIds);
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+  const normalizedEditSearch = editSearch.trim().toLocaleLowerCase("ko-KR");
+  const editableSongs = [...data.songs].reverse().filter((song) =>
+    !normalizedEditSearch || `${song.title} ${song.artist} ${song.adder}`.toLocaleLowerCase("ko-KR").includes(normalizedEditSearch),
+  );
 
   const openDeleteDialog = () => {
     setDeleteFilter("release");
     setDeleteSearch("");
     setSelectedSongIds([]);
     setDialog("delete");
+  };
+  const openEditDialog = () => {
+    setEditSearch("");
+    setEditSongId("");
+    setEditTitle("");
+    setEditArtist("");
+    setEditMemberId("");
+    setEditCreatedAt("");
+    setDialog("edit");
+  };
+  const selectEditSong = (id: string) => {
+    setEditSongId(id);
+    const song = data.songs.find((item) => item.id === id);
+    if (!song) {
+      setEditTitle(""); setEditArtist(""); setEditMemberId(""); setEditCreatedAt("");
+      return;
+    }
+    const member = data.members.find((item) => item.id === song.adder_member_id || item.name === song.adder);
+    setEditTitle(song.title);
+    setEditArtist(song.artist);
+    setEditMemberId(member?.id ?? "");
+    setEditCreatedAt(toLocalDateTimeInput(song.createdAt));
   };
   const toggleSong = (id: string) => {
     setSelectedSongIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
@@ -78,6 +117,27 @@ export function SettingsPage() {
     if (!songId || !isAdmin) return;
     try { await mutations.moveToMutigoeul.mutateAsync(songId); setSongId(""); setDialog(null); toast("무티고을로 이동했어요.", "success"); }
     catch (error) { toast(errorMessage(error), "error"); }
+  };
+  const saveSongInfo = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!editSongId || !isAdmin) return;
+    const title = editTitle.trim();
+    const artist = editArtist.trim();
+    const member = data.members.find((item) => item.id === editMemberId);
+    const createdAt = new Date(editCreatedAt);
+    if (!title || !artist || !member || Number.isNaN(createdAt.getTime())) {
+      toast("곡 제목, 아티스트, 등록자와 등록일을 모두 확인해 주세요.", "error");
+      return;
+    }
+    if (createdAt.getTime() > Date.now() + 5 * 60 * 1000) {
+      toast("등록일은 미래로 설정할 수 없어요.", "error");
+      return;
+    }
+    try {
+      await mutations.updateSong.mutateAsync({ songId: editSongId, title, artist, adder: member, createdAt: createdAt.toISOString() });
+      setDialog(null);
+      toast("곡 정보를 수정했어요.", "success");
+    } catch (error) { toast(errorMessage(error), "error"); }
   };
   const deleteSelectedSongs = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -125,6 +185,7 @@ export function SettingsPage() {
             <>
               <div className="admin-session"><span><b>관리자</b><small>{user?.email}</small></span><button onClick={() => void logoutAdmin()}>로그아웃</button></div>
               <button onClick={() => setDialog("members")}><span className="admin-action-icon"><UsersRound /></span><span><b>평가자 관리</b><small>{data.members.length}명 참여 중</small></span><ChevronRight /></button>
+              <button onClick={openEditDialog}><span className="admin-action-icon"><PencilLine /></span><span><b>곡 정보 수정</b><small>제목, 아티스트, 등록자, 등록일 변경</small></span><ChevronRight /></button>
               <button onClick={() => { setSongId(""); setDialog("move"); }}><span className="admin-action-icon"><Music2 /></span><span><b>무티고을로 보내기</b><small>이동 가능한 곡 {eligible.length}개</small></span><ChevronRight /></button>
               <button className="danger-row" onClick={openDeleteDialog}><span className="admin-action-icon"><Trash2 /></span><span><b>곡 정리</b><small>방출 예정 {releaseCandidates.length}곡 · 여러 곡 선택 가능</small></span><ChevronRight /></button>
             </>
@@ -134,6 +195,26 @@ export function SettingsPage() {
 
       <Dialog open={dialog === "members"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="평가자 관리" description="현재 평가자와 새 평가자를 관리해요.">
         <div className="dialog-body"><div className="member-list">{data.members.map((member) => <div key={member.id}><Avatar name={member.name} size="sm" /><span>{member.name}</span></div>)}</div><form className="inline-add-form" onSubmit={addMember}><input value={memberName} onChange={(event) => setMemberName(event.target.value)} placeholder="새 평가자 이름" /><button className="primary-button" disabled={mutations.addMember.isPending}>{mutations.addMember.isPending ? <LoaderCircle className="spin" /> : <UserPlus size={17} />} 추가</button></form></div>
+      </Dialog>
+      <Dialog open={dialog === "edit"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="곡 정보 수정" description="앱에 저장된 곡 정보를 바로잡아요." className="admin-edit-dialog">
+        <form className="dialog-body form-stack admin-edit-form" onSubmit={saveSongInfo}>
+          <label className="admin-song-search"><Search /><input value={editSearch} onChange={(event) => { setEditSearch(event.target.value); selectEditSong(""); }} placeholder="제목, 아티스트, 등록자 검색" /></label>
+          <label className="field-label"><span>수정할 곡</span><select value={editSongId} onChange={(event) => selectEditSong(event.target.value)}><option value="">곡을 선택해 주세요</option>{editableSongs.map((song) => <option key={song.id} value={song.id}>[{mutigoeulIds.has(song.id) ? "무티고을" : "오노추"}] {song.title} — {song.artist}</option>)}</select></label>
+          {editSongId ? (
+            <div className="admin-edit-fields">
+              <div className="two-fields">
+                <label className="field-label"><span>곡 제목</span><input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} required /></label>
+                <label className="field-label"><span>아티스트</span><input value={editArtist} onChange={(event) => setEditArtist(event.target.value)} required /></label>
+              </div>
+              <div className="two-fields">
+                <label className="field-label"><span>등록자</span><select value={editMemberId} onChange={(event) => setEditMemberId(event.target.value)} required><option value="">등록자를 선택해 주세요</option>{data.members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
+                <label className="field-label"><span>등록 날짜와 시간</span><span className="date-time-input"><CalendarClock /><input type="datetime-local" value={editCreatedAt} max={toLocalDateTimeInput(new Date().toISOString())} onChange={(event) => setEditCreatedAt(event.target.value)} required /></span></label>
+              </div>
+              <div className="admin-edit-warning"><CircleAlert /><p>등록일을 바꾸면 7일 판정과 방출 예정·무티고을 이동 가능 상태가 즉시 달라질 수 있어요.</p></div>
+              <button className="primary-button" disabled={mutations.updateSong.isPending || !editTitle.trim() || !editArtist.trim() || !editMemberId || !editCreatedAt}>{mutations.updateSong.isPending ? <><LoaderCircle className="spin" /> 저장 중...</> : <><Save /> 변경사항 저장</>}</button>
+            </div>
+          ) : null}
+        </form>
       </Dialog>
       <Dialog open={dialog === "move"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="무티고을로 보내기" description="7일과 승격 조건을 모두 만족한 곡만 이동할 수 있어요.">
         <form className="dialog-body form-stack" onSubmit={moveSong}><label className="field-label"><span>이동할 곡</span><select value={songId} onChange={(event) => setSongId(event.target.value)} disabled={!eligible.length}><option value="">{eligible.length ? "곡을 선택해 주세요" : "이동 가능한 곡이 없어요"}</option>{eligible.map((song) => <option key={song.id} value={song.id}>{song.title} — {song.artist}</option>)}</select></label><button className="primary-button" disabled={!songId || mutations.moveToMutigoeul.isPending}>{mutations.moveToMutigoeul.isPending ? "이동 중..." : "무티고을로 보내기"}</button></form>

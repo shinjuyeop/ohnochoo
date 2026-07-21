@@ -160,6 +160,7 @@ alter table public.admin_users enable row level security;
 
 drop policy if exists "songs_select" on public.songs;
 drop policy if exists "songs_insert" on public.songs;
+drop policy if exists "songs_update" on public.songs;
 drop policy if exists "songs_delete" on public.songs;
 drop policy if exists "members_select" on public.members;
 drop policy if exists "members_insert" on public.members;
@@ -184,6 +185,13 @@ create policy "songs_insert"
   for insert
   to anon, authenticated
   with check (true);
+
+create policy "songs_update"
+  on public.songs
+  for update
+  to authenticated
+  using ((select private.is_admin()))
+  with check ((select private.is_admin()));
 
 create policy "songs_delete"
   on public.songs
@@ -250,7 +258,7 @@ revoke all on public.admin_users from anon, authenticated;
 grant select on public.admin_users to authenticated;
 
 grant select, insert on public.songs to anon, authenticated;
-grant delete on public.songs to authenticated;
+grant update, delete on public.songs to authenticated;
 grant select on public.members to anon, authenticated;
 grant insert on public.members to authenticated;
 grant select, insert, update, delete on public.votes to anon, authenticated;

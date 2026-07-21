@@ -17,7 +17,7 @@
 - 새 곡, 새 평가, 평가 수정, 리마인드 알림
 - PWA 설치와 앱 버전 갱신 감지
 - Supabase Auth 기반 관리자 로그인
-- 평가자 추가, 무티고을 이동, 방출 예정 필터와 곡 일괄 삭제 관리 기능
+- 평가자 추가, 곡 정보 수정, 무티고을 이동, 방출 예정 필터와 곡 일괄 삭제 관리 기능
 
 ## 판정 기준
 
@@ -197,7 +197,7 @@ Vercel은 다음 설정을 사용합니다.
 ## 운영 주의
 
 - 평가자 추가, 노래 삭제, 무티고을 이동은 Supabase Auth 계정과 `admin_users` 매핑으로 보호합니다.
-- 운영 DB에는 `supabase/migrations/20260720190000_atomic_song_votes.sql` 적용 후 `20260721190000_admin_auth.sql`을 적용합니다.
+- 운영 DB에는 `supabase/migrations/`의 SQL을 파일명 순서대로 적용합니다.
 - 관리자 계정 비밀번호는 코드나 환경 변수에 저장하지 않고 Supabase Authentication에서 관리합니다.
 - `supabase/schema.sql`과 실제 운영 데이터는 별도의 명시적인 마이그레이션 없이 변경하지 않습니다.
 

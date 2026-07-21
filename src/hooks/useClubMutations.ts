@@ -181,6 +181,28 @@ export function useClubMutations() {
     onSuccess: refresh,
   });
 
+  const updateSong = useMutation({
+    mutationFn: async (input: { songId: string; title: string; artist: string; adder: Profile; createdAt: string }) => {
+      const supabase = await getSupabase();
+      const result = await supabase
+        .from("songs")
+        .update({
+          title: input.title.trim(),
+          artist: input.artist.trim(),
+          adder: input.adder.name,
+          adder_member_id: input.adder.id,
+          createdAt: input.createdAt,
+        })
+        .eq("id", input.songId)
+        .select("id")
+        .single();
+      if (result.error) throw result.error;
+      if (!result.data?.id) throw new Error("곡 정보를 수정하지 못했어요. 관리자 권한을 확인해 주세요.");
+      return result.data.id;
+    },
+    onSuccess: refresh,
+  });
+
   const moveToMutigoeul = useMutation({
     mutationFn: async (songId: string) => {
       const supabase = await getSupabase();
@@ -202,5 +224,5 @@ export function useClubMutations() {
     onSuccess: refresh,
   });
 
-  return { addSong, saveVote, addMember, deleteSongs, moveToMutigoeul, persistCovers };
+  return { addSong, saveVote, addMember, deleteSongs, updateSong, moveToMutigoeul, persistCovers };
 }
