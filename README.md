@@ -16,7 +16,8 @@
 - 프로필별 Web Push 구독·해제·테스트
 - 새 곡, 새 평가, 평가 수정, 리마인드 알림
 - PWA 설치와 앱 버전 갱신 감지
-- 평가자 추가, 노래 삭제, 무티고을 이동 관리 기능
+- Supabase Auth 기반 관리자 로그인
+- 평가자 추가, 무티고을 이동, 방출 예정 필터와 곡 일괄 삭제 관리 기능
 
 ## 판정 기준
 
@@ -66,7 +67,7 @@ ohnochoo/
 ├─ src/
 │  ├─ app/                      # Router, Provider, 앱 UI Context
 │  ├─ pages/                    # 홈, 오노추, 무티고을, 내 정보
-│  ├─ features/profile/         # 선택 프로필 상태
+│  ├─ features/                 # 프로필 상태와 관리자 인증
 │  ├─ components/               # 화면 공통 컴포넌트
 │  │  └─ ui/                    # Dialog, Toast, Avatar 등 UI 요소
 │  ├─ hooks/                    # Query, mutation, Push, PWA 동작
@@ -195,8 +196,9 @@ Vercel은 다음 설정을 사용합니다.
 
 ## 운영 주의
 
-- 평가자 추가, 노래 삭제, 무티고을 이동은 현재 클라이언트 비밀번호 확인 방식입니다.
-- 공개 범위가 커지면 Supabase Auth와 서버 권한 검증으로 교체해야 합니다.
+- 평가자 추가, 노래 삭제, 무티고을 이동은 Supabase Auth 계정과 `admin_users` 매핑으로 보호합니다.
+- 운영 DB에는 `supabase/migrations/20260720190000_atomic_song_votes.sql` 적용 후 `20260721190000_admin_auth.sql`을 적용합니다.
+- 관리자 계정 비밀번호는 코드나 환경 변수에 저장하지 않고 Supabase Authentication에서 관리합니다.
 - `supabase/schema.sql`과 실제 운영 데이터는 별도의 명시적인 마이그레이션 없이 변경하지 않습니다.
 
 ## 문제 해결

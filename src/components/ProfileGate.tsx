@@ -6,14 +6,16 @@ import { useClubData } from "../hooks/useClubData";
 import { useClubMutations } from "../hooks/useClubMutations";
 import { useProfile } from "../features/profile/ProfileContext";
 import { useToast } from "./ui/Toast";
-import { ADMIN_PASSWORD } from "../lib/constants";
 import { errorMessage } from "../lib/utils";
+import { useAdminAuth } from "../features/admin/AdminAuthContext";
+import { AdminLoginForm } from "../features/admin/AdminLoginForm";
 
 export function ProfileGate({ children }: { children: ReactNode }) {
   const { data, isLoading, error } = useClubData();
   const { profile, selectProfile, clearProfile } = useProfile();
   const { addMember } = useClubMutations();
   const toast = useToast();
+  const { isAdmin } = useAdminAuth();
   const [manageOpen, setManageOpen] = useState(false);
   const [memberName, setMemberName] = useState("");
 
@@ -32,8 +34,8 @@ export function ProfileGate({ children }: { children: ReactNode }) {
       toast("이미 등록된 평가자예요.", "error");
       return;
     }
-    if (window.prompt("평가자 추가 비밀번호를 입력하세요") !== ADMIN_PASSWORD) {
-      toast("비밀번호가 올바르지 않아요.", "error");
+    if (!isAdmin) {
+      toast("관리자 로그인이 필요해요.", "error");
       return;
     }
     try {
@@ -74,10 +76,14 @@ export function ProfileGate({ children }: { children: ReactNode }) {
         <button className="text-button profile-add" onClick={() => setManageOpen(true)}><Plus size={17} /> 평가자 추가</button>
       </div>
       <Dialog open={manageOpen} onOpenChange={setManageOpen} title="평가자 추가" description="새 평가자의 이름을 등록해요.">
-        <form className="form-stack dialog-body" onSubmit={createMember}>
-          <label><span>이름</span><input value={memberName} onChange={(event) => setMemberName(event.target.value)} placeholder="이름 입력" autoFocus /></label>
-          <button className="primary-button" disabled={!memberName.trim() || addMember.isPending}>{addMember.isPending ? "추가 중..." : "평가자 추가"}</button>
-        </form>
+        <div className="dialog-body">
+          {isAdmin ? (
+            <form className="form-stack" onSubmit={createMember}>
+              <label><span>이름</span><input value={memberName} onChange={(event) => setMemberName(event.target.value)} placeholder="이름 입력" autoFocus /></label>
+              <button className="primary-button" disabled={!memberName.trim() || addMember.isPending}>{addMember.isPending ? "추가 중..." : "평가자 추가"}</button>
+            </form>
+          ) : <AdminLoginForm />}
+        </div>
       </Dialog>
     </main>
   );

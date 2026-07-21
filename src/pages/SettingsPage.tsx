@@ -1,60 +1,100 @@
 import { useState } from "react";
-import { Bell, BellOff, ChevronRight, LoaderCircle, LogOut, Music2, Send, Shield, Trash2, UserPlus, UsersRound } from "lucide-react";
+import { Bell, BellOff, ChevronRight, LoaderCircle, LockKeyhole, LogOut, Music2, Search, Send, Shield, Trash2, UserPlus, UsersRound } from "lucide-react";
 import { Avatar } from "../components/ui/Avatar";
 import { Dialog } from "../components/ui/Dialog";
+import { AdminLoginForm } from "../features/admin/AdminLoginForm";
+import { useAdminAuth } from "../features/admin/AdminAuthContext";
 import { useProfile } from "../features/profile/ProfileContext";
 import { useClubData } from "../hooks/useClubData";
 import { useClubMutations } from "../hooks/useClubMutations";
 import { useNotifications } from "../hooks/useNotifications";
 import { useToast } from "../components/ui/Toast";
-import { ADMIN_PASSWORD } from "../lib/constants";
-import { emptyVoteStats, isMutigoeulReady } from "../lib/songRules";
+import { emptyVoteStats, getSongStatus, isMutigoeulReady } from "../lib/songRules";
 import { errorMessage } from "../lib/utils";
 
 type AdminDialog = "members" | "move" | "delete" | null;
+type DeleteFilter = "release" | "all";
 
 export function SettingsPage() {
   const { profile, clearProfile } = useProfile();
   const { data, onochuSongs, mutigoeulSongs, voteStats } = useClubData();
+  const { user, isAdmin, isLoading: isAdminLoading, logout } = useAdminAuth();
   const mutations = useClubMutations();
   const notifications = useNotifications(profile);
   const toast = useToast();
   const [dialog, setDialog] = useState<AdminDialog>(null);
   const [memberName, setMemberName] = useState("");
   const [songId, setSongId] = useState("");
+  const [deleteFilter, setDeleteFilter] = useState<DeleteFilter>("release");
+  const [deleteSearch, setDeleteSearch] = useState("");
+  const [selectedSongIds, setSelectedSongIds] = useState<string[]>([]);
   if (!profile || !data) return null;
 
-  const requirePassword = (label: string) => {
-    if (window.prompt(`${label} 비밀번호를 입력하세요`) === ADMIN_PASSWORD) return true;
-    toast("비밀번호가 올바르지 않아요.", "error");
-    return false;
-  };
   const eligible = onochuSongs.filter((song) => {
     const stats = voteStats.get(song.id) ?? emptyVoteStats();
     return isMutigoeulReady(song, stats.promotedCount, stats.releasedCount);
   });
-  const allSongs = [...onochuSongs, ...mutigoeulSongs];
+  const mutigoeulIds = new Set(mutigoeulSongs.map((song) => song.id));
+  const releaseCandidates = onochuSongs.filter((song) => {
+    const stats = voteStats.get(song.id) ?? emptyVoteStats();
+    return getSongStatus(song, stats.promotedCount, stats.releasedCount).tone === "release";
+  });
+  const deleteCandidates = deleteFilter === "release" ? releaseCandidates : [...onochuSongs, ...mutigoeulSongs];
+  const normalizedSearch = deleteSearch.trim().toLocaleLowerCase("ko-KR");
+  const visibleDeleteCandidates = deleteCandidates.filter((song) =>
+    !normalizedSearch || `${song.title} ${song.artist} ${song.adder}`.toLocaleLowerCase("ko-KR").includes(normalizedSearch),
+  );
+  const visibleIds = visibleDeleteCandidates.map((song) => song.id);
+  const selectedIds = new Set(selectedSongIds);
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
 
+  const openDeleteDialog = () => {
+    setDeleteFilter("release");
+    setDeleteSearch("");
+    setSelectedSongIds([]);
+    setDialog("delete");
+  };
+  const toggleSong = (id: string) => {
+    setSelectedSongIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+  };
+  const toggleVisible = () => {
+    setSelectedSongIds((current) => {
+      const currentSet = new Set(current);
+      if (allVisibleSelected) visibleIds.forEach((id) => currentSet.delete(id));
+      else visibleIds.forEach((id) => currentSet.add(id));
+      return [...currentSet];
+    });
+  };
   const addMember = async (event: React.FormEvent) => {
     event.preventDefault();
     const name = memberName.trim();
-    if (!name || !requirePassword("평가자 추가")) return;
+    if (!name || !isAdmin) return;
     if (data.members.some((member) => member.name === name)) return toast("이미 등록된 평가자예요.", "error");
     try { await mutations.addMember.mutateAsync(name); setMemberName(""); toast("평가자를 추가했어요.", "success"); }
     catch (error) { toast(errorMessage(error), "error"); }
   };
   const moveSong = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!songId || !requirePassword("무티고을 이동")) return;
+    if (!songId || !isAdmin) return;
     try { await mutations.moveToMutigoeul.mutateAsync(songId); setSongId(""); setDialog(null); toast("무티고을로 이동했어요.", "success"); }
     catch (error) { toast(errorMessage(error), "error"); }
   };
-  const deleteSong = async (event: React.FormEvent) => {
+  const deleteSelectedSongs = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!songId || !requirePassword("노래 삭제")) return;
-    const song = data.songs.find((item) => item.id === songId);
-    if (!song || !window.confirm(`‘${song.title}’을 정말 삭제할까요? 평가도 함께 삭제됩니다.`)) return;
-    try { await mutations.deleteSong.mutateAsync(songId); setSongId(""); setDialog(null); toast("노래를 삭제했어요.", "success"); }
+    if (!selectedSongIds.length || !isAdmin) return;
+    const selectedSongs = data.songs.filter((song) => selectedIds.has(song.id));
+    const preview = selectedSongs.slice(0, 3).map((song) => `‘${song.title}’`).join(", ");
+    const rest = selectedSongs.length > 3 ? ` 외 ${selectedSongs.length - 3}곡` : "";
+    if (!window.confirm(`${preview}${rest}을 삭제할까요? 연결된 평가도 함께 삭제됩니다.`)) return;
+    try {
+      const count = await mutations.deleteSongs.mutateAsync(selectedSongIds);
+      setSelectedSongIds([]);
+      setDialog(null);
+      toast(`${count}곡을 삭제했어요.`, "success");
+    } catch (error) { toast(errorMessage(error), "error"); }
+  };
+  const logoutAdmin = async () => {
+    try { await logout(); toast("관리자 모드를 종료했어요.", "success"); }
     catch (error) { toast(errorMessage(error), "error"); }
   };
   const notificationAction = async (action: () => Promise<unknown>, success: string) => {
@@ -80,10 +120,15 @@ export function SettingsPage() {
           </section>
         </div>
         <aside className="admin-panel">
-          <div className="admin-heading"><Shield /><div><h2>관리 도구</h2><p>필요할 때만 사용하는 기능이에요.</p></div></div>
-          <button onClick={() => setDialog("members")}><span className="admin-action-icon"><UsersRound /></span><span><b>평가자 관리</b><small>{data.members.length}명 참여 중</small></span><ChevronRight /></button>
-          <button onClick={() => { setSongId(""); setDialog("move"); }}><span className="admin-action-icon"><Music2 /></span><span><b>무티고을로 보내기</b><small>이동 가능한 곡 {eligible.length}개</small></span><ChevronRight /></button>
-          <button className="danger-row" onClick={() => { setSongId(""); setDialog("delete"); }}><span className="admin-action-icon"><Trash2 /></span><span><b>노래 삭제</b><small>오노추와 무티고을에서 삭제</small></span><ChevronRight /></button>
+          <div className="admin-heading"><Shield /><div><h2>관리 도구</h2><p>{isAdmin ? "관리자 모드가 켜져 있어요." : "관리자만 사용할 수 있어요."}</p></div></div>
+          {isAdminLoading ? <div className="admin-auth-loading"><LoaderCircle className="spin" /> 권한 확인 중...</div> : isAdmin ? (
+            <>
+              <div className="admin-session"><span><b>관리자</b><small>{user?.email}</small></span><button onClick={() => void logoutAdmin()}>로그아웃</button></div>
+              <button onClick={() => setDialog("members")}><span className="admin-action-icon"><UsersRound /></span><span><b>평가자 관리</b><small>{data.members.length}명 참여 중</small></span><ChevronRight /></button>
+              <button onClick={() => { setSongId(""); setDialog("move"); }}><span className="admin-action-icon"><Music2 /></span><span><b>무티고을로 보내기</b><small>이동 가능한 곡 {eligible.length}개</small></span><ChevronRight /></button>
+              <button className="danger-row" onClick={openDeleteDialog}><span className="admin-action-icon"><Trash2 /></span><span><b>곡 정리</b><small>방출 예정 {releaseCandidates.length}곡 · 여러 곡 선택 가능</small></span><ChevronRight /></button>
+            </>
+          ) : <div className="admin-panel-login"><AdminLoginForm /></div>}
         </aside>
       </div>
 
@@ -93,8 +138,33 @@ export function SettingsPage() {
       <Dialog open={dialog === "move"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="무티고을로 보내기" description="7일과 승격 조건을 모두 만족한 곡만 이동할 수 있어요.">
         <form className="dialog-body form-stack" onSubmit={moveSong}><label className="field-label"><span>이동할 곡</span><select value={songId} onChange={(event) => setSongId(event.target.value)} disabled={!eligible.length}><option value="">{eligible.length ? "곡을 선택해 주세요" : "이동 가능한 곡이 없어요"}</option>{eligible.map((song) => <option key={song.id} value={song.id}>{song.title} — {song.artist}</option>)}</select></label><button className="primary-button" disabled={!songId || mutations.moveToMutigoeul.isPending}>{mutations.moveToMutigoeul.isPending ? "이동 중..." : "무티고을로 보내기"}</button></form>
       </Dialog>
-      <Dialog open={dialog === "delete"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="노래 삭제" description="곡과 연결된 평가가 함께 삭제되는 관리자 기능입니다.">
-        <form className="dialog-body form-stack" onSubmit={deleteSong}><label className="field-label"><span>삭제할 곡</span><select value={songId} onChange={(event) => setSongId(event.target.value)}><option value="">곡을 선택해 주세요</option>{allSongs.map((song) => <option key={song.id} value={song.id}>[{mutigoeulSongs.some((item) => item.id === song.id) ? "무티고을" : "오노추"}] {song.title} — {song.artist}</option>)}</select></label><button className="danger-button" disabled={!songId || mutations.deleteSong.isPending}>{mutations.deleteSong.isPending ? "삭제 중..." : "노래 삭제"}</button></form>
+      <Dialog open={dialog === "delete"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="곡 정리" description="삭제할 곡을 여러 개 선택할 수 있어요." className="admin-delete-dialog">
+        <form className="dialog-body admin-delete-body" onSubmit={deleteSelectedSongs}>
+          <div className="admin-delete-tools">
+            <div className="admin-delete-filters" aria-label="삭제 목록 필터">
+              <button type="button" className={deleteFilter === "release" ? "active" : ""} onClick={() => { setDeleteFilter("release"); setSelectedSongIds([]); }}>방출 예정 <span>{releaseCandidates.length}</span></button>
+              <button type="button" className={deleteFilter === "all" ? "active" : ""} onClick={() => { setDeleteFilter("all"); setSelectedSongIds([]); }}>전체 곡 <span>{data.songs.length}</span></button>
+            </div>
+            <label className="admin-song-search"><Search /><input value={deleteSearch} onChange={(event) => setDeleteSearch(event.target.value)} placeholder="제목, 아티스트 검색" /></label>
+            <div className="admin-select-row"><label><input type="checkbox" checked={allVisibleSelected} onChange={toggleVisible} disabled={!visibleIds.length} /> 현재 목록 전체 선택</label><span>{selectedSongIds.length}곡 선택</span></div>
+          </div>
+          <div className="admin-song-list">
+            {visibleDeleteCandidates.length ? visibleDeleteCandidates.map((song) => {
+              const stats = voteStats.get(song.id) ?? emptyVoteStats();
+              const inMutigoeul = mutigoeulIds.has(song.id);
+              const status = inMutigoeul ? { label: "무티고을", tone: "ready" as const } : getSongStatus(song, stats.promotedCount, stats.releasedCount);
+              return (
+                <label key={song.id} className={`admin-song-option ${selectedIds.has(song.id) ? "selected" : ""}`}>
+                  <input type="checkbox" checked={selectedIds.has(song.id)} onChange={() => toggleSong(song.id)} />
+                  <span className="admin-song-cover">{song.coverImageUrl ? <img src={song.coverImageUrl} alt="" /> : <Music2 />}</span>
+                  <span className="admin-song-copy"><b>{song.title}</b><small>{song.artist}</small><em className={`admin-status admin-status-${status.tone}`}>{status.label}</em></span>
+                  <span className="admin-vote-counts"><b>{stats.promotedCount}</b> 승격 <b>{stats.releasedCount}</b> 방출</span>
+                </label>
+              );
+            }) : <div className="admin-empty"><LockKeyhole /><p>{deleteFilter === "release" ? "방출 예정인 곡이 없어요." : "검색 결과가 없어요."}</p></div>}
+          </div>
+          <div className="admin-delete-footer"><span>선택한 곡과 연결된 평가가 함께 삭제됩니다.</span><button className="danger-button" disabled={!selectedSongIds.length || mutations.deleteSongs.isPending}>{mutations.deleteSongs.isPending ? "삭제 중..." : `${selectedSongIds.length}곡 삭제`}</button></div>
+        </form>
       </Dialog>
     </div>
   );

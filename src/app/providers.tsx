@@ -7,6 +7,7 @@ import { RealtimeSync } from "../hooks/useClubData";
 import { queryClient } from "../lib/queryClient";
 import { router } from "./router";
 import { usePwaLifecycle } from "../hooks/usePwaLifecycle";
+import { AdminAuthProvider } from "../features/admin/AdminAuthContext";
 
 function PwaLifecycle() {
   usePwaLifecycle();
@@ -18,10 +19,12 @@ export function AppProviders() {
     <QueryClientProvider client={queryClient}>
       <PwaLifecycle />
       <ToastProvider>
-        <ProfileProvider>
-          <RealtimeSync />
-          <ProfileGate><RouterProvider router={router} /></ProfileGate>
-        </ProfileProvider>
+        <AdminAuthProvider>
+          <ProfileProvider>
+            <RealtimeSync />
+            <ProfileGate><RouterProvider router={router} /></ProfileGate>
+          </ProfileProvider>
+        </AdminAuthProvider>
       </ToastProvider>
     </QueryClientProvider>
   );

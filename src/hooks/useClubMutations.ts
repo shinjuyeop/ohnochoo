@@ -167,11 +167,16 @@ export function useClubMutations() {
     onSuccess: refresh,
   });
 
-  const deleteSong = useMutation({
-    mutationFn: async (songId: string) => {
+  const deleteSongs = useMutation({
+    mutationFn: async (songIds: string[]) => {
+      if (!songIds.length) return 0;
       const supabase = await getSupabase();
-      const result = await supabase.from("songs").delete().eq("id", songId);
+      const result = await supabase.from("songs").delete().in("id", songIds).select("id");
       if (result.error) throw result.error;
+      if ((result.data?.length ?? 0) !== songIds.length) {
+        throw new Error("일부 곡을 삭제하지 못했어요. 관리자 권한을 확인해 주세요.");
+      }
+      return result.data.length;
     },
     onSuccess: refresh,
   });
@@ -197,5 +202,5 @@ export function useClubMutations() {
     onSuccess: refresh,
   });
 
-  return { addSong, saveVote, addMember, deleteSong, moveToMutigoeul, persistCovers };
+  return { addSong, saveVote, addMember, deleteSongs, moveToMutigoeul, persistCovers };
 }
