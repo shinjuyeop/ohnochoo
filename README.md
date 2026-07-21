@@ -141,6 +141,7 @@ npm run update-version
 | `members` | 평가자 프로필과 프로필 사진 URL |
 | `votes` | 결정, 별점, 평가 이유 |
 | `mutigoeul_songs` | 무티고을 이동 정보 |
+| `admin_users` | Supabase Auth 사용자와 관리자 프로필 연결 |
 | `push_subscriptions` | 프로필별 Push 구독 |
 | `notification_logs` | 알림 중복 방지 및 발송 상태 |
 
@@ -153,9 +154,23 @@ npm run update-version
 - `add_song_with_initial_vote`: 곡과 최초 평가를 하나의 트랜잭션으로 저장
 - `save_member_vote`: 같은 평가는 건너뛰고 기존 평가는 원자적으로 수정
 
-운영 DB에 새 RPC를 적용하기 전에도 앱은 기존 저장 방식으로 동작하며, 최초 평가 저장이 실패하면 추가된 곡을 자동 정리합니다. 완전한 원자성과 DB 수준 중복 방지를 활성화하려면 Supabase SQL Editor에서 `supabase/migrations/20260720190000_atomic_song_votes.sql`을 적용해야 합니다.
+새 Supabase 프로젝트는 `supabase/schema.sql`을 적용해 전체 구조를 만들 수 있습니다. 이미 운영 중인 프로젝트는 기존 데이터를 보존하기 위해 `supabase/migrations/`의 아직 적용하지 않은 SQL만 파일명 순서대로 실행합니다. 각 마이그레이션은 한 번만 적용하고, 적용 여부가 불분명하면 먼저 SQL Editor에서 관련 테이블·함수·정책을 조회합니다.
 
-프로필 사진은 Supabase Storage의 공개 `profile-images` 버킷에 `member-id/avatar.webp` 경로로 저장합니다. 버킷의 파일 크기 제한은 1MB, MIME 제한은 `image/webp`로 설정하고 `20260721220000_profile_images.sql`을 적용해야 합니다. 업로드 전 브라우저에서 512×512 WebP로 변환하며 같은 경로를 덮어써 이전 사진이 누적되지 않습니다.
+운영 DB에 새 RPC를 적용하기 전에도 앱은 기존 저장 방식으로 동작하며, 최초 평가 저장이 실패하면 추가된 곡을 자동 정리합니다. 완전한 원자성과 DB 수준 중복 방지를 활성화하려면 `20260720190000_atomic_song_votes.sql`을 적용해야 합니다.
+
+주요 마이그레이션은 다음과 같습니다.
+
+| 파일 | 내용 |
+|---|---|
+| `20260720190000_atomic_song_votes.sql` | 곡·최초 평가 원자 저장, 평가 저장 RPC와 중복 방지 인덱스 |
+| `20260721190000_admin_auth.sql` | `admin_users`와 Supabase Auth 기반 관리자 권한 |
+| `20260721210000_admin_song_updates.sql` | 관리자의 곡 제목·아티스트·추가자·등록일 수정 권한 |
+| `20260721220000_profile_images.sql` | 프로필 사진 컬럼과 Storage 접근 정책 |
+| `20260721221000_fix_profile_image_policies.sql` | Storage 경로 검증 정책 보정 |
+
+프로필 사진을 사용하려면 Supabase Storage에서 공개 버킷 `profile-images`를 직접 생성한 뒤 파일 크기 제한을 1MB, Allowed MIME types를 `image/webp`로 설정합니다. PNG 원본도 브라우저에서 업로드 전에 512×512 WebP로 변환되므로 현재 앱에서는 `image/png` 허용이 필수는 아닙니다. 파일은 `member-id/avatar.webp`의 고정 경로를 덮어써 이전 사진이 누적되지 않습니다.
+
+기존 운영 DB에는 `20260721220000_profile_images.sql`과 정책 보정 파일인 `20260721221000_fix_profile_image_policies.sql`까지 순서대로 적용해야 합니다. 버킷 이름이 다르거나 두 번째 정책이 빠지면 `Bucket not found` 또는 `new row violates row level security policy` 오류가 발생합니다.
 
 ## API
 
@@ -194,18 +209,20 @@ Vercel은 다음 설정을 사용합니다.
 - SPA routes: `/onochoo`, `/mutigoeul`, `/settings`
 - API routes: `/api/*`
 
-배포 전에 `npm run update-version`을 실행하면 기존 사용자가 새 버전을 자동으로 감지할 수 있습니다.
+`npm run build`가 `dist/version.json`에 매번 새 버전을 생성하므로 배포 전에 별도 버전 갱신 명령을 실행할 필요가 없습니다.
 
 ## 운영 주의
 
 - 평가자 추가, 노래 삭제, 무티고을 이동은 Supabase Auth 계정과 `admin_users` 매핑으로 보호합니다.
 - 운영 DB에는 `supabase/migrations/`의 SQL을 파일명 순서대로 적용합니다.
 - 관리자 계정 비밀번호는 코드나 환경 변수에 저장하지 않고 Supabase Authentication에서 관리합니다.
+- 프로필 사진 변경은 로그인 없이 현재 선택한 프로필을 기준으로 허용됩니다. 링크를 아는 사람만 사용하는 소규모 앱이라는 현재 운영 전제에 맞춘 정책입니다.
 - `supabase/schema.sql`과 실제 운영 데이터는 별도의 명시적인 마이그레이션 없이 변경하지 않습니다.
 
 ## 문제 해결
 
 - Supabase 연결 실패: `/api/config` 응답과 `SUPABASE_URL`, `SUPABASE_ANON_KEY` 설정을 확인합니다.
+- 프로필 사진 업로드 실패: `profile-images` 버킷 이름·공개 설정·`image/webp` 허용 여부와 최신 Storage 정책 적용 여부를 확인합니다.
 - Push 미수신: 브라우저 알림 권한, HTTPS 환경, VAPID 환경 변수와 설정 화면의 구독 상태를 확인합니다.
 - 새 배포 미반영: 앱을 다시 열거나 `version.json` 응답과 서비스 워커 등록 상태를 확인합니다.
 
