@@ -93,6 +93,18 @@ create unique index if not exists votes_song_legacy_voter_unique
   on public.votes ("songId", voter)
   where member_id is null;
 
+create table if not exists public.vote_replies (
+  id uuid primary key default gen_random_uuid(),
+  vote_id uuid not null references public.votes(id) on delete cascade,
+  author text not null,
+  member_id uuid references public.members(id) on delete set null,
+  body text not null check (char_length(trim(body)) between 1 and 300),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists vote_replies_vote_id_created_at_idx
+  on public.vote_replies(vote_id, created_at);
+
 create table if not exists public.push_subscriptions (
   id uuid primary key default gen_random_uuid(),
   member_id uuid references public.members(id) on delete cascade,
@@ -159,6 +171,7 @@ grant execute on function private.is_admin() to authenticated;
 alter table public.songs enable row level security;
 alter table public.members enable row level security;
 alter table public.votes enable row level security;
+alter table public.vote_replies enable row level security;
 alter table public.mutigoeul_songs enable row level security;
 alter table public.push_subscriptions enable row level security;
 alter table public.notification_logs enable row level security;
@@ -175,6 +188,8 @@ drop policy if exists "votes_select" on public.votes;
 drop policy if exists "votes_insert" on public.votes;
 drop policy if exists "votes_update" on public.votes;
 drop policy if exists "votes_delete" on public.votes;
+drop policy if exists "vote_replies_select" on public.vote_replies;
+drop policy if exists "vote_replies_insert" on public.vote_replies;
 drop policy if exists "mutigoeul_songs_select" on public.mutigoeul_songs;
 drop policy if exists "mutigoeul_songs_insert" on public.mutigoeul_songs;
 drop policy if exists "push_subscriptions_no_anon_access" on public.push_subscriptions;
@@ -250,6 +265,18 @@ create policy "votes_delete"
   to anon, authenticated
   using (true);
 
+create policy "vote_replies_select"
+  on public.vote_replies
+  for select
+  to anon, authenticated
+  using (true);
+
+create policy "vote_replies_insert"
+  on public.vote_replies
+  for insert
+  to anon, authenticated
+  with check (true);
+
 create policy "mutigoeul_songs_select"
   on public.mutigoeul_songs
   for select
@@ -278,6 +305,7 @@ grant insert on public.members to authenticated;
 revoke update on public.members from anon, authenticated;
 grant update (avatar_url, avatar_updated_at) on public.members to anon, authenticated;
 grant select, insert, update, delete on public.votes to anon, authenticated;
+grant select, insert on public.vote_replies to anon, authenticated;
 grant select on public.mutigoeul_songs to anon, authenticated;
 grant insert on public.mutigoeul_songs to authenticated;
 

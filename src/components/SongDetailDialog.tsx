@@ -5,6 +5,7 @@ import { StatusBadge } from "./ui/StatusBadge";
 import { StarRating } from "./ui/StarRating";
 import { Avatar } from "./ui/Avatar";
 import { VoteForm } from "./VoteForm";
+import { VoteReplyForm } from "./VoteReplyForm";
 import { useClubData } from "../hooks/useClubData";
 import { useProfile } from "../features/profile/ProfileContext";
 import { averageRating, emptyVoteStats, isVoteByMember } from "../lib/songRules";
@@ -40,10 +41,25 @@ export function SongDetailDialog({ songId, onOpenChange, allowVote = true }: { s
           <div className="section-heading"><h3>평가</h3><span><MessageCircle size={15} /> {sortedVotes.length}</span></div>
           {sortedVotes.length ? sortedVotes.map((vote) => {
             const voterMember = data.members.find((member) => member.id === vote.member_id || member.name === vote.voter);
+            const replies = data.voteReplies.filter((reply) => reply.vote_id === vote.id);
             return (
               <article className="friend-vote" key={vote.id}>
                 <Avatar name={vote.voter} imageUrl={voterMember?.avatar_url} imageVersion={voterMember?.avatar_updated_at} size="vote" />
-                <div><div className="friend-vote-head"><b>{vote.voter}</b><span className={`decision-label decision-label-${vote.decision}`}>{vote.decision}</span><StarRating value={Number(vote.rating)} readOnly /></div><p>{vote.reason}</p><time>{formatKoreanDate(vote.createdAt, true)}</time></div>
+                <div className="friend-vote-content">
+                  <div className="friend-vote-head"><b>{vote.voter}</b><span className={`decision-label decision-label-${vote.decision}`}>{vote.decision}</span><StarRating value={Number(vote.rating)} readOnly /></div>
+                  <p>{vote.reason}</p>
+                  <time>{formatKoreanDate(vote.createdAt, true)}</time>
+                  {replies.length ? <div className="vote-replies">{replies.map((reply) => {
+                    const authorMember = data.members.find((member) => member.id === reply.member_id || member.name === reply.author);
+                    return (
+                      <div className="vote-reply" key={reply.id}>
+                        <Avatar name={reply.author} imageUrl={authorMember?.avatar_url} imageVersion={authorMember?.avatar_updated_at} size="sm" />
+                        <div><b>{reply.author}</b><p>{reply.body}</p><time>{formatKoreanDate(reply.created_at, true)}</time></div>
+                      </div>
+                    );
+                  })}</div> : null}
+                  {profile ? <VoteReplyForm voteId={vote.id} /> : null}
+                </div>
               </article>
             );
           }) : <div className="empty-inline"><MessageCircle /><p>아직 남겨진 평가가 없어요.</p></div>}

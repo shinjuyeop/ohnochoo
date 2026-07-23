@@ -4,6 +4,7 @@ import { getSupabase } from "../lib/supabase";
 import { normalizeCoverUrl } from "../lib/utils";
 import { findMemberVotes, planVoteSave } from "../lib/voteRules";
 import { prepareProfileImage } from "../lib/profileImage";
+import { normalizeReplyBody } from "../lib/replyRules";
 import type { Decision, Member, PlaylistSong, Song, Vote } from "../types";
 
 type Profile = Pick<Member, "id" | "name">;
@@ -159,6 +160,29 @@ export function useClubMutations() {
     onSuccess: refresh,
   });
 
+  const addVoteReply = useMutation({
+    mutationFn: async (input: { voteId: string; body: string; profile: Profile }) => {
+      const body = normalizeReplyBody(input.body);
+
+      const supabase = await getSupabase();
+      const result = await supabase
+        .from("vote_replies")
+        .insert({
+          vote_id: input.voteId,
+          author: input.profile.name,
+          member_id: input.profile.id,
+          body,
+        })
+        .select("id")
+        .single();
+      if (result.error) throw result.error;
+
+      notifySilently("/api/send-reply-notification", { replyId: result.data.id });
+      return result.data.id as string;
+    },
+    onSuccess: refresh,
+  });
+
   const addMember = useMutation({
     mutationFn: async (name: string) => {
       const supabase = await getSupabase();
@@ -266,5 +290,5 @@ export function useClubMutations() {
     onSuccess: refresh,
   });
 
-  return { addSong, saveVote, addMember, updateProfileImage, removeProfileImage, deleteSongs, updateSong, moveToMutigoeul, persistCovers };
+  return { addSong, saveVote, addVoteReply, addMember, updateProfileImage, removeProfileImage, deleteSongs, updateSong, moveToMutigoeul, persistCovers };
 }

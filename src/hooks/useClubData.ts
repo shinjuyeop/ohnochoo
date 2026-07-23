@@ -2,21 +2,23 @@ import { useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "../lib/supabase";
 import { buildVoteStats, getMutigoeulSongs, getOnochooSongs } from "../lib/songRules";
-import type { ClubData, Member, MutigoeulEntry, Song, Vote, VoteStats } from "../types";
+import type { ClubData, Member, MutigoeulEntry, Song, Vote, VoteReply, VoteStats } from "../types";
 
 async function fetchClubData(): Promise<ClubData> {
   const supabase = await getSupabase();
-  const [songs, votes, members, mutigoeul] = await Promise.all([
+  const [songs, votes, voteReplies, members, mutigoeul] = await Promise.all([
     supabase.from("songs").select("id,title,artist,adder,adder_member_id,createdAt,coverImageUrl").order("createdAt", { ascending: true }),
     supabase.from("votes").select("id,songId,voter,member_id,decision,rating,reason,createdAt").order("createdAt", { ascending: false }),
+    supabase.from("vote_replies").select("id,vote_id,author,member_id,body,created_at").order("created_at", { ascending: true }),
     supabase.from("members").select("*").order("name", { ascending: true }),
     supabase.from("mutigoeul_songs").select("id,songId,createdAt").order("createdAt", { ascending: true }),
   ]);
-  const error = songs.error || votes.error || members.error || mutigoeul.error;
+  const error = songs.error || votes.error || voteReplies.error || members.error || mutigoeul.error;
   if (error) throw error;
   return {
     songs: (songs.data ?? []) as Song[],
     votes: (votes.data ?? []).map((vote) => ({ ...vote, rating: Number(vote.rating) })) as Vote[],
+    voteReplies: (voteReplies.data ?? []) as VoteReply[],
     members: (members.data ?? []) as Member[],
     mutigoeulEntries: (mutigoeul.data ?? []) as MutigoeulEntry[],
   };
@@ -49,7 +51,7 @@ export function RealtimeSync() {
         window.clearTimeout(timer);
         timer = window.setTimeout(() => void client.invalidateQueries({ queryKey: ["club-data"] }), 400);
       };
-      for (const table of ["songs", "votes", "mutigoeul_songs", "members"]) {
+      for (const table of ["songs", "votes", "vote_replies", "mutigoeul_songs", "members"]) {
         channel.on("postgres_changes", { event: "*", schema: "public", table }, reload);
       }
       channel.subscribe();

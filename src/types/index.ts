@@ -21,6 +21,15 @@ export interface Vote {
   createdAt: string;
 }
 
+export interface VoteReply {
+  id: string;
+  vote_id: string;
+  author: string;
+  member_id: string | null;
+  body: string;
+  created_at: string;
+}
+
 export interface Member {
   id: string;
   name: string;
@@ -38,6 +47,7 @@ export interface MutigoeulEntry {
 export interface ClubData {
   songs: Song[];
   votes: Vote[];
+  voteReplies: VoteReply[];
   members: Member[];
   mutigoeulEntries: MutigoeulEntry[];
 }

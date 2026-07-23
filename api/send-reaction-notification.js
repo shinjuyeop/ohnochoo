@@ -27,6 +27,7 @@ module.exports = async (req, res) => {
             voteId,
             songId,
             voterName,
+            voterMemberId,
             decision,
             isUpdate: requestedIsUpdate = false,
             notificationKind = "new",
@@ -70,6 +71,11 @@ module.exports = async (req, res) => {
         let skippedCount = 0;
 
         for (const [memberId, memberSubscriptions] of subscriptionsByMemberId) {
+            if (isUpdate && voterMemberId && memberId === voterMemberId) {
+                skippedCount += 1;
+                continue;
+            }
+
             const result = await sendDedupedNotification({
                 supabase,
                 subscriptions: memberSubscriptions,

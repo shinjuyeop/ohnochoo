@@ -9,6 +9,7 @@
 - Apple Music 플레이리스트 동기화 및 수동 곡 추가
 - 추천 이유, 0.5점 단위 별점, 최초 승격 평가 저장
 - 평가 등록·수정 및 변경 없는 중복 저장 방지
+- 평가별 300자 이내 답글과 작성자 알림
 - DB RPC를 통한 곡·최초 평가 원자적 저장
 - 오노추 필터와 곡 상세 평가 목록
 - 무티고을 그리드·목록 보기 및 추가일 정렬
@@ -140,12 +141,13 @@ npm run update-version
 | `songs` | 곡, 추가자, 앨범 커버 |
 | `members` | 평가자 프로필과 프로필 사진 URL |
 | `votes` | 결정, 별점, 평가 이유 |
+| `vote_replies` | 평가에 작성한 300자 이내 답글 |
 | `mutigoeul_songs` | 무티고을 이동 정보 |
 | `admin_users` | Supabase Auth 사용자와 관리자 프로필 연결 |
 | `push_subscriptions` | 프로필별 Push 구독 |
 | `notification_logs` | 알림 중복 방지 및 발송 상태 |
 
-`songs.adder_member_id`와 `votes.member_id`를 우선 사용하며, 이전 데이터는 `adder`와 `voter` 이름으로 호환합니다. Realtime publication에는 `songs`, `votes`, `members`, `mutigoeul_songs`가 포함되어야 합니다.
+`songs.adder_member_id`와 `votes.member_id`를 우선 사용하며, 이전 데이터는 `adder`와 `voter` 이름으로 호환합니다. Realtime publication에는 `songs`, `votes`, `vote_replies`, `members`, `mutigoeul_songs`가 포함되어야 합니다.
 
 `supabase/schema.sql`에는 다음 데이터 정합성 규칙이 포함됩니다.
 
@@ -167,6 +169,7 @@ npm run update-version
 | `20260721210000_admin_song_updates.sql` | 관리자의 곡 제목·아티스트·추가자·등록일 수정 권한 |
 | `20260721220000_profile_images.sql` | 프로필 사진 컬럼과 Storage 접근 정책 |
 | `20260721221000_fix_profile_image_policies.sql` | Storage 경로 검증 정책 보정 |
+| `20260723130000_vote_replies.sql` | 평가 답글 테이블, 300자 제한과 접근 정책 |
 
 프로필 사진을 사용하려면 Supabase Storage에서 공개 버킷 `profile-images`를 직접 생성한 뒤 파일 크기 제한을 1MB, Allowed MIME types를 `image/webp`로 설정합니다. PNG 원본도 브라우저에서 업로드 전에 512×512 WebP로 변환되므로 현재 앱에서는 `image/png` 허용이 필수는 아닙니다. 파일은 `member-id/avatar.webp`의 고정 경로를 덮어써 이전 사진이 누적되지 않습니다.
 
@@ -184,7 +187,8 @@ npm run update-version
 | `POST` | `/api/remove-subscription` | Push 구독 비활성화 |
 | `POST` | `/api/send-test-notification` | 테스트 알림 전송 |
 | `POST` | `/api/send-song-added-notification` | 새 곡 알림 |
-| `POST` | `/api/send-reaction-notification` | 새 평가·수정 알림을 활성 구독 전체에 전송 |
+| `POST` | `/api/send-reaction-notification` | 새 평가·수정 알림을 활성 구독자에게 전송 |
+| `POST` | `/api/send-reply-notification` | 답글 알림을 원 평가 작성자에게 전송 |
 | `GET/POST` | `/api/send-add-song-reminders` | 곡 추가 리마인드 |
 | `GET/POST` | `/api/send-reminders` | 미평가 곡 리마인드 |
 | `GET/POST` | `/api/cleanup-push-subscriptions` | 오래된 구독 정리 |
@@ -194,7 +198,9 @@ Cron 일정은 `vercel.json`을 기준으로 관리합니다.
 ## 알림 동작
 
 - 새 곡: 곡 추가자를 제외하고 활성 구독자에게 전송
-- 새 평가 및 평가 수정: 활성 구독이 있는 모든 평가자에게 전송
+- 새 평가: 활성 구독이 있는 모든 평가자에게 전송
+- 평가 수정: 수정한 평가자를 제외한 활성 구독자에게 전송
+- 평가 답글: 답글 작성자가 아닌 원 평가 작성자에게 전송
 - 테스트 알림: 현재 프로필의 활성 기기로 전송
 - 만료된 endpoint: Push 발송 중 404 또는 410 응답 시 비활성화
 - 중복 발송: `notification_logs.dedupe_key`로 평가자별 방지
