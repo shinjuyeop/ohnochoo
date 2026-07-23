@@ -48,7 +48,10 @@ export function SongDetailDialog({ songId, onOpenChange, allowVote = true }: { s
                 <div className="friend-vote-content">
                   <div className="friend-vote-head"><b>{vote.voter}</b><span className={`decision-label decision-label-${vote.decision}`}>{vote.decision}</span><StarRating value={Number(vote.rating)} readOnly /></div>
                   <p>{vote.reason}</p>
-                  <time>{formatKoreanDate(vote.createdAt, true)}</time>
+                  <div className="friend-vote-actions">
+                    <time>{formatKoreanDate(vote.createdAt, true)}</time>
+                    {profile ? <VoteReplyForm voteId={vote.id} /> : null}
+                  </div>
                   {replies.length ? <div className="vote-replies">{replies.map((reply) => {
                     const authorMember = data.members.find((member) => member.id === reply.member_id || member.name === reply.author);
                     return (
@@ -58,7 +61,6 @@ export function SongDetailDialog({ songId, onOpenChange, allowVote = true }: { s
                       </div>
                     );
                   })}</div> : null}
-                  {profile ? <VoteReplyForm voteId={vote.id} /> : null}
                 </div>
               </article>
             );
