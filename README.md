@@ -187,8 +187,7 @@ npm run update-version
 | `POST` | `/api/remove-subscription` | Push 구독 비활성화 |
 | `POST` | `/api/send-test-notification` | 테스트 알림 전송 |
 | `POST` | `/api/send-song-added-notification` | 새 곡 알림 |
-| `POST` | `/api/send-reaction-notification` | 새 평가·수정 알림을 활성 구독자에게 전송 |
-| `POST` | `/api/send-reply-notification` | 답글 알림을 원 평가 작성자에게 전송 |
+| `POST` | `/api/send-reaction-notification` | 새 평가·수정·답글 알림 전송 |
 | `GET/POST` | `/api/send-add-song-reminders` | 곡 추가 리마인드 |
 | `GET/POST` | `/api/send-reminders` | 미평가 곡 리마인드 |
 | `GET/POST` | `/api/cleanup-push-subscriptions` | 오래된 구독 정리 |

@@ -177,7 +177,10 @@ export function useClubMutations() {
         .single();
       if (result.error) throw result.error;
 
-      notifySilently("/api/send-reply-notification", { replyId: result.data.id });
+      notifySilently("/api/send-reaction-notification", {
+        notificationKind: "reply",
+        replyId: result.data.id,
+      });
       return result.data.id as string;
     },
     onSuccess: refresh,
