@@ -158,7 +158,7 @@ module.exports = async (req, res) => {
         let skippedCount = 0;
 
         for (const [memberId, memberSubscriptions] of subscriptionsByMemberId) {
-            if (isUpdate && voterMemberId && memberId === voterMemberId) {
+            if (voterMemberId && memberId === voterMemberId) {
                 skippedCount += 1;
                 continue;
             }
