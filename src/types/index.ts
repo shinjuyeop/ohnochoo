@@ -58,6 +58,8 @@ export interface PlaylistSong {
   title: string;
   artist: string;
   coverImageUrl?: string | null;
+  albumUrl?: string | null;
+  albumName?: string | null;
 }
 
 export interface VoteStats {

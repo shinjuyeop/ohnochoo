@@ -50,13 +50,43 @@ test("notification opens the exact reply and archive links cannot expose voting"
   await page.goto("/onochoo?song=old-song&vote=vote-1&reply=reply-1");
   await expect(page.locator(".notification-target")).toHaveText(/추천 덕분에 잘 들었어요/);
   await expect(page.locator(".notification-target")).toBeFocused();
-  await expect(page.getByRole("link", { name: "오노추 플레이리스트 열기" })).toHaveAttribute("href", ONOCHU_APPLE_MUSIC_URL);
+  await expect(page.getByRole("link", { name: "수록 앨범 열기" })).toHaveAttribute("href", "https://music.apple.com/kr/album/old-song/123456789");
   await page.goto("/onochoo?song=archive-song");
   await expect(page.getByRole("dialog")).toBeVisible();
-  await expect(page.getByRole("link", { name: "무티고을 플레이리스트 열기" })).toHaveAttribute("href", MUTIGOEUL_APPLE_MUSIC_URL);
+  await expect(page.getByRole("link", { name: "수록 앨범 열기" })).toHaveAttribute("href", "https://music.apple.com/kr/album/our-season/345678901");
   await expect(page.getByRole("button", { name: /평가.*하기/ })).toHaveCount(0);
   await page.goto("/onochoo?song=deleted-song");
   await expect(page.getByRole("heading", { name: "곡을 찾을 수 없어요" })).toBeVisible();
+});
+
+test("album lookup is shared across songs and only missing albums use the playlist", async ({ page }) => {
+  const state = await mockClub(page);
+  await page.goto("/onochoo?song=old-song");
+  await expect(page.getByRole("link", { name: "수록 앨범 열기" })).toHaveAttribute("href", state.playlistSongs[0].albumUrl);
+  await page.getByRole("button", { name: "닫기", exact: true }).click();
+  await page.locator(".song-card").filter({ hasText: "Live Session" }).getByRole("button").first().click();
+  await expect(page.getByRole("link", { name: "수록 앨범 열기" })).toHaveAttribute("href", state.playlistSongs[1].albumUrl);
+  expect(state.playlistReads).toEqual([ONOCHU_APPLE_MUSIC_URL]);
+  await page.getByRole("button", { name: "닫기", exact: true }).click();
+  await page.locator(".song-card").filter({ hasText: "Summer Night" }).getByRole("button").first().click();
+  await expect(page.getByRole("link", { name: "오노추 플레이리스트 열기" })).toHaveAttribute("href", ONOCHU_APPLE_MUSIC_URL);
+  await expect(page.getByText("수록 앨범을 찾지 못했어요")).toBeVisible();
+  await expect(page.getByRole("link", { name: "수록 앨범 열기" })).toHaveCount(0);
+});
+
+test("album lookup failures allow retry without losing a vote draft", async ({ page }) => {
+  const state = await mockClub(page);
+  state.failPlaylist = true;
+  await page.goto("/onochoo?song=old-song");
+  await expect(page.getByRole("link", { name: "오노추 플레이리스트 열기" })).toHaveAttribute("href", ONOCHU_APPLE_MUSIC_URL);
+  await page.getByRole("textbox", { name: "평가 이유", exact: true }).fill("앨범 조회를 기다려도 유지할 내용");
+  state.failPlaylist = false;
+  await page.getByRole("button", { name: "앨범 다시 찾기" }).click();
+  await expect(page.getByRole("link", { name: "수록 앨범 열기" })).toHaveAttribute("href", state.playlistSongs[0].albumUrl);
+  await expect(page.getByRole("textbox", { name: "평가 이유", exact: true })).toHaveValue("앨범 조회를 기다려도 유지할 내용");
+  state.playlistSongs = [];
+  await page.goto("/onochoo?song=archive-song");
+  await expect(page.getByRole("link", { name: "무티고을 플레이리스트 열기" })).toHaveAttribute("href", MUTIGOEUL_APPLE_MUSIC_URL);
 });
 
 test("returning from music does not reload or erase a draft on a new deployment", async ({ page }) => {

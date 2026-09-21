@@ -10,6 +10,13 @@ export async function mockClub(page: Page) {
     writes: [] as Record<string, unknown>[],
     reads: [] as string[],
     failSave: false,
+    failPlaylist: false,
+    playlistReads: [] as string[],
+    playlistSongs: [
+      { title: "오래된 노래", artist: "스탠딩 에그", albumName: "오래된 노래 - Single", albumUrl: "https://music.apple.com/kr/album/old-song/123456789" },
+      { title: "긴 제목의 음악도 편하게 읽을 수 있을까요 (Live Session)", artist: "여러 아티스트와 함께 부르는 노래", albumName: "여러 아티스트와 함께한 여름날의 아주 긴 앨범 이름 (Live Session)", albumUrl: "https://music.apple.com/kr/album/live-session/234567890" },
+      { title: "우리의 계절", artist: "검정치마", albumName: "우리의 계절", albumUrl: "https://music.apple.com/kr/album/our-season/345678901" },
+    ],
     tables: {
       members: [{ id: memberId, name: "지우", createdAt: day(100) }, { id: "member-2", name: "서연", createdAt: day(100) }],
       songs: [
@@ -36,6 +43,12 @@ export async function mockClub(page: Page) {
   await page.route("**/api/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
     if (path === "/api/config") return route.fulfill({ json: { supabaseUrl: "http://127.0.0.1:5173/__mock__", supabaseAnonKey: "test-key" } });
+    if (path === "/api/fetch-playlist") {
+      state.playlistReads.push(new URL(route.request().url()).searchParams.get("url") || "");
+      return state.failPlaylist
+        ? route.fulfill({ status: 502, json: { error: "테스트 Apple Music 오류" } })
+        : route.fulfill({ json: { songs: state.playlistSongs } });
+    }
     if (path === "/api/save-activity") {
       const input = route.request().postDataJSON();
       state.writes.push(input);

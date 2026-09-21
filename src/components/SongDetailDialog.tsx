@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
-import { ExternalLink, LoaderCircle, MessageCircle, Music2, Star, UserRound } from "lucide-react";
+import { LoaderCircle, MessageCircle, Star, UserRound } from "lucide-react";
 import { Dialog } from "./ui/Dialog";
 import { SongCover } from "./ui/SongCover";
+import { SongAlbumLink } from "./SongAlbumLink";
 import { StatusBadge } from "./ui/StatusBadge";
 import { StarRating } from "./ui/StarRating";
 import { Avatar } from "./ui/Avatar";
@@ -52,7 +53,7 @@ export function SongDetailDialog({ songId, focusVoteId, focusReplyId, onOpenChan
           <SongCover song={song} eager />
           <div className="song-hero-info">{allowVote ? <StatusBadge song={song} stats={stats} /> : null}<h2>{song.title}</h2><p>{song.artist}</p><small><UserRound size={14} /> {song.adder} · {formatKoreanDate(song.createdAt)}</small></div>
         </section>
-        <a className="listen-link" href={playlistUrl} target="_blank" rel="noreferrer"><Music2 size={18} /><span><b>{playlistName} 플레이리스트 열기</b><small>Apple Music에서 열어요</small></span><ExternalLink size={16} /></a>
+        <SongAlbumLink song={song} playlistUrl={playlistUrl} playlistName={playlistName} />
         <section className="vote-summary">
           <div><b>{stats.promotedCount}</b><span>승격</span></div><div><b>{stats.heldCount}</b><span>보류</span></div><div><b>{stats.releasedCount}</b><span>방출</span></div><div><b>{average === null ? "-" : average.toFixed(1)}</b><span><Star size={13} /> 평균</span></div>
         </section>

@@ -1,3 +1,4 @@
+const { resolveAlbum } = require("./_apple-music-album");
 const APPLE_MUSIC_HOST = "music.apple.com";
 const MAX_REDIRECTS = 3;
 const MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
@@ -157,6 +158,7 @@ module.exports = async (req, res) => {
             if (title && artist) {
                 if (obj.kind === 'song' || obj.playParams || artwork || obj.attributes) {
                     const coverImageUrl = resolveArtworkUrl(artwork);
+                    const album = resolveAlbum(obj);
                     const key = `${title}|${artist}`;
                     const existingSong = songsByKey.get(key);
                     if (!existingSong) {
@@ -164,9 +166,12 @@ module.exports = async (req, res) => {
                             title,
                             artist,
                             coverImageUrl,
+                            ...album,
                         });
-                    } else if (!existingSong.coverImageUrl && coverImageUrl) {
-                        existingSong.coverImageUrl = coverImageUrl;
+                    } else {
+                        if (!existingSong.coverImageUrl && coverImageUrl) existingSong.coverImageUrl = coverImageUrl;
+                        if (!existingSong.albumUrl && album.albumUrl) Object.assign(existingSong, album);
+                        else if (existingSong.albumUrl === album.albumUrl && !existingSong.albumName) existingSong.albumName = album.albumName;
                     }
                 }
             }
