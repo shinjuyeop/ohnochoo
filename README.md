@@ -204,6 +204,8 @@ npm run update-version
 | `GET/POST` | `/api/send-reminders` | 미평가 곡 리마인드 |
 | `GET/POST` | `/api/cleanup-push-subscriptions` | 오래된 구독 정리 |
 
+`/api/vapid-public-key`는 `/api/config?resource=vapid-public-key`로 내부 연결됩니다. 기존 응답 형식과 URL을 유지하면서 공개 설정 조회를 하나의 함수로 배포합니다. 일반 `/api/config` 응답에는 Supabase URL과 anon key만 포함합니다.
+
 Cron 일정은 `vercel.json`을 기준으로 관리합니다. 예약 발송·구독 정리는 모두 `CRON_SECRET` 인증을 검사합니다. 설정은 [Vercel Cron 인증 문서](https://vercel.com/docs/cron-jobs/manage-cron-jobs#securing-cron-jobs)를 참고합니다.
 
 ## 알림 동작

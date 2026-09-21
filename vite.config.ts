@@ -20,6 +20,11 @@ function localVercelFunctions(): Plugin {
     configureServer(server) {
       server.middlewares.use(async (rawRequest, rawResponse, next) => {
         const requestUrl = new URL(rawRequest.url || "/", "http://localhost");
+        // Match the public configuration alias in vercel.json during local development.
+        if (requestUrl.pathname === "/api/vapid-public-key") {
+          requestUrl.pathname = "/api/config";
+          requestUrl.searchParams.set("resource", "vapid-public-key");
+        }
         const routeMatch = requestUrl.pathname.match(/^\/api\/([a-z0-9-]+)$/i);
         if (!routeMatch) return next();
 
