@@ -47,7 +47,3 @@ export function errorMessage(error: unknown) {
   if (error && typeof error === "object" && "message" in error && typeof error.message === "string") return error.message;
   return "알 수 없는 오류가 발생했어요.";
 }
-
-export function appleMusicSearchUrl(title: string, artist: string) {
-  return `https://music.apple.com/kr/search?term=${encodeURIComponent(`${title} ${artist}`)}`;
-}

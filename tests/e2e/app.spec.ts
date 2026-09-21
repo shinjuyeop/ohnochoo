@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { mockClub, memberId } from "./fixture";
+import { MUTIGOEUL_APPLE_MUSIC_URL, ONOCHU_APPLE_MUSIC_URL } from "../../src/lib/constants";
 
 test("home queue, vote drafts, reload, failed and successful saves", async ({ page }) => {
   const state = await mockClub(page);
@@ -49,9 +50,10 @@ test("notification opens the exact reply and archive links cannot expose voting"
   await page.goto("/onochoo?song=old-song&vote=vote-1&reply=reply-1");
   await expect(page.locator(".notification-target")).toHaveText(/추천 덕분에 잘 들었어요/);
   await expect(page.locator(".notification-target")).toBeFocused();
-  await expect(page.getByRole("link", { name: "Apple Music에서 곡 찾기" })).toHaveAttribute("href", /music\.apple\.com\/kr\/search\?term=/);
+  await expect(page.getByRole("link", { name: "오노추 플레이리스트 열기" })).toHaveAttribute("href", ONOCHU_APPLE_MUSIC_URL);
   await page.goto("/onochoo?song=archive-song");
   await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByRole("link", { name: "무티고을 플레이리스트 열기" })).toHaveAttribute("href", MUTIGOEUL_APPLE_MUSIC_URL);
   await expect(page.getByRole("button", { name: /평가.*하기/ })).toHaveCount(0);
   await page.goto("/onochoo?song=deleted-song");
   await expect(page.getByRole("heading", { name: "곡을 찾을 수 없어요" })).toBeVisible();

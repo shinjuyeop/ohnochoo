@@ -10,7 +10,8 @@ import { VoteReplyForm } from "./VoteReplyForm";
 import { useClubData, useSongDiscussion } from "../hooks/useClubData";
 import { useProfile } from "../features/profile/ProfileContext";
 import { averageRating, emptyVoteStats, isVoteByMember } from "../lib/songRules";
-import { appleMusicSearchUrl, formatKoreanDate } from "../lib/utils";
+import { formatKoreanDate } from "../lib/utils";
+import { MUTIGOEUL_APPLE_MUSIC_URL, ONOCHU_APPLE_MUSIC_URL } from "../lib/constants";
 
 export function SongDetailDialog({ songId, focusVoteId, focusReplyId, onOpenChange }: { songId: string | null; focusVoteId?: string | null; focusReplyId?: string | null; onOpenChange: (open: boolean) => void }) {
   const { data, voteStats } = useClubData();
@@ -33,6 +34,8 @@ export function SongDetailDialog({ songId, focusVoteId, focusReplyId, onOpenChan
   if (!songId || !data) return null;
   if (!song) return <Dialog open onOpenChange={onOpenChange} title="곡을 찾을 수 없어요"><div className="dialog-body"><p>삭제되었거나 더 이상 볼 수 없는 곡이에요.</p><button className="secondary-button" onClick={() => onOpenChange(false)}>목록으로 돌아가기</button></div></Dialog>;
   const allowVote = !data.mutigoeulEntries.some((entry) => entry.songId === song.id);
+  const playlistName = allowVote ? "오노추" : "무티고을";
+  const playlistUrl = allowVote ? ONOCHU_APPLE_MUSIC_URL : MUTIGOEUL_APPLE_MUSIC_URL;
   const stats = voteStats.get(song.id) ?? emptyVoteStats();
   const sortedVotes = discussion.data?.votes ?? [];
   const existingVote = profile ? sortedVotes.find((vote) => isVoteByMember(vote, profile)) ?? null : null;
@@ -49,7 +52,7 @@ export function SongDetailDialog({ songId, focusVoteId, focusReplyId, onOpenChan
           <SongCover song={song} eager />
           <div className="song-hero-info">{allowVote ? <StatusBadge song={song} stats={stats} /> : null}<h2>{song.title}</h2><p>{song.artist}</p><small><UserRound size={14} /> {song.adder} · {formatKoreanDate(song.createdAt)}</small></div>
         </section>
-        <a className="listen-link" href={appleMusicSearchUrl(song.title, song.artist)} target="_blank" rel="noreferrer"><Music2 size={18} /><span><b>Apple Music에서 곡 찾기</b><small>곡명과 아티스트로 검색해요</small></span><ExternalLink size={16} /></a>
+        <a className="listen-link" href={playlistUrl} target="_blank" rel="noreferrer"><Music2 size={18} /><span><b>{playlistName} 플레이리스트 열기</b><small>Apple Music에서 열어요</small></span><ExternalLink size={16} /></a>
         <section className="vote-summary">
           <div><b>{stats.promotedCount}</b><span>승격</span></div><div><b>{stats.heldCount}</b><span>보류</span></div><div><b>{stats.releasedCount}</b><span>방출</span></div><div><b>{average === null ? "-" : average.toFixed(1)}</b><span><Star size={13} /> 평균</span></div>
         </section>
