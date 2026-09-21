@@ -96,6 +96,13 @@ a { color: inherit; text-decoration: none; }
 .mobile-topbar { height: calc(60px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 20px 0; display: flex; align-items: center; justify-content: space-between; background: var(--canvas); position: relative; }
 .mobile-topbar .wordmark { font-size: 20px; font-weight: 850; letter-spacing: -.05em; }
 .mobile-topbar button { padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+/* Leave extra room below the system safe area for the installed app's top-edge effect. */
+@media (display-mode: standalone) and (max-width: 899px) {
+  .mobile-topbar {
+    height: calc(76px + env(safe-area-inset-top, 0px));
+    padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  }
+}
 .main-content { width: 100%; padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
 .bottom-nav { height: calc(64px + env(safe-area-inset-bottom)); padding: 4px 12px env(safe-area-inset-bottom); position: fixed; z-index: 30; inset: auto 0 0; border-top: 1px solid var(--line); background: rgba(19,22,29,.97); display: grid; grid-template-columns: 1fr 1fr 60px 1fr 1fr; align-items: start; }
 .bottom-link { min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #747b88; font-size: 10px; font-weight: 650; }
