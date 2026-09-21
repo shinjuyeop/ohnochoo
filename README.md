@@ -1,258 +1,133 @@
-# ohnochoo
+<p align="center">
+  <img src="public/assets/icons/icon-192-20260709.png" width="80" height="80" alt="오노추 앱 아이콘" />
+</p>
 
-친구들과 노래를 추천하고 `승격`·`보류`·`방출`로 평가하는 모바일 우선 플레이리스트 웹앱입니다. 승격 조건을 만족한 곡은 무티고을로 이동할 수 있습니다.
+<h1 align="center">ohnochoo</h1>
+
+<p align="center">
+  <strong>오늘의 노래를 추천하고, 함께 들을 플레이리스트를 만들어요.</strong><br />
+  친구들과 곡을 나누고 승격 · 보류 · 방출로 평가하는 모바일 중심 음악 웹앱
+</p>
+
+<p align="center">
+  <img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&amp;logo=react&amp;logoColor=61DAFB&amp;labelColor=151820" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&amp;logo=typescript&amp;logoColor=white" />
+  <img alt="Supabase" src="https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&amp;logo=supabase&amp;logoColor=151820" />
+  <img alt="PWA" src="https://img.shields.io/badge/PWA-8B5CF6?style=flat-square" />
+</p>
+
+<p align="center">
+  <a href="#screens">화면 둘러보기</a> ·
+  <a href="#quick-start">빠른 시작</a> ·
+  <a href="docs/DEVELOPMENT.md">개발 가이드</a> ·
+  <a href="docs/OPERATIONS.md">운영 가이드</a>
+</p>
+
+---
+
+<a id="screens"></a>
+
+## 화면 둘러보기
+
+| 평가를 기다리는 곡 | 앨범을 듣고 평가하기 | 함께 모은 무티고을 |
+|:---:|:---:|:---:|
+| <img src="docs/images/home.png" width="240" alt="미평가 곡과 바로 평가하기 버튼이 있는 홈 화면" /> | <img src="docs/images/detail.png" width="240" alt="수록 앨범 링크와 친구들의 평가가 있는 곡 상세 화면" /> | <img src="docs/images/archive.png" width="240" alt="무티고을에 모인 곡의 앨범 커버 목록" /> |
+
+실제 앱을 예시 데이터로 촬영한 화면입니다. 모바일에서는 하단 내비게이션, 넓은 화면에서는 사이드바를 사용합니다.
+
+## 이렇게 사용해요
+
+1. **내 프로필 선택** — 프로필 사진과 이 기기의 알림을 설정해요.
+2. **오늘의 노래 추천** — Apple Music 플레이리스트에서 가져오거나 곡명·아티스트를 직접 입력해요. 추천 이유와 첫 승격 평가도 함께 저장해요.
+3. **듣고, 평가하고, 대화하기** — 수록 앨범을 열어 듣고 승격·보류·방출과 별점, 이유를 남겨요. 친구의 평가에는 답글을 달 수 있어요.
+4. **무티고을에 모으기** — 등록 후 7일이 지나 승격 조건을 만족한 곡은 관리자가 무티고을로 옮겨요.
 
 ## 주요 기능
 
-- 프로필 선택, `localStorage` 저장 및 프로필 사진 등록
-- `member_id` 우선 처리와 기존 이름 데이터 fallback
-- Apple Music 플레이리스트 동기화 및 수동 곡 추가
-- 추천 이유, 0.5점 단위 별점, 최초 승격 평가 저장
-- 평가 등록·수정 및 변경 없는 중복 저장 방지
-- 평가별 300자 이내 답글과 작성자 알림
-- 프로필·곡별 추천/평가/답글 초안 보관, 새 버전 수동 적용 안내
-- 홈에서 판정일이 빠른 미평가 곡 바로 평가, 판정까지 남은 시간 표시
-- 곡 상세에서 Apple Music 수록 앨범 열기와 알림의 곡·평가·답글 바로가기
-- DB RPC를 통한 곡·최초 평가 원자적 저장
-- 오노추 필터와 곡 상세 평가 목록
-- 무티고을 그리드·목록 보기 및 추가일 정렬
-- Supabase Realtime 자동 갱신
-- 프로필별 Web Push 구독·해제·테스트
-- 새 곡, 새 평가, 평가 수정, 리마인드 알림
-- PWA 설치와 앱 버전 갱신 감지
-- Supabase Auth 기반 관리자 로그인
-- 평가자 추가, 곡 정보 수정, 무티고을 이동, 방출 예정 필터와 곡 일괄 삭제 관리 기능
+| | 할 수 있는 일 |
+|---|---|
+| **추천과 평가** | 추천 이유, 0.5점 단위 별점, 평가 수정, 300자 이내 답글 |
+| **오늘의 평가** | 판정일이 빠른 미평가 곡부터 보기, 남은 시간 표시, 바로 평가하기 |
+| **Apple Music** | 플레이리스트 동기화, 커버 불러오기, 곡의 수록 앨범으로 이동 |
+| **작성 중에도 안심** | 추천·평가·답글 초안 복원, 저장 실패 시 내용 유지, 수동 업데이트 |
+| **함께 듣기** | 실시간 데이터 갱신, 새 곡·평가·답글 알림, 해당 내용으로 바로가기 |
+| **내 기기에서** | 홈 화면에 웹앱 추가, 프로필 사진, 기기별 알림 설정·테스트 |
+| **관리** | 관리자 로그인, 곡 정보 수정, 무티고을 이동, 방출 예정 곡 확인·삭제 |
+
+앨범 정보는 플레이리스트의 곡명·아티스트와 대조해 가져옵니다. 조회에 실패하거나 일치하는 곡이 없으면 플레이리스트 링크와 재시도를 표시합니다.
 
 ## 판정 기준
 
+**승격 표가 방출 표보다 3표 이상 많으면 승격 조건을 만족합니다.** 보류 표와 별점은 이 조건에 포함하지 않습니다.
+
 | 상태 | 조건 |
 |---|---|
-| 평가 중 | 등록 후 7일 미만 또는 판정 조건 미확정 |
-| 승격 후보 | `승격 >= 방출 + 3` |
+| 평가 중 | 등록 후 7일 미만이며 승격 조건 미충족 |
+| 승격 후보 | 등록 후 7일 미만이며 `승격 ≥ 방출 + 3` |
 | 무티고을 이동 가능 | 등록 후 7일 경과 및 승격 조건 충족 |
 | 방출 예정 | 등록 후 7일 경과 및 승격 조건 미충족 |
 
-평균 별점은 0점 평가를 제외하고 계산합니다.
+별점 `0`은 **미입력**으로 표시하고 평균에서 제외합니다. 상태 판정만으로 곡이 자동 이동하거나 삭제되지는 않습니다. 기준 구현은 [songRules.ts](src/lib/songRules.ts)를 참고하세요.
 
-## 기술 구성
+<a id="quick-start"></a>
 
-| 영역 | 기술 |
-|---|---|
-| Frontend | React, TypeScript, Vite, React Router |
-| Server state | TanStack Query, Supabase Realtime |
-| Forms | React Hook Form, Zod |
-| UI | Tailwind CSS, Radix Dialog, Lucide React |
-| Backend | Vercel Serverless Functions, Node.js |
-| Database | Supabase PostgreSQL |
-| Push | Web Push, VAPID, Service Worker |
-| Apple Music parser | Node.js Fetch, JSON |
-| Test | Vitest |
+## 빠른 시작
 
-## 프로젝트 구조
-
-```text
-ohnochoo/
-├─ api/                         # Vercel Serverless Functions
-│  ├─ _push-utils.js            # Push 및 service-role 공통 처리
-│  ├─ config.js                 # 클라이언트용 Supabase 설정
-│  ├─ fetch-playlist.js         # Apple Music 파싱
-│  ├─ save-subscription.js      # Push 구독 저장
-│  ├─ remove-subscription.js    # Push 구독 비활성화
-│  ├─ send-*.js                 # 알림 및 리마인드 발송
-│  └─ update-song-covers.js     # 앨범 커버 동기화
-├─ assets/icons/                # 앱 아이콘 원본
-├─ public/                      # Vite가 그대로 배포하는 정적 파일
-│  ├─ assets/icons/             # 실제 사용 중인 PWA 아이콘
-│  ├─ manifest.json
-│  ├─ service-worker.js
-│  └─ version.json
-├─ scripts/
-│  └─ update-version.js         # 개발용 public/version.json 갱신
-├─ src/
-│  ├─ app/                      # Router, Provider, 앱 UI Context
-│  ├─ pages/                    # 홈, 오노추, 무티고을, 내 정보
-│  ├─ features/                 # 프로필 상태와 관리자 인증
-│  ├─ components/               # 화면 공통 컴포넌트
-│  │  └─ ui/                    # Dialog, Toast, Avatar 등 UI 요소
-│  ├─ hooks/                    # Query, mutation, Push, PWA 동작
-│  ├─ lib/                      # Supabase, 규칙, API, 유틸리티
-│  │  └─ *.test.ts              # 핵심 규칙 단위 테스트
-│  ├─ styles/globals.css        # 디자인 시스템과 반응형 스타일
-│  └─ types/                    # 공통 TypeScript 타입
-├─ supabase/
-│  ├─ schema.sql                # 새 환경용 전체 DB 스키마
-│  └─ migrations/               # 운영 DB에 순서대로 적용할 변경 SQL
-├─ index.html                   # Vite 진입 문서
-├─ vite.config.ts               # Vite 및 로컬 API 어댑터
-├─ vercel.json                  # 빌드, SPA rewrite, Cron
-└─ package.json
-```
-
-`public/`이 manifest, service worker, 배포용 아이콘, 버전 파일의 단일 소스입니다. 최종 서비스 워커 URL과 scope는 각각 `/service-worker.js`, `/`입니다.
-
-## 환경 변수
-
-`.env.local`과 Vercel Environment Variables에 다음 값을 설정합니다.
-
-```env
-SUPABASE_URL=https://your-project-ref.supabase.co
-SUPABASE_ANON_KEY=your-anon-public-key
-SUPABASE_SERVICE_ROLE_KEY=your-server-only-service-role-key
-VAPID_PUBLIC_KEY=your-web-push-public-key
-VAPID_PRIVATE_KEY=your-web-push-private-key
-VAPID_SUBJECT=mailto:you@example.com
-CRON_SECRET=replace-with-a-random-server-only-secret
-```
-
-- `SUPABASE_ANON_KEY`만 브라우저 연결에 사용합니다.
-- `SUPABASE_SERVICE_ROLE_KEY`와 `VAPID_PRIVATE_KEY`는 Serverless Function에서만 사용합니다.
-- `CRON_SECRET`은 충분히 긴 무작위 서버 전용 문자열로 설정합니다. Vercel이 예약 요청의 `Authorization: Bearer …`에 자동으로 넣습니다. 누락되면 예약 작업은 503, 인증이 다르면 401로 중단합니다.
-- `.env.local`은 Git에 커밋하지 않습니다.
-
-## 로컬 실행
-
-Node.js 20 이상과 npm 10 이상을 권장합니다.
+로컬 검증 환경은 **Node.js 24 / npm 11**입니다. 먼저 [Supabase 초기 설정과 환경 변수](docs/OPERATIONS.md#setup)를 준비해 주세요.
 
 ```bash
+git clone https://github.com/shinjuyeop/ohnochoo.git
+cd ohnochoo
 npm ci
+```
+
+[.env.example](.env.example)을 `.env.local`로 복사하고 값을 입력합니다.
+
+```powershell
+# Windows PowerShell
+Copy-Item .env.example .env.local
+```
+
+```bash
+# macOS / Linux
 cp .env.example .env.local
+```
+
+```bash
 npm run dev
 ```
 
-기본 주소는 `http://localhost:5173`입니다. Vite 개발 서버는 `api/`의 기존 CommonJS Serverless Functions를 로컬에서 실행하는 어댑터를 포함합니다.
+[localhost:5173](http://localhost:5173)에서 실행됩니다. 개발 서버가 `/api/*`도 함께 처리합니다. `npm run preview`는 정적 빌드만 제공하므로 API 확인에는 개발 서버를 사용하세요.
 
-## 명령어
-
-```bash
-npm run dev          # 개발 서버
-npm run typecheck    # TypeScript 검사
-npm run test         # Vitest 단위 테스트 1회 실행
-npm run test:api     # 알림/예약 작업 인증과 저장 경계 테스트 (실제 DB·Push 사용 안 함)
-npm run test:e2e     # Playwright 브라우저 테스트 (API를 테스트 데이터로 대체)
-npm run test:watch   # 변경을 감지하며 테스트
-npm run build        # 타입 검사 후 프로덕션 빌드
-npm run preview      # dist 미리보기
-npm run update-version
-```
-
-프로덕션 빌드는 배포 시각을 `dist/version.json`에 자동으로 기록합니다. `npm run update-version`은 개발 중 `public/version.json`을 수동으로 갱신할 때만 사용합니다. 앱은 화면으로 복귀할 때 버전을 확인하고 새 버전이 있으면 업데이트 버튼을 표시합니다. 작성 중인 화면을 자동으로 새로고침하지 않습니다.
-
-브라우저 테스트 최초 실행 전 `npx playwright install chromium`을 실행합니다. 테스트는 320·390·768·1024·1440px 화면과 초안 복원·저장 실패·알림 링크를 점검하며, 화면 캡처를 `test-results/layout/`에 남깁니다. 실제 Supabase 데이터 저장이나 Push 발송은 수행하지 않습니다.
-
-`npm run preview`는 정적 `dist/`만 제공하므로 `/api/*` Vercel Functions를 실행하지 않습니다. API까지 확인할 때는 환경 변수를 설정한 뒤 `npm run dev`를 사용합니다.
-
-## 데이터베이스
-
-주요 테이블은 다음과 같습니다.
-
-| 테이블 | 역할 |
+| 명령어 | 용도 |
 |---|---|
-| `songs` | 곡, 추가자, 앨범 커버 |
-| `members` | 평가자 프로필과 프로필 사진 URL |
-| `votes` | 결정, 별점, 평가 이유 |
-| `vote_replies` | 평가에 작성한 300자 이내 답글 |
-| `mutigoeul_songs` | 무티고을 이동 정보 |
-| `admin_users` | Supabase Auth 사용자와 관리자 프로필 연결 |
-| `push_subscriptions` | 프로필별 Push 구독 |
-| `notification_logs` | 알림 중복 방지 및 발송 상태 |
+| `npm run dev` | 로컬 앱과 API 실행 |
+| `npm run build` | 타입 검사와 배포용 빌드 |
+| `npm run test` | 핵심 규칙 단위 테스트 |
+| `npm run test:api` | API·앨범 파서·알림 인증 테스트 |
+| `npm run test:e2e` | 화면·초안·저장·알림 링크 브라우저 테스트 |
 
-`songs.adder_member_id`와 `votes.member_id`를 우선 사용하며, 이전 데이터는 `adder`와 `voter` 이름으로 호환합니다. Realtime publication에는 `songs`, `votes`, `vote_replies`, `members`, `mutigoeul_songs`가 포함되어야 합니다.
+브라우저 테스트를 처음 실행한다면 `npx playwright install chromium`으로 Chromium을 설치합니다. 전체 명령어와 검증 범위는 [개발 가이드](docs/DEVELOPMENT.md#testing)에 정리했습니다.
 
-`supabase/schema.sql`에는 다음 데이터 정합성 규칙이 포함됩니다.
+## iPhone에서 사용하기
 
-- 기존 중복 평가는 프로필·곡별 최신 항목 하나만 유지
-- 프로필·곡별 평가 고유 인덱스
-- `add_song_with_initial_vote`: 곡과 최초 평가를 하나의 트랜잭션으로 저장
-- `save_member_vote`: 같은 평가는 건너뛰고 기존 평가는 원자적으로 수정
+Safari에서 앱을 연 뒤 **공유 → 홈 화면에 추가**로 설치하고, 추가된 아이콘으로 실행하세요. 기기에 따라 **웹 앱으로 열기** 옵션을 켤 수 있습니다. [Apple 설치 안내](https://support.apple.com/guide/iphone/bookmark-a-website-iph42ab2f3a7/ios)
 
-새 Supabase 프로젝트는 `supabase/schema.sql`을 적용해 전체 구조를 만들 수 있습니다. 이미 운영 중인 프로젝트는 기존 데이터를 보존하기 위해 `supabase/migrations/`의 아직 적용하지 않은 SQL만 파일명 순서대로 실행합니다. 각 마이그레이션은 한 번만 적용하고, 적용 여부가 불분명하면 먼저 SQL Editor에서 관련 테이블·함수·정책을 조회합니다.
+알림은 설치한 웹앱의 **내 정보**에서 켭니다. 홈 화면 웹앱의 Web Push는 iOS/iPadOS 16.4 이상에서 지원됩니다. [WebKit 안내](https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/)
 
-곡과 평가 저장은 `/api/save-activity`를 통해 기존 `add_song_with_initial_vote`, `save_member_vote` RPC를 호출합니다. 배포 전 운영 DB에 `20260720190000_atomic_song_votes.sql`이 적용되어 있어야 합니다. RPC가 없으면 부분 저장을 시도하지 않고 업데이트 안내를 반환합니다. 기존 데이터나 운영 스키마를 자동 변경하지 않습니다.
+새 버전 안내가 나타나면 작성을 마친 뒤 **업데이트**를 누르세요. 초안은 프로필·곡별로 이 브라우저에 보관하며, 마지막 저장 시점에서 7일이 지나면 복원하지 않습니다. PWA 설치가 오프라인 사용을 보장하지는 않으며 데이터 조회와 저장에는 네트워크가 필요합니다.
 
-목록의 곡·평가 집계는 실제 반환 행 수에 맞춰 페이지를 끝까지 조회하고, 평가 이유와 답글은 상세 화면을 열 때 해당 곡만 조회합니다. Realtime 갱신은 두 조회를 함께 갱신합니다.
+## 더 알아보기
 
-곡 상세는 해당 플레이리스트에서 곡명·아티스트가 일치하는 곡의 앨범명과 실제 Apple Music 앨범 URL을 읽습니다. 곡 선택 쿼리는 제거하고 앨범 페이지로 연결하며, 조회 결과는 브라우저에서 5분간 재사용합니다. 조회 실패나 플레이리스트에서 빠진 곡은 이유를 표시하고 플레이리스트 링크와 재시도를 제공합니다. 이 기능은 DB 스키마 변경이나 별도 API 함수 추가 없이 동작합니다.
-
-주요 마이그레이션은 다음과 같습니다.
-
-| 파일 | 내용 |
+| 문서 | 담긴 내용 |
 |---|---|
-| `20260720190000_atomic_song_votes.sql` | 곡·최초 평가 원자 저장, 평가 저장 RPC와 중복 방지 인덱스 |
-| `20260721190000_admin_auth.sql` | `admin_users`와 Supabase Auth 기반 관리자 권한 |
-| `20260721210000_admin_song_updates.sql` | 관리자의 곡 제목·아티스트·추가자·등록일 수정 권한 |
-| `20260721220000_profile_images.sql` | 프로필 사진 컬럼과 Storage 접근 정책 |
-| `20260721221000_fix_profile_image_policies.sql` | Storage 경로 검증 정책 보정 |
-| `20260723130000_vote_replies.sql` | 평가 답글 테이블, 300자 제한과 접근 정책 |
+| [개발 가이드](docs/DEVELOPMENT.md) | 기술 구성, 폴더 구조, 데이터 흐름, API, 테스트, 화면 캡처 |
+| [운영 가이드](docs/OPERATIONS.md) | 환경 변수, DB·관리자·Storage 설정, 배포, 알림 일정, 문제 해결 |
+| [환경 변수 예시](.env.example) | 로컬·Vercel에 설정할 변수 목록 |
+| [DB 스키마](supabase/schema.sql) · [마이그레이션](supabase/migrations) | 새 환경 구성과 기존 DB 변경 |
 
-프로필 사진을 사용하려면 Supabase Storage에서 공개 버킷 `profile-images`를 직접 생성한 뒤 파일 크기 제한을 1MB, Allowed MIME types를 `image/webp`로 설정합니다. PNG 원본도 브라우저에서 업로드 전에 512×512 WebP로 변환되므로 현재 앱에서는 `image/png` 허용이 필수는 아닙니다. 파일은 `member-id/avatar.webp`의 고정 경로를 덮어써 이전 사진이 누적되지 않습니다.
+> 일반 프로필 선택은 본인 인증이 아닙니다. 링크를 공유하는 소규모 모임을 전제로 하며, 관리자 기능은 Supabase Auth와 DB 정책으로 별도 보호합니다. 자세한 범위는 [권한과 데이터 보관](docs/OPERATIONS.md#permissions)을 참고하세요.
 
-기존 운영 DB에는 `20260721220000_profile_images.sql`과 정책 보정 파일인 `20260721221000_fix_profile_image_policies.sql`까지 순서대로 적용해야 합니다. 버킷 이름이 다르거나 두 번째 정책이 빠지면 `Bucket not found` 또는 `new row violates row level security policy` 오류가 발생합니다.
+## 라이선스
 
-## API
-
-| Method | Path | 설명 |
-|---|---|---|
-| `GET` | `/api/config` | Supabase URL과 anon key 반환 |
-| `POST` | `/api/save-activity` | 선택한 프로필 조회 → 곡·평가·답글 저장 → 성공한 변경에만 서버 알림 |
-| `GET` | `/api/fetch-playlist` | Apple Music 플레이리스트 파싱 |
-| `POST` | `/api/update-song-covers` | 앨범 커버 URL 갱신 |
-| `GET` | `/api/vapid-public-key` | VAPID public key 반환 |
-| `POST` | `/api/save-subscription` | Push 구독 저장 |
-| `POST` | `/api/remove-subscription` | Push 구독 비활성화 |
-| `POST` | `/api/send-test-notification` | 테스트 알림 전송 |
-| `POST` | `/api/send-song-added-notification` | 서버 내부 호출 또는 `CRON_SECRET` 인증 후 새 곡 알림 |
-| `POST` | `/api/send-reaction-notification` | 서버 내부 호출 또는 `CRON_SECRET` 인증 후 평가·답글 알림 |
-| `GET/POST` | `/api/send-add-song-reminders` | 곡 추가 리마인드 |
-| `GET/POST` | `/api/send-reminders` | 미평가 곡 리마인드 |
-| `GET/POST` | `/api/cleanup-push-subscriptions` | 오래된 구독 정리 |
-
-`/api/vapid-public-key`는 `/api/config?resource=vapid-public-key`로 내부 연결됩니다. 기존 응답 형식과 URL을 유지하면서 공개 설정 조회를 하나의 함수로 배포합니다. 일반 `/api/config` 응답에는 Supabase URL과 anon key만 포함합니다.
-
-Cron 일정은 `vercel.json`을 기준으로 관리합니다. 예약 발송·구독 정리는 모두 `CRON_SECRET` 인증을 검사합니다. 설정은 [Vercel Cron 인증 문서](https://vercel.com/docs/cron-jobs/manage-cron-jobs#securing-cron-jobs)를 참고합니다.
-
-## 알림 동작
-
-- 새 곡: 곡 추가자를 제외하고 활성 구독자에게 전송
-- 새 평가: 평가 작성자를 제외한 활성 구독자에게 전송
-- 평가 수정: 수정한 평가자를 제외한 활성 구독자에게 전송
-- 평가 답글: 답글 작성자가 아닌 원 평가 작성자에게 전송
-- 테스트 알림: 현재 브라우저의 구독 endpoint·auth가 일치하는 기기에만 전송
-- 만료된 endpoint: Push 발송 중 404 또는 410 응답 시 비활성화
-- 중복 발송: `notification_logs.dedupe_key`로 평가자별 방지
-- 평가 알림의 작성자·곡·결정은 실제 저장된 평가에서 읽습니다. 중복 키는 서버가 평가 내용으로 생성하며 클라이언트 이벤트 ID는 사용하지 않습니다. 이전과 같은 내용으로 되돌린 평가는 같은 내용의 알림을 다시 보내지 않습니다.
-- 새 곡·평가·답글 알림을 누르면 `/onochoo?song=…&vote=…&reply=…`로 이동합니다. 무티고을 곡은 어느 링크로 접근하더라도 평가 입력을 노출하지 않습니다.
-
-## 배포
-
-Vercel은 다음 설정을 사용합니다.
-
-- Install: `npm install`
-- Build: `npm run build`
-- Output: `dist`
-- SPA routes: `/onochoo`, `/mutigoeul`, `/settings`
-- API routes: `/api/*`
-
-`npm run build`가 `dist/version.json`에 매번 새 버전을 생성하므로 배포 전에 별도 버전 갱신 명령을 실행할 필요가 없습니다.
-
-## 운영 주의
-
-- 평가자 추가, 노래 삭제, 무티고을 이동은 Supabase Auth 계정과 `admin_users` 매핑으로 보호합니다.
-- 운영 DB에는 `supabase/migrations/`의 SQL을 파일명 순서대로 적용합니다.
-- 관리자 계정 비밀번호는 코드나 환경 변수에 저장하지 않고 Supabase Authentication에서 관리합니다.
-- 프로필 사진 변경은 로그인 없이 현재 선택한 프로필을 기준으로 허용됩니다. 링크를 아는 사람만 사용하는 소규모 앱이라는 현재 운영 전제에 맞춘 정책입니다.
-- 일반 프로필 선택은 본인 인증이 아닙니다. 저장 API도 이 기존 전제를 유지하며, 프로필 이름은 서버에서 조회합니다. Origin/JSON 검사는 다른 웹사이트의 폼 요청 방지용이며 사용자 인증을 대신하지 않습니다. 독립된 알림 발송 API는 서버 인증 없이는 호출할 수 없습니다.
-- 초안은 이 브라우저의 localStorage에 프로필·곡별로 분리 보관하며 7일 후 복원하지 않습니다. 저장 성공 후 지우고 실패하면 유지합니다. 공유 기기에서는 해당 프로필을 선택한 사람이 초안을 볼 수 있습니다.
-- `supabase/schema.sql`과 실제 운영 데이터는 별도의 명시적인 마이그레이션 없이 변경하지 않습니다.
-
-## 문제 해결
-
-- Supabase 연결 실패: `/api/config` 응답과 `SUPABASE_URL`, `SUPABASE_ANON_KEY` 설정을 확인합니다.
-- 프로필 사진 업로드 실패: `profile-images` 버킷 이름·공개 설정·`image/webp` 허용 여부와 최신 Storage 정책 적용 여부를 확인합니다.
-- Push 미수신: 브라우저 알림 권한, HTTPS 환경, VAPID 환경 변수와 설정 화면의 구독 상태를 확인합니다.
-- 새 배포 미반영: 앱을 다시 열거나 `version.json` 응답과 서비스 워커 등록 상태를 확인합니다.
-
-## License
-
-ISC
-
-앱에 포함된 Pretendard Variable 1.3.9는 SIL Open Font License로 제공됩니다. 원본 라이선스는 `public/assets/fonts/OFL.txt`에 있습니다. 폰트는 외부 CDN 실패에 영향을 받지 않도록 앱에서 직접 제공합니다.
+프로젝트의 `package.json` 라이선스 표기는 **ISC**입니다. 번들에 포함된 **Pretendard Variable 1.3.9**는 [SIL Open Font License](public/assets/fonts/OFL.txt)를 따릅니다.
