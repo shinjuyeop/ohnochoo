@@ -1,6 +1,6 @@
-import type { ClubData, Song, Vote, VoteStats } from "../types";
+import type { ClubData, Song, VoteSummary, VoteStats } from "../types";
 
-export function isVoteByMember(vote: Vote, member: { id: string; name: string }) {
+export function isVoteByMember(vote: VoteSummary, member: { id: string; name: string }) {
   return member.id && vote.member_id ? vote.member_id === member.id : vote.voter === member.name;
 }
 
@@ -10,7 +10,7 @@ export function isSongByMember(song: Song, member: { id: string; name: string })
     : song.adder === member.name;
 }
 
-export function buildVoteStats(votes: Vote[]) {
+export function buildVoteStats(votes: VoteSummary[]) {
   const map = new Map<string, VoteStats>();
   for (const vote of votes) {
     const stats = map.get(vote.songId) ?? {
@@ -71,8 +71,20 @@ export function getSongStatus(song: Song, promoted: number, released: number, no
   return { label: "평가 중", tone: "pending" as const };
 }
 
-export function averageRating(votes: Vote[]) {
+export function averageRating(votes: VoteSummary[]) {
   const ratings = votes.map((vote) => Number(vote.rating)).filter((rating) => rating > 0);
   if (!ratings.length) return null;
   return ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+}
+
+export function getDecisionCountdown(createdAt: string, now = Date.now()) {
+  const remaining = new Date(createdAt).getTime() + 7 * 24 * 60 * 60 * 1000 - now;
+  if (!Number.isFinite(remaining)) return null;
+  if (remaining <= 0) return "판정일 지남";
+  if (remaining < 24 * 60 * 60 * 1000) return "판정까지 24시간 이내";
+  return `판정까지 ${Math.ceil(remaining / (24 * 60 * 60 * 1000))}일`;
+}
+
+export function sortByDecisionDate(songs: Song[]) {
+  return [...songs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() || a.id.localeCompare(b.id));
 }

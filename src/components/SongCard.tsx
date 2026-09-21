@@ -2,7 +2,7 @@ import { ChevronRight, MessageCircle, Star } from "lucide-react";
 import { SongCover } from "./ui/SongCover";
 import { StatusBadge } from "./ui/StatusBadge";
 import { formatCompactDate } from "../lib/utils";
-import { averageRating } from "../lib/songRules";
+import { averageRating, getDecisionCountdown } from "../lib/songRules";
 import type { Song, VoteStats } from "../types";
 
 export function SongCard({ song, stats, hasVoted, onOpen, compact = false, hideStatus = false, showDecisionCounts = false }: { song: Song; stats: VoteStats; hasVoted: boolean; onOpen: () => void; compact?: boolean; hideStatus?: boolean; showDecisionCounts?: boolean }) {
@@ -28,6 +28,7 @@ export function SongCard({ song, stats, hasVoted, onOpen, compact = false, hideS
           {!hideStatus ? <div className="song-card-top"><StatusBadge song={song} stats={stats} /><span>{formatCompactDate(song.createdAt)}</span></div> : null}
           <div className="song-title-row"><h3>{song.title}</h3>{hideStatus ? <span className="song-title-date">{formatCompactDate(song.createdAt)}</span> : null}</div>
           <p>{song.artist}</p>
+          {!hideStatus && !hasVoted ? <span className="decision-countdown">{getDecisionCountdown(song.createdAt)}</span> : null}
           <div className={`song-card-meta ${showDecisionCounts ? "song-card-meta-decisions" : ""}`}>
             <span className="song-card-adder">by {song.adder}</span>
             {showDecisionCounts ? (

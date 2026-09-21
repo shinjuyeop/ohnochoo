@@ -4,16 +4,18 @@ const {
     readJsonBody,
     sendPushToSubscription,
 } = require("./_push-utils");
+const { requireAppPost } = require("./_request-guards");
 
 module.exports = async (req, res) => {
+    if (!requireAppPost(req, res)) return;
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Method not allowed" });
     }
 
     try {
-        const { memberId } = await readJsonBody(req);
-        if (!memberId) {
-            return res.status(400).json({ error: "memberId가 필요합니다." });
+        const { memberId, subscription } = await readJsonBody(req);
+        if (!memberId || !subscription?.endpoint || !subscription?.keys?.auth) {
+            return res.status(400).json({ error: "이 기기의 알림 구독이 필요합니다." });
         }
 
         configureWebPush();
@@ -22,6 +24,8 @@ module.exports = async (req, res) => {
             .from("push_subscriptions")
             .select("endpoint,p256dh,auth")
             .eq("member_id", memberId)
+            .eq("endpoint", subscription.endpoint)
+            .eq("auth", subscription.keys.auth)
             .eq("is_active", true);
 
         if (error) throw error;

@@ -4,6 +4,7 @@ const {
     readJsonBody,
     sendDedupedNotification,
 } = require("./_push-utils");
+const { requireCron, songLink } = require("./_request-guards");
 
 function groupSubscriptionsByMemberId(subscriptions) {
     const byMemberId = new Map();
@@ -16,20 +17,20 @@ function groupSubscriptionsByMemberId(subscriptions) {
     return byMemberId;
 }
 
-function isSongAddedByMember(song, member, fallbackAdderName) {
+function isSongAddedByMember(song, member) {
     if (song.adder_member_id && member.id) {
         return song.adder_member_id === member.id;
     }
-    return song.adder === member.name || fallbackAdderName === member.name;
+    return song.adder === member.name;
 }
 
-module.exports = async (req, res) => {
+async function send(req, res) {
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Method not allowed" });
     }
 
     try {
-        const { songId, adderName } = await readJsonBody(req);
+        const { songId } = await readJsonBody(req);
         if (!songId) {
             return res.status(400).json({ error: "songId가 필요합니다." });
         }
@@ -56,7 +57,7 @@ module.exports = async (req, res) => {
 
         const song = songResult.data;
         const subscriptionsByMemberId = groupSubscriptionsByMemberId(subscriptionsResult.data);
-        const displayAdderName = song.adder || adderName || "누군가";
+        const displayAdderName = song.adder || "누군가";
         const title = "새 오노추가 올라왔어요 🎵";
         const body = `${displayAdderName}님이 ${song.title} - ${song.artist}를 추가했어요.`;
 
@@ -65,7 +66,7 @@ module.exports = async (req, res) => {
         let skipped = 0;
 
         for (const member of membersResult.data ?? []) {
-            if (isSongAddedByMember(song, member, adderName)) {
+            if (isSongAddedByMember(song, member)) {
                 skipped += 1;
                 continue;
             }
@@ -78,7 +79,7 @@ module.exports = async (req, res) => {
                 dedupeKey: `song-added:${song.id}:${member.id}`,
                 title,
                 body,
-                url: "/",
+                url: songLink(song.id),
                 relatedSongId: song.id,
             });
 
@@ -96,4 +97,10 @@ module.exports = async (req, res) => {
         console.error("send-song-added-notification failed:", error);
         return res.status(500).json({ ok: false, error: error.message || "오노추 추가 알림 전송 실패" });
     }
+}
+
+module.exports = async (req, res) => {
+    if (!requireCron(req, res)) return;
+    return send(req, res);
 };
+module.exports.send = send;

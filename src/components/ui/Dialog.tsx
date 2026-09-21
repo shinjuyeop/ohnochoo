@@ -17,7 +17,7 @@ export function Dialog({ open, onOpenChange, title, description, children, class
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="dialog-overlay" />
-        <DialogPrimitive.Content className={cn("dialog-content", className)}>
+        <DialogPrimitive.Content className={cn("dialog-content", className)} {...(!description ? { "aria-describedby": undefined } : {})}>
           <header className="dialog-header">
             <div>
               <DialogPrimitive.Title>{title}</DialogPrimitive.Title>

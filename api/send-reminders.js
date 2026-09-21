@@ -4,6 +4,7 @@ const {
     getServiceSupabase,
     sendDedupedNotification,
 } = require("./_push-utils");
+const { requireCron, songLink } = require("./_request-guards");
 
 function groupSubscriptionsByMemberId(subscriptions) {
     const byMemberId = new Map();
@@ -25,6 +26,7 @@ function hasVoteByMember(votes, songId, member) {
 }
 
 module.exports = async (req, res) => {
+    if (!requireCron(req, res)) return;
     if (req.method !== "GET" && req.method !== "POST") {
         return res.status(405).json({ error: "Method not allowed" });
     }
@@ -76,7 +78,7 @@ module.exports = async (req, res) => {
                 dedupeKey: `vote-reminder:${dateKey}:${member.id}`,
                 title: "평가할 곡이 남아있어요 🎧",
                 body,
-                url: "/",
+                url: songLink(firstSong.id),
                 relatedSongId: firstSong.id,
             });
 

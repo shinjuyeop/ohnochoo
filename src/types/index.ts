@@ -10,15 +10,18 @@ export interface Song {
   coverImageUrl: string | null;
 }
 
-export interface Vote {
+export interface VoteSummary {
   id: string;
   songId: string;
   voter: string;
   member_id: string | null;
   decision: Decision;
   rating: number;
-  reason: string;
   createdAt: string;
+}
+
+export interface Vote extends VoteSummary {
+  reason: string;
 }
 
 export interface VoteReply {
@@ -46,8 +49,7 @@ export interface MutigoeulEntry {
 
 export interface ClubData {
   songs: Song[];
-  votes: Vote[];
-  voteReplies: VoteReply[];
+  votes: VoteSummary[];
   members: Member[];
   mutigoeulEntries: MutigoeulEntry[];
 }
@@ -59,7 +61,7 @@ export interface PlaylistSong {
 }
 
 export interface VoteStats {
-  votes: Vote[];
+  votes: VoteSummary[];
   promotedCount: number;
   releasedCount: number;
   heldCount: number;

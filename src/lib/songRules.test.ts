@@ -7,6 +7,8 @@ import {
   isPromotionTarget,
   isSongByMember,
   isVoteByMember,
+  getDecisionCountdown,
+  sortByDecisionDate,
 } from "./songRules";
 import type { Song, Vote } from "../types";
 
@@ -47,6 +49,20 @@ describe("승격 판정", () => {
 
   it("차이가 3개보다 작으면 승격 후보가 아니다", () => {
     expect(isPromotionTarget(4, 2)).toBe(false);
+  });
+});
+
+describe("평가 순서와 판정일까지 남은 시간", () => {
+  it("판정 시점을 지나기 전까지는 남은 시간으로 안내한다", () => {
+    expect(getDecisionCountdown(new Date(NOW - WEEK + 1).toISOString(), NOW)).toBe("판정까지 24시간 이내");
+    expect(getDecisionCountdown(new Date(NOW - WEEK).toISOString(), NOW)).toBe("판정일 지남");
+    expect(getDecisionCountdown(new Date(NOW - WEEK + 2 * 86_400_000).toISOString(), NOW)).toBe("판정까지 2일");
+    expect(getDecisionCountdown("invalid", NOW)).toBeNull();
+  });
+  it("원본 배열을 바꾸지 않고 오래된 미평가 곡을 먼저 보여준다", () => {
+    const songs = [song({ id: "new", createdAt: new Date(NOW).toISOString() }), song({ id: "old" })];
+    expect(sortByDecisionDate(songs).map((item) => item.id)).toEqual(["old", "new"]);
+    expect(songs[0].id).toBe("new");
   });
 });
 

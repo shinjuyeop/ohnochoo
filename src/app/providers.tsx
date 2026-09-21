@@ -10,8 +10,9 @@ import { usePwaLifecycle } from "../hooks/usePwaLifecycle";
 import { AdminAuthProvider } from "../features/admin/AdminAuthContext";
 
 function PwaLifecycle() {
-  usePwaLifecycle();
-  return null;
+  const { updateAvailable, applyUpdate } = usePwaLifecycle();
+  if (!updateAvailable) return null;
+  return <aside className="update-banner" aria-label="앱 업데이트"><div><b>새 버전이 준비됐어요</b><span>작성을 마친 뒤 업데이트해 주세요.</span></div><button onClick={applyUpdate}>업데이트</button></aside>;
 }
 
 export function AppProviders() {

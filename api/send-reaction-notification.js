@@ -4,6 +4,7 @@ const {
     readJsonBody,
     sendDedupedNotification,
 } = require("./_push-utils");
+const { requireCron, songLink, voteEventKey } = require("./_request-guards");
 
 function groupSubscriptionsByMemberId(subscriptions) {
     const subscriptionsByMemberId = new Map();
@@ -82,7 +83,7 @@ async function sendReplyNotification({ supabase, replyId, res }) {
         dedupeKey: `vote-reply:${reply.id}:${recipientMemberId}`,
         title: "내 평가에 답글이 달렸어요 💬",
         body: `${reply.author}님이 ${song.title}의 평가에 답글을 남겼어요.`,
-        url: "/",
+        url: songLink(song.id, vote.id, reply.id),
         relatedSongId: song.id,
         relatedVoteId: vote.id,
     });
@@ -95,7 +96,7 @@ async function sendReplyNotification({ supabase, replyId, res }) {
     });
 }
 
-module.exports = async (req, res) => {
+async function send(req, res) {
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Method not allowed" });
     }
@@ -111,21 +112,24 @@ module.exports = async (req, res) => {
             });
         }
 
-        const {
-            voteId,
-            songId,
-            voterName,
-            voterMemberId,
-            decision,
-            isUpdate: requestedIsUpdate = false,
-            notificationKind = "new",
-            notificationEventId,
-        } = requestBody;
-        if (!voteId || !songId || !voterName || !decision) {
-            return res.status(400).json({ error: "voteId, songId, voterName, decision이 필요합니다." });
+        const { voteId, notificationKind = "new" } = requestBody;
+        if (!voteId) {
+            return res.status(400).json({ error: "voteId가 필요합니다." });
         }
-
-        const isUpdate = requestedIsUpdate || notificationKind === "update";
+        const { data: vote, error: voteError } = await supabase.from("votes")
+            .select("id,songId,voter,member_id,decision,rating,reason").eq("id", voteId).maybeSingle();
+        if (voteError) throw voteError;
+        if (!vote) return res.status(404).json({ error: "평가를 찾을 수 없습니다." });
+        const songId = vote.songId;
+        const voterName = vote.voter;
+        let voterMemberId = vote.member_id;
+        if (!voterMemberId) {
+            const member = await supabase.from("members").select("id").eq("name", voterName).maybeSingle();
+            if (member.error) throw member.error;
+            voterMemberId = member.data?.id;
+        }
+        const decision = vote.decision;
+        const isUpdate = notificationKind === "update";
 
         configureWebPush();
 
@@ -149,9 +153,7 @@ module.exports = async (req, res) => {
         const body = isUpdate
             ? `${voterName}님이 ${song.title}의 평가를 수정했어요.`
             : `${voterName}님이 ${song.title}에 ${decision} 평가를 남겼어요.`;
-        const notificationKey = isUpdate
-            ? `reaction-update:${voteId}:${notificationEventId || Date.now()}`
-            : `reaction-new:${voteId}`;
+        const notificationKey = voteEventKey(vote);
         const subscriptionsByMemberId = groupSubscriptionsByMemberId(subscriptions);
         let sentCount = 0;
         let memberCount = 0;
@@ -171,7 +173,7 @@ module.exports = async (req, res) => {
                 dedupeKey: `${notificationKey}:${memberId}`,
                 title,
                 body,
-                url: "/",
+                url: songLink(song.id, voteId),
                 relatedSongId: song.id,
                 relatedVoteId: voteId,
             });
@@ -195,4 +197,11 @@ module.exports = async (req, res) => {
         console.error("send-reaction-notification failed:", error);
         return res.status(500).json({ ok: false, error: error.message || "평가 반응 알림 전송 실패" });
     }
+}
+
+// Direct delivery is restricted. Normal app requests save data first in save-activity.
+module.exports = async (req, res) => {
+    if (!requireCron(req, res)) return;
+    return send(req, res);
 };
+module.exports.send = send;

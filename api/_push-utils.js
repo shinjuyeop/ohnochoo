@@ -51,7 +51,7 @@ async function sendPushToSubscription({ supabase, subscription, payload }) {
     };
 
     try {
-        await webPush.sendNotification(pushSubscription, JSON.stringify(payload));
+        await webPush.sendNotification(pushSubscription, JSON.stringify(payload), { timeout: 5000 });
         return true;
     } catch (error) {
         if (error.statusCode === 404 || error.statusCode === 410) {
@@ -155,19 +155,20 @@ async function sendDedupedNotification({
         return { skipped: true, reason: "deduped", count: 0 };
     }
 
-    let count = 0;
-    for (const subscription of activeSubscriptions) {
+    const results = await Promise.all(activeSubscriptions.map(async (subscription) => {
         try {
             await sendPushToSubscription({
                 supabase,
                 subscription,
                 payload: { title, body, url },
             });
-            count += 1;
+            return true;
         } catch (error) {
             console.error("push failed:", error);
+            return false;
         }
-    }
+    }));
+    const count = results.filter(Boolean).length;
 
     await supabase
         .from("notification_logs")

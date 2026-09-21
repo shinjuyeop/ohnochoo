@@ -10,6 +10,9 @@
 - 추천 이유, 0.5점 단위 별점, 최초 승격 평가 저장
 - 평가 등록·수정 및 변경 없는 중복 저장 방지
 - 평가별 300자 이내 답글과 작성자 알림
+- 프로필·곡별 추천/평가/답글 초안 보관, 새 버전 수동 적용 안내
+- 홈에서 판정일이 빠른 미평가 곡 바로 평가, 판정까지 남은 시간 표시
+- 곡 상세의 Apple Music 검색과 알림의 곡·평가·답글 바로가기
 - DB RPC를 통한 곡·최초 평가 원자적 저장
 - 오노추 필터와 곡 상세 평가 목록
 - 무티고을 그리드·목록 보기 및 추가일 정렬
@@ -98,10 +101,12 @@ SUPABASE_SERVICE_ROLE_KEY=your-server-only-service-role-key
 VAPID_PUBLIC_KEY=your-web-push-public-key
 VAPID_PRIVATE_KEY=your-web-push-private-key
 VAPID_SUBJECT=mailto:you@example.com
+CRON_SECRET=replace-with-a-random-server-only-secret
 ```
 
 - `SUPABASE_ANON_KEY`만 브라우저 연결에 사용합니다.
 - `SUPABASE_SERVICE_ROLE_KEY`와 `VAPID_PRIVATE_KEY`는 Serverless Function에서만 사용합니다.
+- `CRON_SECRET`은 충분히 긴 무작위 서버 전용 문자열로 설정합니다. Vercel이 예약 요청의 `Authorization: Bearer …`에 자동으로 넣습니다. 누락되면 예약 작업은 503, 인증이 다르면 401로 중단합니다.
 - `.env.local`은 Git에 커밋하지 않습니다.
 
 ## 로컬 실행
@@ -109,7 +114,7 @@ VAPID_SUBJECT=mailto:you@example.com
 Node.js 20 이상과 npm 10 이상을 권장합니다.
 
 ```bash
-npm install
+npm ci
 cp .env.example .env.local
 npm run dev
 ```
@@ -122,13 +127,17 @@ npm run dev
 npm run dev          # 개발 서버
 npm run typecheck    # TypeScript 검사
 npm run test         # Vitest 단위 테스트 1회 실행
+npm run test:api     # 알림/예약 작업 인증과 저장 경계 테스트 (실제 DB·Push 사용 안 함)
+npm run test:e2e     # Playwright 브라우저 테스트 (API를 테스트 데이터로 대체)
 npm run test:watch   # 변경을 감지하며 테스트
 npm run build        # 타입 검사 후 프로덕션 빌드
 npm run preview      # dist 미리보기
 npm run update-version
 ```
 
-프로덕션 빌드는 배포 시각을 `dist/version.json`에 자동으로 기록합니다. `npm run update-version`은 개발 중 `public/version.json`을 수동으로 갱신할 때만 사용합니다. 앱은 화면으로 복귀할 때 버전을 확인하고 저장된 값과 다르면 새로고침합니다.
+프로덕션 빌드는 배포 시각을 `dist/version.json`에 자동으로 기록합니다. `npm run update-version`은 개발 중 `public/version.json`을 수동으로 갱신할 때만 사용합니다. 앱은 화면으로 복귀할 때 버전을 확인하고 새 버전이 있으면 업데이트 버튼을 표시합니다. 작성 중인 화면을 자동으로 새로고침하지 않습니다.
+
+브라우저 테스트 최초 실행 전 `npx playwright install chromium`을 실행합니다. 테스트는 320·390·768·1024·1440px 화면과 초안 복원·저장 실패·알림 링크를 점검하며, 화면 캡처를 `test-results/layout/`에 남깁니다. 실제 Supabase 데이터 저장이나 Push 발송은 수행하지 않습니다.
 
 `npm run preview`는 정적 `dist/`만 제공하므로 `/api/*` Vercel Functions를 실행하지 않습니다. API까지 확인할 때는 환경 변수를 설정한 뒤 `npm run dev`를 사용합니다.
 
@@ -158,7 +167,9 @@ npm run update-version
 
 새 Supabase 프로젝트는 `supabase/schema.sql`을 적용해 전체 구조를 만들 수 있습니다. 이미 운영 중인 프로젝트는 기존 데이터를 보존하기 위해 `supabase/migrations/`의 아직 적용하지 않은 SQL만 파일명 순서대로 실행합니다. 각 마이그레이션은 한 번만 적용하고, 적용 여부가 불분명하면 먼저 SQL Editor에서 관련 테이블·함수·정책을 조회합니다.
 
-운영 DB에 새 RPC를 적용하기 전에도 앱은 기존 저장 방식으로 동작하며, 최초 평가 저장이 실패하면 추가된 곡을 자동 정리합니다. 완전한 원자성과 DB 수준 중복 방지를 활성화하려면 `20260720190000_atomic_song_votes.sql`을 적용해야 합니다.
+곡과 평가 저장은 `/api/save-activity`를 통해 기존 `add_song_with_initial_vote`, `save_member_vote` RPC를 호출합니다. 배포 전 운영 DB에 `20260720190000_atomic_song_votes.sql`이 적용되어 있어야 합니다. RPC가 없으면 부분 저장을 시도하지 않고 업데이트 안내를 반환합니다. 기존 데이터나 운영 스키마를 자동 변경하지 않습니다.
+
+목록의 곡·평가 집계는 실제 반환 행 수에 맞춰 페이지를 끝까지 조회하고, 평가 이유와 답글은 상세 화면을 열 때 해당 곡만 조회합니다. Realtime 갱신은 두 조회를 함께 갱신합니다.
 
 주요 마이그레이션은 다음과 같습니다.
 
@@ -180,19 +191,20 @@ npm run update-version
 | Method | Path | 설명 |
 |---|---|---|
 | `GET` | `/api/config` | Supabase URL과 anon key 반환 |
+| `POST` | `/api/save-activity` | 선택한 프로필 조회 → 곡·평가·답글 저장 → 성공한 변경에만 서버 알림 |
 | `GET` | `/api/fetch-playlist` | Apple Music 플레이리스트 파싱 |
 | `POST` | `/api/update-song-covers` | 앨범 커버 URL 갱신 |
 | `GET` | `/api/vapid-public-key` | VAPID public key 반환 |
 | `POST` | `/api/save-subscription` | Push 구독 저장 |
 | `POST` | `/api/remove-subscription` | Push 구독 비활성화 |
 | `POST` | `/api/send-test-notification` | 테스트 알림 전송 |
-| `POST` | `/api/send-song-added-notification` | 새 곡 알림 |
-| `POST` | `/api/send-reaction-notification` | 새 평가·수정·답글 알림 전송 |
+| `POST` | `/api/send-song-added-notification` | 서버 내부 호출 또는 `CRON_SECRET` 인증 후 새 곡 알림 |
+| `POST` | `/api/send-reaction-notification` | 서버 내부 호출 또는 `CRON_SECRET` 인증 후 평가·답글 알림 |
 | `GET/POST` | `/api/send-add-song-reminders` | 곡 추가 리마인드 |
 | `GET/POST` | `/api/send-reminders` | 미평가 곡 리마인드 |
 | `GET/POST` | `/api/cleanup-push-subscriptions` | 오래된 구독 정리 |
 
-Cron 일정은 `vercel.json`을 기준으로 관리합니다.
+Cron 일정은 `vercel.json`을 기준으로 관리합니다. 예약 발송·구독 정리는 모두 `CRON_SECRET` 인증을 검사합니다. 설정은 [Vercel Cron 인증 문서](https://vercel.com/docs/cron-jobs/manage-cron-jobs#securing-cron-jobs)를 참고합니다.
 
 ## 알림 동작
 
@@ -200,9 +212,11 @@ Cron 일정은 `vercel.json`을 기준으로 관리합니다.
 - 새 평가: 평가 작성자를 제외한 활성 구독자에게 전송
 - 평가 수정: 수정한 평가자를 제외한 활성 구독자에게 전송
 - 평가 답글: 답글 작성자가 아닌 원 평가 작성자에게 전송
-- 테스트 알림: 현재 프로필의 활성 기기로 전송
+- 테스트 알림: 현재 브라우저의 구독 endpoint·auth가 일치하는 기기에만 전송
 - 만료된 endpoint: Push 발송 중 404 또는 410 응답 시 비활성화
 - 중복 발송: `notification_logs.dedupe_key`로 평가자별 방지
+- 평가 알림의 작성자·곡·결정은 실제 저장된 평가에서 읽습니다. 중복 키는 서버가 평가 내용으로 생성하며 클라이언트 이벤트 ID는 사용하지 않습니다. 이전과 같은 내용으로 되돌린 평가는 같은 내용의 알림을 다시 보내지 않습니다.
+- 새 곡·평가·답글 알림을 누르면 `/onochoo?song=…&vote=…&reply=…`로 이동합니다. 무티고을 곡은 어느 링크로 접근하더라도 평가 입력을 노출하지 않습니다.
 
 ## 배포
 
@@ -222,6 +236,8 @@ Vercel은 다음 설정을 사용합니다.
 - 운영 DB에는 `supabase/migrations/`의 SQL을 파일명 순서대로 적용합니다.
 - 관리자 계정 비밀번호는 코드나 환경 변수에 저장하지 않고 Supabase Authentication에서 관리합니다.
 - 프로필 사진 변경은 로그인 없이 현재 선택한 프로필을 기준으로 허용됩니다. 링크를 아는 사람만 사용하는 소규모 앱이라는 현재 운영 전제에 맞춘 정책입니다.
+- 일반 프로필 선택은 본인 인증이 아닙니다. 저장 API도 이 기존 전제를 유지하며, 프로필 이름은 서버에서 조회합니다. Origin/JSON 검사는 다른 웹사이트의 폼 요청 방지용이며 사용자 인증을 대신하지 않습니다. 독립된 알림 발송 API는 서버 인증 없이는 호출할 수 없습니다.
+- 초안은 이 브라우저의 localStorage에 프로필·곡별로 분리 보관하며 7일 후 복원하지 않습니다. 저장 성공 후 지우고 실패하면 유지합니다. 공유 기기에서는 해당 프로필을 선택한 사람이 초안을 볼 수 있습니다.
 - `supabase/schema.sql`과 실제 운영 데이터는 별도의 명시적인 마이그레이션 없이 변경하지 않습니다.
 
 ## 문제 해결
@@ -234,3 +250,5 @@ Vercel은 다음 설정을 사용합니다.
 ## License
 
 ISC
+
+앱에 포함된 Pretendard Variable 1.3.9는 SIL Open Font License로 제공됩니다. 원본 라이선스는 `public/assets/fonts/OFL.txt`에 있습니다. 폰트는 외부 CDN 실패에 영향을 받지 않도록 앱에서 직접 제공합니다.

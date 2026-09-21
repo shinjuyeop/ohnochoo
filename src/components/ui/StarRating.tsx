@@ -16,7 +16,7 @@ export function StarRating({ value, onChange, readOnly = false, label = "별점"
   };
   return (
     <div className="rating-row">
-      <div className="star-picker" role={readOnly ? "img" : "slider"} aria-label={`${label} ${normalized.toFixed(1)}점`} aria-valuemin={readOnly ? undefined : 0} aria-valuemax={readOnly ? undefined : 5} aria-valuenow={readOnly ? undefined : normalized} tabIndex={readOnly ? -1 : 0} onKeyDown={onKeyDown}>
+      <div className="star-picker" role={readOnly ? "img" : "slider"} aria-label={readOnly ? `${label} ${normalized === 0 ? "미입력" : `${normalized.toFixed(1)}점`}` : label} aria-valuetext={readOnly ? undefined : normalized === 0 ? "미입력, 평균에서 제외" : `${normalized.toFixed(1)}점`} aria-valuemin={readOnly ? undefined : 0} aria-valuemax={readOnly ? undefined : 5} aria-valuenow={readOnly ? undefined : normalized} tabIndex={readOnly ? -1 : 0} onKeyDown={onKeyDown}>
         {[1, 2, 3, 4, 5].map((index) => {
           const fill = Math.max(0, Math.min(1, normalized - index + 1));
           return (
@@ -27,7 +27,8 @@ export function StarRating({ value, onChange, readOnly = false, label = "별점"
           );
         })}
       </div>
-      {!readOnly ? <span className="rating-value">{normalized.toFixed(1)}</span> : null}
+      {!readOnly || normalized === 0 ? <span className="rating-value">{normalized === 0 ? "미입력" : normalized.toFixed(1)}</span> : null}
+      {!readOnly && normalized > 0 ? <button className="rating-clear" type="button" onClick={() => update(0)}>지우기</button> : null}
     </div>
   );
 }

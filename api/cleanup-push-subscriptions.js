@@ -1,9 +1,11 @@
 const { getServiceSupabase } = require("./_push-utils");
+const { requireCron } = require("./_request-guards");
 
 const INACTIVE_RETENTION_DAYS = 30;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 module.exports = async (req, res) => {
+    if (!requireCron(req, res)) return;
     if (req.method !== "GET" && req.method !== "POST") {
         return res.status(405).json({ error: "Method not allowed" });
     }

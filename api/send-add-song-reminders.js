@@ -4,6 +4,7 @@ const {
     getServiceSupabase,
     sendDedupedNotification,
 } = require("./_push-utils");
+const { requireCron } = require("./_request-guards");
 
 function groupSubscriptionsByMemberId(subscriptions) {
     const byMemberId = new Map();
@@ -24,6 +25,7 @@ function isSongAddedByMember(song, member) {
 }
 
 module.exports = async (req, res) => {
+    if (!requireCron(req, res)) return;
     if (req.method !== "GET" && req.method !== "POST") {
         return res.status(405).json({ error: "Method not allowed" });
     }

@@ -2,26 +2,38 @@ import { useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "../lib/supabase";
 import { buildVoteStats, getMutigoeulSongs, getOnochooSongs } from "../lib/songRules";
-import type { ClubData, Member, MutigoeulEntry, Song, Vote, VoteReply, VoteStats } from "../types";
+import { fetchAllPages } from "../lib/pagination";
+import type { ClubData, Member, MutigoeulEntry, Song, Vote, VoteReply, VoteStats, VoteSummary } from "../types";
 
 async function fetchClubData(): Promise<ClubData> {
   const supabase = await getSupabase();
-  const [songs, votes, voteReplies, members, mutigoeul] = await Promise.all([
-    supabase.from("songs").select("id,title,artist,adder,adder_member_id,createdAt,coverImageUrl").order("createdAt", { ascending: true }),
-    supabase.from("votes").select("id,songId,voter,member_id,decision,rating,reason,createdAt").order("createdAt", { ascending: false }),
-    supabase.from("vote_replies").select("id,vote_id,author,member_id,body,created_at").order("created_at", { ascending: true }),
-    supabase.from("members").select("*").order("name", { ascending: true }),
-    supabase.from("mutigoeul_songs").select("id,songId,createdAt").order("createdAt", { ascending: true }),
+  const [songs, votes, members, mutigoeul] = await Promise.all([
+    fetchAllPages<Song>((from, to) => supabase.from("songs").select("id,title,artist,adder,adder_member_id,createdAt,coverImageUrl").order("createdAt").order("id").range(from, to)),
+    fetchAllPages<VoteSummary>((from, to) => supabase.from("votes").select("id,songId,voter,member_id,decision,rating,createdAt").order("createdAt").order("id").range(from, to)),
+    fetchAllPages<Member>((from, to) => supabase.from("members").select("*").order("name").order("id").range(from, to)),
+    fetchAllPages<MutigoeulEntry>((from, to) => supabase.from("mutigoeul_songs").select("id,songId,createdAt").order("createdAt").order("id").range(from, to)),
   ]);
-  const error = songs.error || votes.error || voteReplies.error || members.error || mutigoeul.error;
-  if (error) throw error;
   return {
-    songs: (songs.data ?? []) as Song[],
-    votes: (votes.data ?? []).map((vote) => ({ ...vote, rating: Number(vote.rating) })) as Vote[],
-    voteReplies: (voteReplies.data ?? []) as VoteReply[],
-    members: (members.data ?? []) as Member[],
-    mutigoeulEntries: (mutigoeul.data ?? []) as MutigoeulEntry[],
+    songs,
+    votes: votes.map((vote) => ({ ...vote, rating: Number(vote.rating) })),
+    members,
+    mutigoeulEntries: mutigoeul,
   };
+}
+
+export function useSongDiscussion(songId: string | null) {
+  return useQuery({
+    queryKey: ["song-discussion", songId],
+    enabled: Boolean(songId),
+    queryFn: async () => {
+      const supabase = await getSupabase();
+      const [votes, replies] = await Promise.all([
+        fetchAllPages<Vote>((from, to) => supabase.from("votes").select("id,songId,voter,member_id,decision,rating,reason,createdAt").eq("songId", songId!).order("createdAt", { ascending: false }).order("id").range(from, to)),
+        fetchAllPages<VoteReply>((from, to) => supabase.from("vote_replies").select("id,vote_id,author,member_id,body,created_at,votes!inner(songId)").eq("votes.songId", songId!).order("created_at").order("id").range(from, to)),
+      ]);
+      return { votes: votes.map((vote) => ({ ...vote, rating: Number(vote.rating) })), replies };
+    },
+  });
 }
 
 export function useClubData() {
@@ -49,7 +61,10 @@ export function RealtimeSync() {
       const channel = supabase.channel("ohnochoo-db-changes");
       const reload = () => {
         window.clearTimeout(timer);
-        timer = window.setTimeout(() => void client.invalidateQueries({ queryKey: ["club-data"] }), 400);
+        timer = window.setTimeout(() => {
+          void client.invalidateQueries({ queryKey: ["club-data"] });
+          void client.invalidateQueries({ queryKey: ["song-discussion"] });
+        }, 400);
       };
       for (const table of ["songs", "votes", "vote_replies", "mutigoeul_songs", "members"]) {
         channel.on("postgres_changes", { event: "*", schema: "public", table }, reload);
@@ -59,7 +74,7 @@ export function RealtimeSync() {
         window.clearTimeout(timer);
         void supabase.removeChannel(channel);
       };
-    });
+    }).catch(() => { /* The query shows connection errors and retries. */ });
     return () => {
       cancelled = true;
       cleanup?.();

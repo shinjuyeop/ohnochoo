@@ -93,7 +93,10 @@ export function useNotifications(profile: Profile) {
 
   const sendTest = async () => {
     if (!profile) throw new Error("프로필을 찾지 못했어요.");
-    return postJson<{ count?: number }>("/api/send-test-notification", { memberId: profile.id });
+    const registration = await navigator.serviceWorker.getRegistration("/");
+    const subscription = await registration?.pushManager.getSubscription();
+    if (!subscription) throw new Error("먼저 이 기기에서 알림을 켜주세요.");
+    return postJson<{ count?: number }>("/api/send-test-notification", { memberId: profile.id, subscription });
   };
 
   return { ...state, refresh, enable, disable, sendTest };

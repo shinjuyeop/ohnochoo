@@ -25,6 +25,9 @@ async function createConfiguredClient() {
 }
 
 export function getSupabase() {
-  clientPromise ??= createConfiguredClient();
+  clientPromise ??= createConfiguredClient().catch((error) => {
+    clientPromise = null;
+    throw error;
+  });
   return clientPromise;
 }
