@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import type { Song } from "../types";
 import { SongCover } from "./ui/SongCover";
+import { IconButton } from "./ui/IconButton";
 
 export function SongCarousel({ songs, label, onOpen }: { songs: Song[]; label: string; onOpen: (id: string) => void }) {
   const trackRef = useRef<HTMLUListElement>(null);
@@ -45,8 +46,8 @@ export function SongCarousel({ songs, label, onOpen }: { songs: Song[]; label: s
         ))}
       </ul>
       {!(edges.start && edges.end) ? <div className="song-carousel-controls">
-        <button className="icon-button" aria-label={`${label} 이전 곡`} aria-controls={trackId} disabled={edges.start} onClick={() => scroll(-1)}><ChevronLeft size={20} /></button>
-        <button className="icon-button" aria-label={`${label} 다음 곡`} aria-controls={trackId} disabled={edges.end} onClick={() => scroll(1)}><ChevronRight size={20} /></button>
+        <IconButton aria-label={`${label} 이전 곡`} aria-controls={trackId} disabled={edges.start} onClick={() => scroll(-1)}><ChevronLeft size={20} aria-hidden="true" /></IconButton>
+        <IconButton aria-label={`${label} 다음 곡`} aria-controls={trackId} disabled={edges.end} onClick={() => scroll(1)}><ChevronRight size={20} aria-hidden="true" /></IconButton>
       </div> : null}
     </div>
   );

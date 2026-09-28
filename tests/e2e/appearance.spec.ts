@@ -63,7 +63,7 @@ test("navigation and browser back start at the top while song dialogs preserve l
   await page.goto("/");
   await page.getByRole("link", { name: /^기록/ }).scrollIntoViewIfNeeded();
   expect(await page.evaluate(() => scrollY)).toBeGreaterThan(100);
-  await page.locator(".home-collection").getByRole("link", { name: "무티고을", exact: true }).click();
+  await page.locator(".home-collection").getByRole("link", { name: "무티고을 13", exact: true }).click();
   await expect(page).toHaveURL(/\/mutigoeul$/);
   await expect(page.getByRole("heading", { name: "무티고을", level: 1, exact: true })).toBeVisible();
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);

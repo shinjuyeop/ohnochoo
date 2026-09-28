@@ -62,6 +62,8 @@ ohnochoo/
 
 화면 색상은 `globals.css`의 라이트·다크 토큰으로 관리합니다. `index.html`의 초기 스크립트가 첫 화면 전에 저장된 테마를 적용하고, `ThemeContext`가 시스템 변경·수동 선택·다른 탭의 선택을 반영합니다. 저장 키(`ohnochoo:theme`)와 브라우저 테마 색상을 바꿀 때는 두 구현을 함께 수정하세요. `RouteScrollReset`은 경로가 달라질 때만 스크롤을 초기화하여 상세창·필터의 쿼리 변경 시 목록 위치를 보존합니다.
 
+공통 검색창·선택 컨트롤·원형 버튼은 `SearchField`, `SegmentedControl`, `IconButton`을 사용합니다. 캡슐 모양과 명암은 `--radius-pill`, `--control` 토큰으로 맞추고, 상단 헤더·팝업 배경에는 블러를 사용하지 않습니다. 선택 표시와 눌림 모션은 `prefers-reduced-motion`을 따릅니다. 방출 보관 창은 행 높이를 내용에 맞춰 유지하며 목록 영역만 스크롤합니다.
+
 | 작업 | 처리 경로 |
 |---|---|
 | 목록 조회 | React → Supabase anon 연결 → 곡·평가 요약·프로필·무티고을 목록 |

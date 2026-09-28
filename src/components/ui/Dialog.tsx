@@ -2,6 +2,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "../../lib/utils";
+import { IconButton } from "./IconButton";
 
 interface DialogProps {
   open: boolean;
@@ -23,7 +24,7 @@ export function Dialog({ open, onOpenChange, title, description, children, class
               <DialogPrimitive.Title>{title}</DialogPrimitive.Title>
               {description ? <DialogPrimitive.Description>{description}</DialogPrimitive.Description> : null}
             </div>
-            <DialogPrimitive.Close className="icon-button" aria-label="닫기"><X size={21} /></DialogPrimitive.Close>
+            <DialogPrimitive.Close asChild><IconButton aria-label="닫기"><X size={22} aria-hidden="true" /></IconButton></DialogPrimitive.Close>
           </header>
           {children}
         </DialogPrimitive.Content>

@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import { CircleHelp, Music2, Search } from "lucide-react";
+import { CircleHelp, Music2 } from "lucide-react";
+import { SearchField } from "../components/ui/SearchField";
+import { SegmentedControl } from "../components/ui/SegmentedControl";
 import { useSearchParams } from "react-router-dom";
 import { SongCard } from "../components/SongCard";
 import { useSongDialog } from "../hooks/useSongDialog";
@@ -42,8 +44,8 @@ export function OnochooPage() {
     <div className="page">
       <header className="page-header"><div><h1>오노추</h1><span className="page-count">{onochuSongs.length}곡</span></div><button className="icon-text-button" onClick={() => setRulesOpen(true)}><CircleHelp size={17} /> 판정 기준</button></header>
       <div className="playlist-tools">
-        <div className="segmented-control">{filters.map((item) => <button key={item.value} className={filter === item.value ? "active" : ""} onClick={() => changeParam("filter", item.value === "all" ? "" : item.value)}>{item.label}{item.value === "pending" ? <span>{onochuSongs.filter((song) => !data.votes.some((vote) => vote.songId === song.id && isVoteByMember(vote, profile))).length}</span> : null}</button>)}</div>
-        <label className="search-field"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="곡, 아티스트 검색" aria-label="곡, 아티스트 검색" /></label>
+        <SegmentedControl label="곡 필터" value={filter} onChange={(value) => changeParam("filter", value === "all" ? "" : value)} options={filters.map((item) => ({ value: item.value, label: <>{item.label}{item.value === "pending" ? <span>{onochuSongs.filter((song) => !data.votes.some((vote) => vote.songId === song.id && isVoteByMember(vote, profile))).length}</span> : null}</> }))} />
+        <SearchField value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} placeholder="곡, 아티스트 검색" />
       </div>
       {filter === "pending" ? <p className="list-hint">판정일순</p> : null}
       <div className="song-list full-list">{filtered.map((song) => {

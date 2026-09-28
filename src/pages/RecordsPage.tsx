@@ -1,4 +1,5 @@
-import { Archive, ArrowLeft, ChevronRight, Search, Star } from "lucide-react";
+import { Archive, ArrowLeft, ChevronRight, Star } from "lucide-react";
+import { SearchField } from "../components/ui/SearchField";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useClubData } from "../hooks/useClubData";
@@ -22,7 +23,7 @@ export function RecordsPage() {
       <Link className="records-back" to="/"><ArrowLeft size={16} /> 홈</Link>
       <header className="page-header"><div><h1>기록</h1><span className="page-count">방출 {archived.length}곡</span></div></header>
       <div className="records-tools">
-        <label className="search-field"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="곡, 아티스트, 추천자 검색" aria-label="보관한 곡 검색" /></label>
+        <SearchField value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} placeholder="곡, 아티스트, 추천자 검색" aria-label="보관한 곡 검색" />
         <label className="records-month"><span className="visually-hidden">방출한 달</span><select value={month} onChange={(event) => setMonth(event.target.value)}><option value="">모든 달</option>{months.map((value) => <option key={value} value={value}>{value.replace("-", "년 ")}월</option>)}</select></label>
       </div>
       <div className="record-list">

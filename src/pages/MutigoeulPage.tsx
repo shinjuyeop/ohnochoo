@@ -1,4 +1,6 @@
-import { ArrowDownUp, Grid2X2, Library, List, Music2, Search } from "lucide-react";
+import { ArrowDownUp, Grid2X2, Library, List, Music2 } from "lucide-react";
+import { SearchField } from "../components/ui/SearchField";
+import { SegmentedControl } from "../components/ui/SegmentedControl";
 import { useState } from "react";
 import { SongCover } from "../components/ui/SongCover";
 import { useSongDialog } from "../hooks/useSongDialog";
@@ -37,10 +39,10 @@ export function MutigoeulPage() {
       <section className="content-section archive-section">
         <div className="archive-toolbar">
           <div className="archive-control-group">
-            <div className="view-toggle" role="group" aria-label="보기 형식"><button className={viewMode === "grid" ? "active" : ""} onClick={() => changeView("grid")} aria-label="블록 보기" aria-pressed={viewMode === "grid"}><Grid2X2 /><span>블록</span></button><button className={viewMode === "list" ? "active" : ""} onClick={() => changeView("list")} aria-label="세로 목록 보기" aria-pressed={viewMode === "list"}><List /><span>목록</span></button></div>
+            <SegmentedControl className="view-toggle" label="보기 형식" value={viewMode} onChange={changeView} options={[{ value: "grid", label: <><Grid2X2 aria-hidden="true" />블록</>, accessibleLabel: "블록 보기" }, { value: "list", label: <><List aria-hidden="true" />목록</>, accessibleLabel: "세로 목록 보기" }]} />
             <label className="archive-sort"><ArrowDownUp size={15} /><span className="visually-hidden">정렬</span><select value={sortOrder} onChange={(event) => changeSort(event.target.value as SortOrder)} aria-label="추가일 정렬"><option value="desc">추가일 내림차순</option><option value="asc">추가일 오름차순</option></select></label>
           </div>
-          <label className="search-field archive-search"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="곡, 아티스트 검색" /></label>
+          <SearchField className="archive-search" value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} placeholder="곡, 아티스트 검색" />
         </div>
         {sortedSongs.length ? viewMode === "grid"
           ? <div className="album-grid">{sortedSongs.map((song) => <button className="album-tile" key={song.id} onClick={() => openSong(song.id)}><SongCover song={song} /><b>{song.title}</b><span>{song.artist}</span></button>)}</div>

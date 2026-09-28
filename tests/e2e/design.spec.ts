@@ -51,14 +51,14 @@ test("motion respects reduced motion and broken covers use a fallback", async ({
   await expect(page.locator(".song-carousel .album-tile").first().locator(".song-cover img")).toHaveCount(0);
   await expect(page.locator(".song-carousel .album-tile").first().locator(".song-cover svg")).toBeVisible();
   expect(await page.locator(".page-transition").evaluate((node) => parseFloat(getComputedStyle(node).animationDuration))).toBeLessThan(.001);
-  await page.getByRole("button", { name: "바로 평가하기" }).click();
+  await page.locator(".queue-section .album-tile").first().click();
   await page.getByRole("button", { name: "닫기", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.getByRole("button", { name: "바로 평가하기" }).click();
+  await page.locator(".queue-section .album-tile").first().click();
   await expect(page.getByRole("dialog")).toHaveCSS("animation-name", "dialog-enter");
   await page.getByRole("button", { name: "닫기", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await page.getByRole("button", { name: "바로 평가하기" }).click();
+  await page.locator(".queue-section .album-tile").first().click();
   await expect(page.getByRole("dialog")).toBeVisible();
 });

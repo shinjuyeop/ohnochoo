@@ -1,13 +1,71 @@
 /* Administrator forms share the application color and spacing tokens. */
 .admin-auth-loading { min-height: 150px; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 12px; }
 .admin-panel-login { padding: 15px 9px 9px; border-top: 1px solid var(--line); }
-.admin-login-form { display: grid; gap: 13px; }.admin-login-intro { margin-bottom: 2px; display: flex; align-items: center; gap: 10px; }.admin-login-intro > span { width: 38px; height: 38px; border-radius: 11px; background: var(--brand-soft); color: var(--brand); display: grid; place-items: center; }.admin-login-intro svg { width: 18px; }.admin-login-intro b { font-size: 13px; }.admin-login-intro p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }.admin-login-form > label { display: grid; gap: 6px; color: var(--text); font-size: 12px; font-weight: 650; }.admin-login-form input { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; outline: 0; background: var(--canvas); color: var(--text); }.admin-login-form input:focus { border-color: var(--brand); }.admin-login-form button { width: 100%; min-height: 44px; }.admin-login-form button svg { width: 17px; }
-.admin-session { margin: 0 8px 5px; padding: 11px 2px 13px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 10px; }.admin-session > span { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; min-width: 0; }
-.admin-session b { color: var(--promote); font-size: 12px; }.admin-session small { display: block; max-width: 100%; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.admin-session button { flex-shrink: 0; min-height: 44px; padding: 0 9px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; }
-.admin-edit-fields { display: grid; gap: 17px; }.admin-edit-fields .primary-button { width: 100%; }.admin-edit-fields .primary-button svg { width: 17px; }.date-time-input { position: relative; display: flex; align-items: center; }.date-time-input > svg { width: 17px; position: absolute; z-index: 1; left: 13px; color: var(--muted); pointer-events: none; }.field-label .date-time-input input { padding-left: 40px; color-scheme: inherit; }.admin-edit-warning { padding: 12px; border: 1px solid rgba(245,158,11,.18); border-radius: 10px; background: rgba(245,158,11,.06); display: grid; grid-template-columns: 18px minmax(0,1fr); gap: 8px; color: var(--warning); }.admin-edit-warning svg { width: 17px; }.admin-edit-warning p { margin: 0; font-size: 12px; line-height: 1.55; }
+.admin-login-form { display: grid; gap: 13px; }
+.admin-login-intro { margin-bottom: 2px; display: flex; align-items: center; gap: 10px; }
+.admin-login-intro > span { width: 38px; height: 38px; border-radius: 11px; background: var(--brand-soft); color: var(--brand); display: grid; place-items: center; }
+.admin-login-intro svg { width: 18px; }
+.admin-login-intro b { font-size: 13px; }
+.admin-login-intro p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+.admin-login-form > label { display: grid; gap: 6px; color: var(--text); font-size: 12px; font-weight: 650; }
+.admin-login-form input { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 16px; outline: 0; background: var(--canvas); color: var(--text); }
+.admin-login-form input:focus { border-color: var(--brand); }
+.admin-login-form button { width: 100%; min-height: 44px; }
+.admin-login-form button svg { width: 17px; }
+.admin-session { margin: 0 8px 5px; padding: 11px 2px 13px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.admin-session > span { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; min-width: 0; }
+.admin-session b { color: var(--promote); font-size: 12px; }
+.admin-session small { display: block; max-width: 100%; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-session button { flex-shrink: 0; min-height: 44px; padding: 0 9px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; }
+.admin-edit-fields { display: grid; gap: 17px; }
+.admin-edit-fields .primary-button { width: 100%; }
+.admin-edit-fields .primary-button svg { width: 17px; }.date-time-input { position: relative; display: flex; align-items: center; }.date-time-input > svg { width: 17px; position: absolute; z-index: 1; left: 13px; color: var(--muted); pointer-events: none; }.field-label .date-time-input input { padding-left: 40px; color-scheme: inherit; }
+.admin-edit-warning { padding: 12px; border: 1px solid rgba(245,158,11,.18); border-radius: 10px; background: rgba(245,158,11,.06); display: grid; grid-template-columns: 18px minmax(0,1fr); gap: 8px; color: var(--warning); }
+.admin-edit-warning svg { width: 17px; }
+.admin-edit-warning p { margin: 0; font-size: 12px; line-height: 1.55; }
 .member-list { margin-bottom: 18px; display: flex; flex-wrap: wrap; gap: 8px; }.member-list > div { min-height: 48px; padding: 5px 12px 5px 5px; border: 1px solid var(--line); border-radius: 24px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 650; }.inline-add-form { padding-top: 18px; border-top: 1px solid var(--line); display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; }.inline-add-form button { padding: 0 14px; }
-.danger-button { min-height: 46px; border: 1px solid rgba(244,63,94,.3); border-radius: 12px; background: var(--release-soft); color: var(--release); font-weight: 700; cursor: pointer; }.danger-button:disabled { opacity: .45; }
-.admin-delete-body { padding: 0; display: grid; grid-template-rows: auto minmax(0,1fr) auto; overflow: hidden; }.admin-delete-tools { padding: 18px 18px 12px; display: grid; gap: 11px; }.admin-delete-filters { padding: 3px; border-radius: 10px; background: var(--canvas); display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }.admin-delete-filters button { min-height: 38px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; }.admin-delete-filters button.active { background: var(--raised); color: var(--text); }.admin-delete-filters span { margin-left: 3px; color: var(--brand); }
-.admin-song-search { min-height: 43px; padding: 0 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--canvas); display: flex; align-items: center; gap: 8px; }.admin-song-search svg { width: 16px; color: var(--muted); }.admin-song-search input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--text); font-size: 12px; }.admin-select-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 12px; }.admin-select-row label { display: flex; align-items: center; gap: 7px; cursor: pointer; }.admin-select-row input, .admin-song-option > input { accent-color: var(--brand); }
-.admin-song-list { padding: 0 18px 10px; overflow-y: auto; display: grid; align-content: start; gap: 7px; }.admin-song-option { min-height: 68px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 11px; background: var(--canvas); display: grid; grid-template-columns: 18px 46px minmax(0,1fr) auto; align-items: center; gap: 9px; cursor: pointer; transition: border-color .15s, background .15s; }.admin-song-option.selected { border-color: var(--brand); background: var(--brand-soft); }.admin-song-cover { width: 46px; aspect-ratio: 1; overflow: hidden; border-radius: 8px; background: var(--raised); display: grid; place-items: center; color: var(--muted); }.admin-song-cover img { width: 100%; height: 100%; object-fit: cover; }.admin-song-cover svg { width: 18px; }.admin-song-copy { min-width: 0; }.admin-song-copy b, .admin-song-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.admin-song-copy b { font-size: 12px; }.admin-song-copy small { margin-top: 2px; color: var(--muted); font-size: 12px; }.admin-song-copy em { margin-top: 5px; }.admin-status { width: fit-content; padding: 2px 6px; border-radius: 5px; display: block; font-size: 12px; font-style: normal; font-weight: 700; }.admin-status-release { color: var(--release); background: var(--release-soft); }.admin-status-ready { color: var(--promote); background: var(--promote-soft); }.admin-status-promote { color: var(--brand); background: var(--brand-soft); }.admin-status-pending { color: var(--muted); background: var(--brand-soft); }.admin-vote-counts { color: var(--muted); font-size: 12px; white-space: nowrap; }.admin-vote-counts b { color: var(--text); font-size: 12px; }.admin-empty { min-height: 190px; display: grid; place-items: center; align-content: center; gap: 8px; color: var(--muted); }.admin-empty svg { width: 23px; }.admin-empty p { margin: 0; font-size: 12px; }
-.admin-delete-footer { padding: 12px 18px max(12px,env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: var(--surface); display: flex; align-items: center; justify-content: space-between; gap: 12px; }.admin-delete-footer > span { color: var(--muted); font-size: 12px; line-height: 1.4; }.admin-delete-footer button { min-width: 112px; padding: 0 13px; }
+.danger-button { min-height: 46px; border: 1px solid transparent; border-radius: var(--radius-pill); background: var(--release-soft); color: var(--release); font-weight: 650; cursor: pointer; }.danger-button:disabled { opacity: .45; }
+.admin-delete-body { padding: 0; min-height: 0; flex: 1 1 auto; display: grid; grid-template-rows: auto minmax(0,1fr) auto; overflow: hidden; }
+.admin-delete-tools { padding: 18px 18px 12px; display: grid; gap: 11px; }
+.admin-delete-filters { padding: 3px; border-radius: 10px; background: var(--canvas); display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+.admin-delete-filters button { min-height: 38px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; }
+.admin-delete-filters button.active { background: var(--raised); color: var(--text); }
+.admin-delete-filters span { margin-left: 3px; color: var(--brand); }
+.admin-select-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 12px; }
+.admin-select-row label { display: flex; align-items: center; gap: 7px; cursor: pointer; }
+.admin-select-row input, .admin-song-option > input { accent-color: var(--brand); }
+.admin-song-list { min-height: 0; padding: 0 18px 16px; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 8px; scroll-padding-block: 8px; }
+.admin-song-option { flex: 0 0 auto; min-width: 0; min-height: 96px; padding: 12px; border: 1px solid var(--line-soft); border-radius: 18px; background: var(--canvas); display: grid; grid-template-columns: 20px 48px minmax(0,1fr); align-items: center; gap: 10px; cursor: pointer; transition: background-color 180ms ease, border-color 180ms ease, transform 180ms var(--motion-ease); }
+.admin-song-option.selected { border-color: var(--brand); background: var(--brand-soft); }
+.admin-song-cover { width: 48px; aspect-ratio: 1; border-radius: 9px; }
+.admin-song-cover img { width: 100%; height: 100%; object-fit: cover; }
+.admin-song-cover svg { width: 18px; }
+.admin-song-copy { min-width: 0; }
+.admin-song-copy > b, .admin-song-copy > small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-song-copy > b { font-size: 14px; font-weight: 600; line-height: 1.4; }
+.admin-song-copy > small { margin-top: 2px; color: var(--muted); font-size: 12px; }
+.admin-song-copy em { margin: 0; }
+.admin-status { flex-shrink: 0; width: fit-content; padding: 3px 8px; border-radius: var(--radius-pill); display: inline-block; font-size: 11px; line-height: 1.5; font-style: normal; font-weight: 600; }
+.admin-status-release { color: var(--release); background: var(--release-soft); }
+.admin-status-ready { color: var(--promote); background: var(--promote-soft); }
+.admin-status-promote { color: var(--brand); background: var(--brand-soft); }
+.admin-status-pending { color: var(--muted); background: var(--brand-soft); }
+.admin-vote-counts { color: var(--muted); font-size: 11px; line-height: 1.5; white-space: nowrap; }
+.admin-vote-counts b { display: inline; color: var(--text); font-size: inherit; font-weight: 550; }
+.admin-empty { min-height: 190px; display: grid; place-items: center; align-content: center; gap: 8px; color: var(--muted); }
+.admin-empty svg { width: 23px; }
+.admin-empty p { margin: 0; font-size: 12px; }
+.admin-delete-footer { padding: 14px 18px max(16px,env(safe-area-inset-bottom)); border-top: 1px solid var(--line-soft); background: var(--surface); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.admin-delete-footer > span { min-width: 0; color: var(--muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.admin-delete-footer button { flex-shrink: 0; min-width: 100px; padding: 0 16px; }
+
+/* Keep each archive row at its natural height; only the list scrolls. */
+.admin-delete-dialog { height: min(820px,calc(100dvh - max(72px,calc(env(safe-area-inset-top,0px) + 16px)))); }
+.admin-song-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; margin-top: 7px; }
+.admin-select-row input, .admin-song-option > input { appearance: none; -webkit-appearance: none; width: 20px; height: 20px; flex-shrink: 0; margin: 0; border: 1.5px solid var(--line-strong); border-radius: 50%; background: var(--surface); display: grid; place-items: center; cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease; }
+.admin-select-row input:checked, .admin-song-option > input:checked { border-color: var(--brand); background: var(--brand); }
+.admin-select-row input:checked::after, .admin-song-option > input:checked::after { content: ""; width: 8px; height: 5px; margin-top: -2px; border: solid var(--on-brand); border-width: 0 0 2px 2px; transform: rotate(-45deg); }
+.admin-select-row input:disabled { opacity: .4; cursor: default; }
+.admin-song-option:has(input:focus-visible) { outline: 2px solid var(--brand); outline-offset: -2px; }
+@media (min-width: 640px) { .admin-delete-dialog { height: min(820px,88dvh); } }
+@media (max-height: 600px) { .admin-delete-tools { padding-top: 12px; gap: 8px; } .admin-delete-footer { padding-top: 10px; } }

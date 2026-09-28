@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
-import { Archive, Bell, BellOff, CalendarClock, ChevronRight, CircleAlert, ImageOff, ImagePlus, LoaderCircle, LockKeyhole, LogOut, Music2, PencilLine, Save, Search, Send, Shield, UserPlus, UsersRound } from "lucide-react";
+import { Archive, Bell, BellOff, CalendarClock, ChevronRight, CircleAlert, ImageOff, ImagePlus, LoaderCircle, LockKeyhole, LogOut, Music2, PencilLine, Save, Send, Shield, UserPlus, UsersRound } from "lucide-react";
+import { SearchField } from "../components/ui/SearchField";
+import { SongCover } from "../components/ui/SongCover";
 import { Avatar } from "../components/ui/Avatar";
 import { ThemeSettings } from "../components/ThemeSettings";
 import { Dialog } from "../components/ui/Dialog";
@@ -222,7 +224,7 @@ export function SettingsPage() {
       </Dialog>
       <Dialog open={dialog === "edit"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="곡 정보 수정" className="admin-edit-dialog">
         <form className="dialog-body form-stack admin-edit-form" onSubmit={saveSongInfo}>
-          <label className="admin-song-search"><Search /><input value={editSearch} onChange={(event) => { setEditSearch(event.target.value); selectEditSong(""); }} placeholder="제목, 아티스트, 등록자 검색" /></label>
+          <SearchField value={editSearch} onChange={(event) => { setEditSearch(event.target.value); selectEditSong(""); }} onClear={() => { setEditSearch(""); selectEditSong(""); }} placeholder="제목, 아티스트, 등록자 검색" />
           <label className="field-label"><span>수정할 곡</span><select value={editSongId} onChange={(event) => selectEditSong(event.target.value)}><option value="">곡을 선택해 주세요</option>{editableSongs.map((song) => <option key={song.id} value={song.id}>[{mutigoeulIds.has(song.id) ? "무티고을" : "오노추"}] {song.title} — {song.artist}</option>)}</select></label>
           {editSongId ? (
             <div className="admin-edit-fields">
@@ -246,7 +248,7 @@ export function SettingsPage() {
       <Dialog open={dialog === "delete"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="방출 보관하기" description="7일이 지난 방출 예정 곡을 보관해요. 평가와 답글은 그대로 남아요." className="admin-delete-dialog">
         <form className="dialog-body admin-delete-body" onSubmit={deleteSelectedSongs}>
           <div className="admin-delete-tools">
-            <label className="admin-song-search"><Search /><input value={deleteSearch} onChange={(event) => setDeleteSearch(event.target.value)} placeholder="제목, 아티스트 검색" /></label>
+            <SearchField value={deleteSearch} onChange={(event) => setDeleteSearch(event.target.value)} onClear={() => setDeleteSearch("")} placeholder="제목, 아티스트 검색" />
             <div className="admin-select-row"><label><input type="checkbox" checked={allVisibleSelected} onChange={toggleVisible} disabled={!visibleIds.length} /> 현재 목록 전체 선택</label><span>{selectedSongIds.length}곡 선택</span></div>
           </div>
           <div className="admin-song-list">
@@ -257,9 +259,8 @@ export function SettingsPage() {
               return (
                 <label key={song.id} className={`admin-song-option ${selectedIds.has(song.id) ? "selected" : ""}`}>
                   <input type="checkbox" checked={selectedIds.has(song.id)} onChange={() => toggleSong(song.id)} />
-                  <span className="admin-song-cover">{song.coverImageUrl ? <img src={song.coverImageUrl} alt="" /> : <Music2 />}</span>
-                  <span className="admin-song-copy"><b>{song.title}</b><small>{song.artist}</small><em className={`admin-status admin-status-${status.tone}`}>{status.label}</em></span>
-                  <span className="admin-vote-counts"><b>{stats.promotedCount}</b> 승격 <b>{stats.releasedCount}</b> 방출</span>
+                  <SongCover song={song} className="admin-song-cover" />
+                  <span className="admin-song-copy"><b title={song.title}>{song.title}</b><small title={song.artist}>{song.artist}</small><span className="admin-song-meta"><em className={`admin-status admin-status-${status.tone}`}>{status.label}</em><span className="admin-vote-counts"><b>{stats.promotedCount}</b> 승격 · <b>{stats.releasedCount}</b> 방출</span></span></span>
                 </label>
               );
             }) : <div className="admin-empty"><LockKeyhole /><p>{deleteSearch ? "검색 결과가 없어요." : "방출 예정인 곡이 없어요."}</p></div>}

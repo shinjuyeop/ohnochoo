@@ -7,13 +7,13 @@ test("home queue, vote drafts, reload, failed and successful saves", async ({ pa
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "평가할 곡 3" })).toBeVisible();
   expect(state.reads.some((url) => url.includes("vote_replies"))).toBe(false);
-  await page.getByRole("button", { name: "바로 평가하기" }).click();
+  await page.locator(".queue-section .album-tile").first().click();
   await expect(page).toHaveURL(/song=old-song/);
   await page.getByRole("button", { name: "보류", exact: true }).click();
   await page.getByRole("textbox", { name: "평가 이유", exact: true }).fill("작성하다 나갔다가 돌아와도 남아 있어야 해요.");
   await page.getByRole("slider", { name: "별점" }).press("ArrowRight");
   await page.getByRole("button", { name: "닫기", exact: true }).click();
-  await page.getByRole("button", { name: "바로 평가하기" }).click();
+  await page.locator(".queue-section .album-tile").first().click();
   await expect(page.getByRole("textbox", { name: "평가 이유", exact: true })).toHaveValue("작성하다 나갔다가 돌아와도 남아 있어야 해요.");
   await page.reload();
   await expect(page.getByRole("slider", { name: "별점" })).toHaveAttribute("aria-valuenow", "0.5");
@@ -99,7 +99,7 @@ test("returning from music does not reload or erase a draft on a new deployment"
   await expect(page.getByRole("textbox", { name: "평가 이유", exact: true })).toHaveValue("업데이트 중에도 유지할 내용");
   await page.getByRole("button", { name: "닫기", exact: true }).click();
   await page.getByRole("button", { name: "업데이트", exact: true }).click();
-  await page.getByRole("button", { name: "바로 평가하기" }).click();
+  await page.locator(".queue-section .album-tile").first().click();
   await expect(page.getByRole("textbox", { name: "평가 이유", exact: true })).toHaveValue("업데이트 중에도 유지할 내용");
 });
 
@@ -114,7 +114,7 @@ for (const width of [320, 390, 768, 1024, 1440]) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     };
     await page.goto("/");
-    await expect(page.getByRole("button", { name: "바로 평가하기" })).toBeVisible();
+    await expect(page.locator(".queue-section .album-tile").first()).toBeVisible();
     await page.evaluate(() => document.fonts.ready);
     expect(await page.evaluate(() => document.fonts.check('16px "Pretendard Variable"'))).toBe(true);
     await noOverflow();
