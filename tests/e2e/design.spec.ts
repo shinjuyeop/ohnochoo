@@ -48,8 +48,8 @@ test("motion respects reduced motion and broken covers use a fallback", async ({
   await page.route("https://covers.example.test/**", (route) => route.fulfill({ status: 404, body: "" }));
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await expect(page.locator(".song-card").first().locator(".song-cover img")).toHaveCount(0);
-  await expect(page.locator(".song-card").first().locator(".song-cover svg")).toBeVisible();
+  await expect(page.locator(".song-carousel .album-tile").first().locator(".song-cover img")).toHaveCount(0);
+  await expect(page.locator(".song-carousel .album-tile").first().locator(".song-cover svg")).toBeVisible();
   expect(await page.locator(".page-transition").evaluate((node) => parseFloat(getComputedStyle(node).animationDuration))).toBeLessThan(.001);
   await page.getByRole("button", { name: "바로 평가하기" }).click();
   await page.getByRole("button", { name: "닫기", exact: true }).click();

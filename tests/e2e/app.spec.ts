@@ -120,7 +120,8 @@ for (const width of [320, 390, 768, 1024, 1440]) {
     await noOverflow();
     await page.screenshot({ path: `test-results/layout/${width}-home.png`, fullPage: true, animations: "disabled" });
     if (width === 390) await page.screenshot({ path: "test-results/layout/390-home-preview.png", animations: "disabled" });
-    await page.goto("/onochoo?filter=pending");
+    await page.getByRole("link", { name: "평가할 곡 3", exact: true }).click();
+    await expect(page).toHaveURL(/\/onochoo\?filter=pending$/);
     await expect(page.locator(".song-card")).toHaveCount(3);
     await noOverflow();
     await page.screenshot({ path: `test-results/layout/${width}-candidates.png`, fullPage: true, animations: "disabled" });

@@ -61,13 +61,15 @@ test("navigation and browser back start at the top while song dialogs preserve l
   await page.setViewportSize({ width: 390, height: 664 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await page.getByRole("link", { name: "플레이리스트 둘러보기" }).scrollIntoViewIfNeeded();
+  await page.getByRole("link", { name: /^기록/ }).scrollIntoViewIfNeeded();
   expect(await page.evaluate(() => scrollY)).toBeGreaterThan(100);
-  await page.getByRole("link", { name: "플레이리스트 둘러보기" }).click();
+  await page.locator(".home-collection").getByRole("link", { name: "무티고을", exact: true }).click();
   await expect(page).toHaveURL(/\/mutigoeul$/);
+  await expect(page.getByRole("heading", { name: "무티고을", level: 1, exact: true })).toBeVisible();
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
   const song = page.locator(".album-tile").nth(8);
   await song.scrollIntoViewIfNeeded();
+  await song.hover();
   const before = await page.evaluate(() => scrollY);
   expect(before).toBeGreaterThan(100);
   await song.click();

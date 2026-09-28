@@ -139,27 +139,29 @@ svg { flex-shrink: 0; }
 .section-heading p { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
 .section-heading > a, .section-heading > span { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 12px; }
 .content-section { margin-top: 24px; }
-.home-layout { display: grid; gap: 24px; }
+.home-layout { display: grid; grid-template-columns: minmax(0,1fr); gap: 24px; }
 .home-main, .home-aside, .settings-main { min-width: 0; }
+.home-main { display: grid; grid-template-columns: minmax(0,1fr); gap: 30px; }
+.home-section-link { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; border-radius: 4px; }
+.home-section-link > svg { color: var(--muted); }
+.home-section-link:hover > svg { color: var(--text); }
 .queue-heading { align-items: center; flex-wrap: wrap; gap: 4px 12px; }
 .queue-heading h2 { font-size: 22px; font-weight: 700; }
 .queue-start { margin-left: auto; min-height: 44px; color: var(--brand); font-size: 12px; }
-.list-more { display: flex; align-items: center; justify-content: flex-end; gap: 6px; min-height: 44px; color: var(--muted); font-size: 12px; }
-.list-more span { color: var(--text); font-variant-numeric: tabular-nums; }
-.list-more:hover { color: var(--text); }
 .home-aside { display: grid; align-content: start; gap: 18px; }
-.home-collection { padding-top: 18px; border-top: 1px solid var(--line); }
-.home-collection h2 { font-size: 20px; }
-.collection-picks { display: grid; }
-.collection-pick { position: relative; display: grid; grid-template-columns: 44px minmax(0,1fr) 16px; align-items: center; gap: 12px; min-height: 62px; padding: 8px 0; border: 0; background: transparent; text-align: left; }
-.collection-pick > span { min-width: 0; }
-.collection-pick .song-cover { width: 44px; }
-.collection-pick b { display: block; font-size: 15px; font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.collection-pick small { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.collection-pick > svg { color: var(--muted); }
-.collection-more { display: flex; align-items: center; justify-content: space-between; min-height: 44px; margin-top: 2px; color: var(--muted); font-size: 12px; }
-.collection-more:hover { color: var(--text); }
+.home-collection { min-width: 0; }
+.home-collection h2 { font-size: 22px; font-weight: 700; }
+.home-collection .section-heading p { margin-top: -2px; }
 .collection-empty { margin: 14px 0; font-size: 13px; color: var(--muted); }
+.song-carousel { position: relative; min-width: 0; }
+.song-carousel-track { display: grid; grid-auto-flow: column; grid-auto-columns: 42%; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; list-style: none; margin: 0 -20px; padding: 5px 20px 8px; scroll-padding-inline: 20px; }
+.song-carousel-track::-webkit-scrollbar { display: none; }
+.song-carousel-track > li { min-width: 0; scroll-snap-align: start; }
+.song-carousel-track .album-tile { display: block; width: 100%; border-radius: 8px; }
+.song-carousel-track .song-cover { border-radius: 8px; box-shadow: inset 0 0 0 1px var(--line-soft); }
+.song-carousel-track .album-tile > span { font-size: 13px; }
+.song-carousel-controls { display: none; justify-content: flex-end; gap: 4px; margin-top: 4px; }
+.song-carousel-controls .icon-button { border: 1px solid var(--line-soft); }
 .mini-stats { padding-top: 16px; border-top: 1px solid var(--line); }
 .mini-stats h2 { margin: 0 0 14px; font-size: 15px; font-weight: 600; letter-spacing: -.025em; }
 .mini-stats dl { margin: 0; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -470,6 +472,10 @@ svg { flex-shrink: 0; }
 /* Responsive composition */
 @media (min-width: 640px) {
   .page { padding: 24px 28px 36px; }
+  .home-main { gap: 36px; }
+  .home-collection h2 { font-size: 24px; }
+  .home-aside { grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; gap: 28px; }
+  .song-carousel-track { grid-auto-columns: 200px; gap: 20px; margin-inline: -28px; padding-inline: 28px; scroll-padding-inline: 28px; }
   .page-header { margin-bottom: 24px; }
   .weekly-theme-card { padding: 26px; }
   .weekly-theme-card.has-artwork { padding-right: 184px; }
@@ -527,6 +533,7 @@ svg { flex-shrink: 0; }
   .sidebar-profile small { margin-top: 4px; color: var(--muted); font-size: 11px; }
   .main-content { padding-bottom: 0; }
   .page { padding: 32px 32px 40px; }
+  .song-carousel-track { margin-inline: -32px; padding-inline: 32px; scroll-padding-inline: 32px; }
   .page-header { margin-bottom: 24px; }
   .playlist-tools { grid-template-columns: minmax(0,440px) minmax(180px,260px); justify-content: space-between; align-items: center; gap: 20px; }
   .segmented-control { gap: 3px; }
@@ -539,19 +546,18 @@ svg { flex-shrink: 0; }
   .app-shell { padding-left: 224px; }
   .sidebar { width: 224px; padding-inline: 24px; }
   .page { padding: 36px 40px 40px; }
-  .home-layout { grid-template-columns: minmax(0,1fr) 272px; gap: 36px; align-items: start; }
-  .home-collection { padding-top: 4px; border-top: 0; }
-  .home-collection .section-heading { margin-bottom: 10px; min-height: 44px; }
+  .home-layout { gap: 36px; }
+  .song-carousel-track { margin-inline: -40px; padding-inline: 40px; scroll-padding-inline: 40px; }
   .home-listening-links { margin-top: 28px; }
   .album-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
   .settings-layout { grid-template-columns: minmax(0,1fr) 330px; gap: 24px; }
 }
 @media (min-width: 1500px) {
-  .home-layout { gap: 40px; grid-template-columns: minmax(0,1fr) 300px; }
   .album-grid { grid-template-columns: repeat(5,minmax(0,1fr)); }
 }
 @media (max-width: 359px) {
   .page { padding-inline: 18px; }
+  .song-carousel-track { margin-inline: -18px; padding-inline: 18px; scroll-padding-inline: 18px; }
   .mobile-topbar { padding-inline: 18px; gap: 8px; }
   .mobile-topbar .wordmark { font-size: 20px; }
   .mobile-topbar-actions { gap: 7px; }
@@ -583,15 +589,18 @@ svg { flex-shrink: 0; }
 .dialog-content[data-state="open"] { animation: dialog-enter 230ms var(--motion-ease); }
 .dialog-content[data-state="closed"] { animation: dialog-exit 160ms ease-in; pointer-events: none; }
 button, a { transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; }
-.primary-button, .secondary-button, .evaluate-button, .icon-button, .source-card, .mobile-add-button, .decision-control button, .album-tile, .song-card-open, .collection-pick { transition: transform 160ms var(--motion-ease), background-color 160ms ease, border-color 160ms ease, color 160ms ease; }
+.primary-button, .secondary-button, .evaluate-button, .icon-button, .source-card, .mobile-add-button, .decision-control button, .album-tile, .song-card-open { transition: transform 160ms var(--motion-ease), background-color 160ms ease, border-color 160ms ease, color 160ms ease; }
 :is(.primary-button, .secondary-button, .evaluate-button, .icon-button, .source-card, .mobile-add-button, .decision-control button):not(:disabled):active { transform: scale(.97); }
-.song-card-open:active, .collection-pick:active { transform: scale(.99); }
+.song-card-open:active { transform: scale(.99); }
 .bottom-link svg, .nav-link svg { transition: transform 160ms var(--motion-ease); }
 .bottom-link:active svg, .nav-link:active svg { transform: scale(.9); }
 .decision-control button[aria-pressed="true"] svg { animation: choice-enter 180ms var(--motion-ease); }
+@media (min-width: 640px) and (hover: hover) and (pointer: fine) {
+  .song-carousel-controls { display: flex; }
+}
 @media (hover: hover) and (pointer: fine) {
   .album-tile:hover { transform: translateY(-3px); }
-  .song-card-open:hover .song-title, .collection-pick:hover b { color: var(--brand); }
+  .song-card-open:hover .song-title { color: var(--brand); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } }
@@ -660,8 +669,7 @@ button, a { transition: background-color 160ms ease, border-color 160ms ease, co
 .section-count { margin-left: 4px; }
 .song-card-open .song-cover { width: 52px; }
 .song-card-stats { display: none; }
-.song-card::after, .record-song::after, .collection-pick::after { content: ""; position: absolute; inset: auto 0 0 64px; height: 1px; background: var(--line-soft); pointer-events: none; }
-.collection-pick::after { left: 56px; }
+.song-card::after, .record-song::after { content: ""; position: absolute; inset: auto 0 0 64px; height: 1px; background: var(--line-soft); pointer-events: none; }
 .record-song-action { display: flex; align-items: center; justify-content: flex-end; gap: 8px; color: var(--muted); font-size: 12px; }
 .profile-settings-card > .avatar { width: 58px; height: 58px; }
 .settings-actions:not(:empty) { margin-top: 14px; }
