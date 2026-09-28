@@ -14,9 +14,9 @@ export function RecordsPage() {
   const [query, setQuery] = useState("");
   const [month, setMonth] = useState("");
   if (!data) return null;
-  const archived = data.songs.filter((song) => song.archived_at).sort((a, b) => b.archived_at!.localeCompare(a.archived_at!) || a.id.localeCompare(b.id));
+  const archived = data.songs.filter((song) => song.archived_at).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime() || a.id.localeCompare(b.id));
   const monthKey = (value: string) => new Intl.DateTimeFormat("sv-SE", { year: "numeric", month: "2-digit", timeZone: "Asia/Seoul" }).format(new Date(value));
-  const months = [...new Set(archived.map((song) => monthKey(song.archived_at!)))];
+  const months = [...new Set(archived.map((song) => monthKey(song.archived_at!)))].sort((a, b) => b.localeCompare(a));
   const filtered = archived.filter((song) => (!month || monthKey(song.archived_at!) === month) && `${song.title} ${song.artist} ${song.adder}`.toLocaleLowerCase("ko-KR").includes(query.trim().toLocaleLowerCase("ko-KR")));
   return (
     <div className="page records-page">
