@@ -43,12 +43,12 @@
   --control: #ededf0;
   --control-hover: #e3e3e7;
   --control-highlight: #ffffffcc;
-  --glass-tint: #f8f8faba;
+  --glass-tint: #f8f8fa99;
   --glass-edge: #ffffffb3;
   --glass-highlight: #ffffffb3;
   --glass-lowlight: #ffffff00;
-  --glass-selection: #ffffffa6;
-  --glass-label: #51515a;
+  --glass-selection: #ffffff80;
+  --glass-label: #292932;
   --glass-shadow: #2020301a;
   --radius-pill: 999px;
   --radius-card: 24px;
@@ -89,12 +89,12 @@
   --control: #2a2a2e;
   --control-hover: #353539;
   --control-highlight: #ffffff14;
-  --glass-tint: #242429c7;
+  --glass-tint: #141419ad;
   --glass-edge: #ffffff29;
   --glass-highlight: #ffffff14;
   --glass-lowlight: #ffffff00;
-  --glass-selection: #ffffff1f;
-  --glass-label: #cdcdd5;
+  --glass-selection: #00000038;
+  --glass-label: #f5f5f7;
   --glass-shadow: #0000004d;
 }
 * { box-sizing: border-box; }
