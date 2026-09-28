@@ -14,7 +14,7 @@ export function SongCard({ song, stats, hasVoted, onOpen, compact = false, hideS
           <span className="song-title-row"><span className="song-title">{song.title}</span></span>
           <span className="song-artist">{song.artist}</span>
           <span className="song-card-meta"><span className="song-card-adder">{song.adder} 추천</span><span className="song-vote-count">평가 {stats.votes.length}명</span>{avg !== null ? <span className="song-card-rating"><Star size={12} />{avg.toFixed(1)}</span> : null}</span>
-          {!hideStatus && !hasVoted ? <span className="decision-countdown">{getDecisionCountdown(song.createdAt)}</span> : null}
+          {!hideStatus ? <span className="decision-countdown">{getDecisionCountdown(song.createdAt)}</span> : null}
         </span>
       </button>
       <div className="song-row-action">

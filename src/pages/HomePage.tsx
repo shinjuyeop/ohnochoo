@@ -1,4 +1,4 @@
-import { Archive, ArrowRight, Camera, Disc3, ExternalLink, Music } from "lucide-react";
+import { ArrowRight, Camera, Disc3, ExternalLink, Music } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SongCard } from "../components/SongCard";
 import { useReviewSession } from "../app/ReviewSessionContext";
@@ -23,14 +23,10 @@ export function HomePage() {
   const mine = data.songs.filter((song) => isSongByMember(song, profile)).length;
   const recentArchive = [...data.mutigoeulEntries].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .map((entry) => mutigoeulSongs.find((song) => song.id === entry.songId)).filter((song) => song !== undefined).slice(0, 4);
-  const date = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "long", timeZone: "Asia/Seoul" }).format(new Date());
 
   return (
     <div className="page home-page">
-      <header className="page-header home-heading">
-        <div><p className="page-kicker">{profile.name}님, 반가워요</p><h1>오늘의 오노추<span className="heading-dot">.</span></h1></div>
-        <time className="home-date">{date}</time>
-      </header>
+      <h1 className="visually-hidden">홈</h1>
       <div className="home-layout">
         <div className="home-main">
           <section className="content-section queue-section">
@@ -44,15 +40,21 @@ export function HomePage() {
             </div>
             {pending.length ? <Link className="list-more" to="/onochoo?filter=pending">미평가 곡 전체 보기 <span>{pending.length}</span><ArrowRight size={15} /></Link> : null}
           </section>
-          <Link className="records-entry" to="/records"><span className="records-entry-icon"><Archive size={21} /></span><span><b>기록</b><small>방출된 곡과 그때 나눈 이야기</small></span><span className="records-entry-count">{data.songs.filter((song) => song.archived_at).length}곡</span><ArrowRight size={17} /></Link>
         </div>
         <aside className="home-aside">
           <section className="home-collection">
-            <div className="section-heading"><div><span className="section-caption">함께 모은 플레이리스트</span><h2>우리의 무티고을</h2></div><span className="collection-count">{mutigoeulSongs.length}곡</span></div>
+            <div className="section-heading"><h2>무티고을</h2><span className="collection-count">{mutigoeulSongs.length}곡</span></div>
             {recentArchive.length ? <div className="collection-picks">{recentArchive.map((song) => <button className="collection-pick" key={song.id} onClick={() => openSong(song.id)}><SongCover song={song} /><span><b>{song.title}</b><small>{song.artist}</small></span><ArrowRight size={15} /></button>)}</div> : <p className="collection-empty">우리의 선택을 받은 음악이<br />이곳에 차곡차곡 모여요.</p>}
             <Link className="collection-more" to="/mutigoeul">플레이리스트 둘러보기 <ArrowRight size={15} /></Link>
           </section>
-          <section className="mini-stats"><h3>나의 음악 기록</h3><div><span><b>{mine}</b>추천한 곡</span><span><b>{myVotes.length}</b>남긴 평가</span></div></section>
+          <Link className="records-entry" to="/records">
+            <span className="records-entry-heading"><b>기록</b><span className="records-entry-count">{data.songs.filter((song) => song.archived_at).length}곡<ArrowRight size={17} /></span></span>
+            <small>방출된 곡과 그때 나눈 이야기</small>
+          </Link>
+          <section className="mini-stats">
+            <h2>나의 음악 기록</h2>
+            <dl><div><dt>추천한 곡</dt><dd>{mine}</dd></div><div><dt>남긴 평가</dt><dd>{myVotes.length}</dd></div></dl>
+          </section>
         </aside>
       </div>
       <footer className="home-listening-links" aria-label="외부 링크">
