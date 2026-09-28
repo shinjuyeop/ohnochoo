@@ -30,7 +30,7 @@ export function AppShell() {
         <AppNavigation onAdd={() => { setAddThemeId(undefined); setAddOpen(true); }} />
         <div className="mobile-topbar">
           <span className="wordmark">ohnochoo<span className="brand-period">.</span></span>
-          <div className="mobile-topbar-actions"><button className="mobile-add-button" onClick={() => { setAddThemeId(undefined); setAddOpen(true); }} aria-label="노래 추가"><Plus size={18} /><span>추가</span></button><button className="mobile-profile-button" onClick={() => navigate("/settings")} aria-label={`${profile.name} 내 정보`}><Avatar name={profile.name} imageUrl={profile.avatar_url} imageVersion={profile.avatar_updated_at} size="sm" /></button></div>
+          <div className="mobile-topbar-actions"><button className="mobile-add-button glass-control" onClick={() => { setAddThemeId(undefined); setAddOpen(true); }} aria-label="노래 추가"><Plus size={18} /><span>추가</span></button><button className="mobile-profile-button glass-control" onClick={() => navigate("/settings")} aria-label={`${profile.name} 내 정보`}><Avatar name={profile.name} imageUrl={profile.avatar_url} imageVersion={profile.avatar_updated_at} size="sm" /></button></div>
         </div>
         <main className="main-content"><div className="page-transition" key={location.pathname}><Outlet /></div></main>
         <AddSongDialog key={profile.id} open={addOpen} onOpenChange={setAddOpen} initialThemeId={addThemeId} />

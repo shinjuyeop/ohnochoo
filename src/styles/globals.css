@@ -43,9 +43,17 @@
   --control: #ededf0;
   --control-hover: #e3e3e7;
   --control-highlight: #ffffffcc;
+  --glass-tint: #f8f8faba;
+  --glass-edge: #ffffffb3;
+  --glass-highlight: #ffffffb3;
+  --glass-lowlight: #ffffff00;
+  --glass-selection: #ffffffa6;
+  --glass-label: #51515a;
+  --glass-shadow: #2020301a;
   --radius-pill: 999px;
   --radius-card: 24px;
   --motion-ease: cubic-bezier(.2,.8,.2,1);
+  --motion-spring: cubic-bezier(.22,1.12,.36,1);
   color: var(--text);
   background: var(--canvas);
 }
@@ -81,6 +89,13 @@
   --control: #2a2a2e;
   --control-hover: #353539;
   --control-highlight: #ffffff14;
+  --glass-tint: #242429c7;
+  --glass-edge: #ffffff29;
+  --glass-highlight: #ffffff14;
+  --glass-lowlight: #ffffff00;
+  --glass-selection: #ffffff1f;
+  --glass-label: #cdcdd5;
+  --glass-shadow: #0000004d;
 }
 * { box-sizing: border-box; }
 html { min-width: 320px; background: var(--canvas); -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: 90px; }
@@ -124,11 +139,34 @@ svg { flex-shrink: 0; }
 .mobile-profile-button { padding: 0; min-width: 44px; min-height: 44px; border: 0; background: var(--control); display: grid; place-items: center; border-radius: 50%; }
 .mobile-topbar .avatar { width: 36px; height: 36px; font-size: 12px; border-radius: 50%; }
 .main-content { min-width: 0; padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-.bottom-nav { position: fixed; z-index: 40; inset: auto 12px max(8px, env(safe-area-inset-bottom)); max-width: 520px; margin-inline: auto; min-height: 64px; padding: 5px; border: 1px solid var(--line-soft); border-radius: var(--radius-pill); background: var(--surface); backdrop-filter: none; box-shadow: inset 0 1px 0 var(--control-highlight), 0 6px 28px var(--shadow); display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 3px; -webkit-backdrop-filter: none; }
-.bottom-link { min-height: 52px; border-radius: 27px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--muted); font-size: 11px; font-weight: 550; }
+.bottom-nav { position: fixed; z-index: 40; inset: auto 12px max(8px, env(safe-area-inset-bottom)); max-width: 520px; margin-inline: auto; min-height: 64px; padding: 5px; border: 1px solid var(--glass-edge); border-radius: var(--radius-pill); background: linear-gradient(155deg, var(--glass-highlight), var(--glass-lowlight) 48%), var(--surface); box-shadow: inset 0 1px 0 var(--control-highlight), inset 0 -1px 0 var(--line-soft), 0 6px 24px var(--glass-shadow); display: grid; grid-template-columns: repeat(var(--nav-count),minmax(0,1fr)); }
+.bottom-nav::before { content: ""; position: absolute; inset: 5px auto 5px 5px; width: calc((100% - 10px) / var(--nav-count)); border-radius: var(--radius-pill); background: var(--glass-selection); box-shadow: inset 0 1px 0 var(--control-highlight), 0 1px 5px var(--shadow); transform: translateX(calc(var(--nav-index) * 100%)); opacity: var(--nav-active); transition: transform 320ms var(--motion-spring), opacity 160ms ease; pointer-events: none; }
+.bottom-link { position: relative; min-height: 52px; border-radius: 27px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--glass-label); font-size: 11px; font-weight: 550; }
 .bottom-link svg { width: 23px; height: 23px; stroke-width: 1.8; }
-.bottom-link.active { color: var(--brand); background: var(--control); }
+.bottom-link.active { color: var(--brand); font-weight: 700; }
 .bottom-link.active svg { stroke-width: 2.1; }
+
+/* A single, bounded backdrop. Buttons use static lighting, with no extra filters. */
+.glass-control { border: 1px solid var(--line-soft); background-color: var(--surface); background-image: linear-gradient(155deg, var(--glass-highlight), var(--glass-lowlight) 65%); box-shadow: inset 0 1px 0 var(--control-highlight), 0 2px 8px var(--glass-shadow); }
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  @media (max-width: 899px) {
+    .bottom-nav { background-color: var(--glass-tint); -webkit-backdrop-filter: blur(16px) saturate(1.3); backdrop-filter: blur(16px) saturate(1.3); }
+  }
+}
+/* A covered navigation bar does not need to keep sampling its backdrop. */
+body:has(.dialog-overlay) .bottom-nav { background-color: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .bottom-nav { background: var(--surface); border-color: var(--line-strong); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .bottom-nav::before { background: var(--control); box-shadow: none; }
+  .glass-control { background: var(--surface); border-color: var(--line-strong); box-shadow: none; }
+}
+@media (forced-colors: active) {
+  .bottom-nav { background: Canvas; border-color: ButtonText; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .bottom-nav::before { background: Highlight; box-shadow: none; forced-color-adjust: none; }
+  .bottom-link { color: LinkText; }
+  .bottom-link.active { color: HighlightText; forced-color-adjust: none; }
+  .glass-control { background: ButtonFace; border-color: ButtonText; box-shadow: none; }
+}
 @media (display-mode: standalone) and (max-width: 899px) {
   /* Leave an opaque buffer below the status area before any header controls. */
   .mobile-topbar { padding-top: calc(32px + env(safe-area-inset-top, 0px)); }
@@ -601,6 +639,8 @@ button, a { transition: background-color 160ms ease, border-color 160ms ease, co
 :is(.primary-button, .secondary-button, .ghost-danger-button, .danger-button, .icon-button, .icon-text-button, .mobile-add-button, .mobile-profile-button, .search-clear, .segmented-control button):not(:disabled):active { transform: scale(.95); transition-duration: 90ms; }
 :is(.album-tile, .record-song, .theme-option, .admin-song-option, .home-section-link):active { transform: scale(.98); transition-duration: 90ms; }
 .bottom-link:active { transform: scale(.94); transition-duration: 90ms; }
+.glass-control, .bottom-link { transition: transform 260ms var(--motion-spring), background-color 180ms ease, color 180ms ease; }
+.glass-control:not(:disabled):active, .bottom-link:active { transform: scale(.95); transition-duration: 90ms; }
 .bottom-link.active svg { animation: tab-select 280ms var(--motion-ease); }
 .decision-control button[aria-pressed="true"] svg { animation: choice-enter 180ms var(--motion-ease); }
 @media (min-width: 640px) and (hover: hover) and (pointer: fine) {

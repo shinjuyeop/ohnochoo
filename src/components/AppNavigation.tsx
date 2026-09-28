@@ -1,5 +1,6 @@
 import { Home, Library, Music2, Plus, UserRound } from "lucide-react";
-import { Link, NavLink } from "react-router-dom";
+import type { CSSProperties } from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { cn } from "../lib/utils";
 import { useProfile } from "../features/profile/ProfileContext";
 import { Avatar } from "./ui/Avatar";
@@ -13,6 +14,13 @@ const items = [
 
 export function AppNavigation({ onAdd }: { onAdd: () => void }) {
   const { profile } = useProfile();
+  const { pathname } = useLocation();
+  const activeIndex = items.findIndex(({ to, end }) => end ? pathname === to : pathname === to || pathname.startsWith(`${to}/`));
+  const navigationStyle = {
+    "--nav-count": items.length,
+    "--nav-index": Math.max(0, activeIndex),
+    "--nav-active": activeIndex >= 0 ? 1 : 0,
+  } as CSSProperties;
   return (
     <>
       <nav className="sidebar" aria-label="주요 메뉴">
@@ -23,7 +31,7 @@ export function AppNavigation({ onAdd }: { onAdd: () => void }) {
         <button className="primary-button sidebar-add" onClick={onAdd}><Plus size={19} /> 노래 추가</button>
         {profile ? <Link className="sidebar-profile" to="/settings"><Avatar name={profile.name} imageUrl={profile.avatar_url} imageVersion={profile.avatar_updated_at} size="sm" /><span><b>{profile.name}</b><small>내 프로필</small></span></Link> : null}
       </nav>
-      <nav className="bottom-nav" aria-label="주요 메뉴">
+      <nav className="bottom-nav" style={navigationStyle} aria-label="주요 메뉴">
         {items.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => cn("bottom-link", isActive && "active")}><Icon /><span>{label}</span></NavLink>)}
       </nav>
     </>

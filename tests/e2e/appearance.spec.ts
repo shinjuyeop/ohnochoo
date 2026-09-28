@@ -62,6 +62,9 @@ test("navigation and browser back start at the top while song dialogs preserve l
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await page.getByRole("link", { name: /^방출/ }).scrollIntoViewIfNeeded();
+  // WebKit may reveal this link after only a small scroll. Start at the
+  // actual bottom so both engines exercise navigation from a scrolled page.
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   expect(await page.evaluate(() => scrollY)).toBeGreaterThan(100);
   await page.locator(".home-collection").getByRole("link", { name: "무티고을 13", exact: true }).click();
   await expect(page).toHaveURL(/\/mutigoeul$/);
@@ -81,6 +84,7 @@ test("navigation and browser back start at the top while song dialogs preserve l
   await expect(page).toHaveURL(/\/$/);
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
   await page.getByRole("link", { name: /^방출/ }).scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   expect(await page.evaluate(() => scrollY)).toBeGreaterThan(100);
   await page.getByRole("link", { name: /^방출/ }).click();
   await expect(page).toHaveURL(/\/records$/);
