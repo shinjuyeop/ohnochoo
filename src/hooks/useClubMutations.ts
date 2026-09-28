@@ -5,7 +5,8 @@ import { getSupabase } from "../lib/supabase";
 import { normalizeCoverUrl } from "../lib/utils";
 import { prepareProfileImage } from "../lib/profileImage";
 import { normalizeReplyBody } from "../lib/replyRules";
-import type { Decision, Member, PlaylistSong, Song } from "../types";
+import { cacheSavedReply, cacheSavedVote } from "../lib/clubCache";
+import type { Decision, Member, PlaylistSong, Song, Vote, VoteReply } from "../types";
 
 type Profile = Pick<Member, "id" | "name">;
 export function useClubMutations() {
@@ -18,34 +19,34 @@ export function useClubMutations() {
 
   const addSong = useMutation({
     mutationFn: async (input: { title: string; artist: string; reason: string; rating: number; coverImageUrl?: string | null; weeklyThemeId?: string | null; albumUrl?: string | null; albumName?: string | null; profile: Profile }) => {
-      const result = await postJson<{ song: Song }>("/api/save-activity", {
+      const result = await postJson<{ song: Song; vote?: Vote | null }>("/api/save-activity", {
         kind: "song", title: input.title, artist: input.artist, reason: input.reason.trim(),
         rating: input.rating, coverImageUrl: normalizeCoverUrl(input.coverImageUrl), memberId: input.profile.id,
         weeklyThemeId: input.weeklyThemeId ?? null,
         albumUrl: input.albumUrl ?? null, albumName: input.albumName ?? null,
       });
-      return result.song;
+      return result;
     },
-    onSuccess: refresh,
+    onSuccess: (result) => result.vote ? cacheSavedVote(queryClient, result.vote, result.song) : refresh(),
   });
 
   const saveVote = useMutation({
     mutationFn: (input: { song: Song; decision: Decision; rating: number; reason: string; profile: Profile }) =>
-      postJson<{ changed: boolean; isNew: boolean }>("/api/save-activity", {
+      postJson<{ changed: boolean; isNew: boolean; vote?: Vote | null }>("/api/save-activity", {
         kind: "vote", songId: input.song.id, decision: input.decision, rating: input.rating,
         reason: input.reason.trim(), memberId: input.profile.id,
       }),
-    onSuccess: refresh,
+    onSuccess: (result) => result.vote ? cacheSavedVote(queryClient, result.vote) : refresh(),
   });
 
   const addVoteReply = useMutation({
-    mutationFn: async (input: { voteId: string; body: string; profile: Profile }) => {
-      const result = await postJson<{ replyId: string }>("/api/save-activity", {
+    mutationFn: async (input: { songId: string; voteId: string; body: string; profile: Profile }) => {
+      const result = await postJson<{ replyId: string; reply?: VoteReply }>("/api/save-activity", {
         kind: "reply", voteId: input.voteId, body: normalizeReplyBody(input.body), memberId: input.profile.id,
       });
-      return result.replyId;
+      return result;
     },
-    onSuccess: refresh,
+    onSuccess: (result, input) => result.reply ? cacheSavedReply(queryClient, input.songId, result.reply) : refresh(),
   });
 
   const addMember = useMutation({

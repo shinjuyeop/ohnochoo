@@ -1,4 +1,5 @@
 const { createClient } = require("@supabase/supabase-js");
+const { waitUntil } = require("@vercel/functions");
 const { readJsonBody } = require("./_push-utils");
 const { requireAppPost } = require("./_request-guards");
 const { resolveAlbum } = require("./_apple-music-album");
@@ -12,6 +13,17 @@ async function deliver(handler, body) {
     // Internal module call, never a client-supplied notification request.
     try { await handler.send({ method: "POST", body }, response); }
     catch (error) { console.warn("Saved activity; notification failed:", error.message); }
+}
+
+// A failed read after a committed write must never report that the save failed.
+async function savedVote(supabase, filters) {
+    try {
+        let query = supabase.from("votes").select("id,songId,voter,member_id,decision,rating,reason,createdAt");
+        for (const [key, value] of Object.entries(filters)) query = query.eq(key, value);
+        const result = await query.retry(false).maybeSingle();
+        if (result.error) return null;
+        return result.data?.songId ? result.data : null;
+    } catch { return null; }
 }
 
 module.exports = async (req, res) => {
@@ -29,10 +41,10 @@ module.exports = async (req, res) => {
         if (input.kind === "reply") {
             const body = typeof input.body === "string" ? input.body.trim() : "";
             if (!input.voteId || !body || [...body].length > 300) return res.status(400).json({ error: "답글은 1~300자로 입력해 주세요." });
-            const result = await supabase.from("vote_replies").insert({ vote_id: input.voteId, author: member.data.name, member_id: member.data.id, body }).select("id").single();
+            const result = await supabase.from("vote_replies").insert({ vote_id: input.voteId, author: member.data.name, member_id: member.data.id, body }).select("id,vote_id,author,member_id,body,created_at").single();
             if (result.error) throw result.error;
-            await deliver(require("./send-reaction-notification"), { notificationKind: "reply", replyId: result.data.id });
-            return res.status(200).json({ replyId: result.data.id });
+            waitUntil(deliver(require("./send-reaction-notification"), { notificationKind: "reply", replyId: result.data.id }));
+            return res.status(200).json({ replyId: result.data.id, reply: result.data });
         }
 
         const reason = typeof input.reason === "string" ? input.reason.trim() : "";
@@ -57,8 +69,9 @@ module.exports = async (req, res) => {
             if (result.error) throw result.error;
             const song = Array.isArray(result.data) ? result.data[0] : result.data;
             if (!song?.id) throw new Error("추가된 곡을 확인하지 못했어요.");
-            await deliver(require("./send-song-added-notification"), { songId: song.id });
-            return res.status(200).json({ song });
+            waitUntil(deliver(require("./send-song-added-notification"), { songId: song.id }));
+            const vote = await savedVote(supabase, { songId: song.id, member_id: member.data.id });
+            return res.status(200).json({ song, vote });
         }
         if (input.kind === "vote") {
             if (!input.songId || !["승격", "보류", "방출"].includes(input.decision)) return res.status(400).json({ error: "곡과 평가를 확인해 주세요." });
@@ -69,8 +82,9 @@ module.exports = async (req, res) => {
             if (result.error) throw result.error;
             const saved = Array.isArray(result.data) ? result.data[0] : result.data;
             if (!saved?.vote_id) throw new Error("저장된 평가를 확인하지 못했어요.");
-            if (saved.changed) await deliver(require("./send-reaction-notification"), { voteId: saved.vote_id, notificationKind: saved.is_new ? "new" : "update" });
-            return res.status(200).json({ changed: Boolean(saved.changed), isNew: Boolean(saved.is_new) });
+            if (saved.changed) waitUntil(deliver(require("./send-reaction-notification"), { voteId: saved.vote_id, notificationKind: saved.is_new ? "new" : "update" }));
+            const vote = await savedVote(supabase, { id: saved.vote_id });
+            return res.status(200).json({ changed: Boolean(saved.changed), isNew: Boolean(saved.is_new), vote });
         }
         return res.status(400).json({ error: "지원하지 않는 저장 요청이에요." });
     } catch (error) {

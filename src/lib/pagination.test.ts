@@ -17,3 +17,22 @@ it("never returns a partial result when a later page fails", async () => {
     ? { data: [1, 2], error: null }
     : { data: null, error: new Error("offline") })).rejects.toThrow("offline");
 });
+
+it("uses an exact first-page count to avoid an empty final request, even with a lower server cap", async () => {
+  const offsets: number[] = [];
+  const source = [1, 2, 3, 4, 5];
+  expect(await fetchAllPages(async (from) => {
+    offsets.push(from);
+    return { data: source.slice(from, from + 2), error: null, count: from === 0 ? source.length : null };
+  })).toEqual(source);
+  expect(offsets).toEqual([0, 2, 4]);
+});
+
+it("finishes a single-page response in one request", async () => {
+  let requests = 0;
+  expect(await fetchAllPages(async () => {
+    requests++;
+    return { data: [1], error: null, count: 1 };
+  })).toEqual([1]);
+  expect(requests).toBe(1);
+});

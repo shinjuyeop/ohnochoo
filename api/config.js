@@ -11,6 +11,9 @@ module.exports = (req, res) => {
         return res.status(200).json({ publicKey });
     }
 
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+        res.setHeader("Cache-Control", "public, max-age=300, s-maxage=300");
+    }
     res.status(200).json({
         supabaseUrl: process.env.SUPABASE_URL || "",
         supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",

@@ -45,7 +45,7 @@ export function MutigoeulPage() {
           <SearchField className="archive-search" value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} placeholder="곡, 아티스트 검색" />
         </div>
         {sortedSongs.length ? viewMode === "grid"
-          ? <div className="album-grid">{sortedSongs.map((song) => <button className="album-tile" key={song.id} onClick={() => openSong(song.id)}><SongCover song={song} /><b>{song.title}</b><span>{song.artist}</span></button>)}</div>
+          ? <div className="album-grid">{sortedSongs.map((song, index) => <button className="album-tile" key={song.id} onClick={() => openSong(song.id)}><SongCover song={song} sizes="(min-width: 1500px) 224px, (min-width: 1200px) calc((100vw - 364px) / 4), (min-width: 900px) calc((100vw - 314px) / 3), (min-width: 640px) calc((100vw - 96px) / 3), calc((100vw - 54px) / 2)" eager={index < 2} /><b>{song.title}</b><span>{song.artist}</span></button>)}</div>
           : <div className="song-list full-list archive-list">{sortedSongs.map((song) => <SongCard key={song.id} song={song} stats={voteStats.get(song.id) ?? emptyVoteStats()} hasVoted onOpen={() => openSong(song.id)} hideStatus />)}</div>
           : mutigoeulSongs.length
             ? <div className="empty-card large"><Music2 /><h3>검색 결과가 없어요</h3><p>다른 곡명이나 아티스트를 검색해 보세요.</p></div>

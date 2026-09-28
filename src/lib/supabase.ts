@@ -6,7 +6,7 @@ async function createConfiguredClient() {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 8000);
   try {
-    const response = await fetch("/api/config", { cache: "no-store", signal: controller.signal });
+    const response = await fetch("/api/config", { signal: controller.signal });
     if (!response.ok) throw new Error(`/api/config 응답 오류 (${response.status})`);
     const responseText = await response.text();
     let config: { supabaseUrl?: string; supabaseAnonKey?: string };

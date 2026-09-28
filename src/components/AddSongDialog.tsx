@@ -136,7 +136,7 @@ export function AddSongDialog({ open, onOpenChange }: { open: boolean; onOpenCha
         {showForm ? (
           <form className="form-stack song-add-form" onSubmit={handleSubmit(submit)}>
             {restored ? <p className="draft-hint">작성하던 추천을 불러왔어요.</p> : null}
-            <div className="selected-song-preview"><SongCover song={previewSong} /><div><b>{title || "곡명"}</b><small>{artist || "아티스트"}</small></div></div>
+            <div className="selected-song-preview"><SongCover song={previewSong} sizes="64px" eager /><div><b>{title || "곡명"}</b><small>{artist || "아티스트"}</small></div></div>
             <div className="two-fields">
               <label className="field-label"><span>곡명</span><input {...register("title", { onChange: clearLinkedMetadata })} readOnly={Boolean(selectedSong)} placeholder="예: NEW DROP" />{errors.title ? <em>{errors.title.message}</em> : null}</label>
               <label className="field-label"><span>아티스트</span><input {...register("artist", { onChange: clearLinkedMetadata })} readOnly={Boolean(selectedSong)} placeholder="예: Don Toliver" />{errors.artist ? <em>{errors.artist.message}</em> : null}</label>

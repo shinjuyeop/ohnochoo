@@ -51,7 +51,7 @@ export function ProfileGate({ children }: { children: ReactNode }) {
   if (isLoading) {
     return <div className="app-loading"><div className="brand-mark">O</div><LoaderCircle className="spin" /><p>불러오는 중...</p></div>;
   }
-  if (error || !data) {
+  if (!data) {
     return <div className="app-loading error-state"><CircleError /><h1>연결하지 못했어요</h1><p>{errorMessage(error)}</p><button onClick={() => window.location.reload()}>다시 시도</button></div>;
   }
   if (profile) return children;

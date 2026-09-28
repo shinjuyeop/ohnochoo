@@ -58,7 +58,7 @@ export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyI
     <Dialog open={open && Boolean(songId)} onOpenChange={onOpenChange} title="곡 상세" description={`${song.title} · ${song.artist}`} className="song-detail-dialog">
       <div className="dialog-body song-detail-body" ref={bodyRef}>
         <section className="song-hero">
-          <SongCover song={song} eager />
+          <SongCover song={song} sizes="(min-width: 640px) 142px, (max-width: 359px) 80px, 100px" eager />
           <div className="song-hero-info">{allowVote ? <StatusBadge song={song} stats={stats} /> : null}<h2>{song.title}</h2><p>{song.artist}</p><small><UserRound size={14} /> {song.adder} · {formatKoreanDate(song.createdAt)}</small></div>
         </section>
         <SongAlbumLink song={song} playlistUrl={playlistUrl} playlistName={playlistName} />
@@ -85,7 +85,7 @@ export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyI
                   <p>{vote.reason}</p>
                   <div className="friend-vote-actions">
                     <time>{formatKoreanDate(vote.createdAt, true)}</time>
-                    {profile && !archived ? <VoteReplyForm key={`${vote.id}:${profile.id}`} voteId={vote.id} /> : null}
+                    {profile && !archived ? <VoteReplyForm key={`${vote.id}:${profile.id}`} voteId={vote.id} songId={song.id} /> : null}
                   </div>
                   {replies.length ? <div className="vote-replies">{replies.map((reply) => {
                     const authorMember = data.members.find((member) => member.id === reply.member_id || member.name === reply.author);

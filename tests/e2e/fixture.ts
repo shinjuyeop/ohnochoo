@@ -68,15 +68,19 @@ export async function mockClub(page: Page) {
         if (state.tables.songs.some((song) => song.id === input.songId && song.archived_at)) return route.fulfill({ status: 400, json: { error: "평가가 종료된 곡이에요." } });
         const existing = state.tables.votes.find((v) => v.songId === input.songId && v.member_id === input.memberId);
         if (existing) Object.assign(existing, { reason: input.reason, rating: input.rating, decision: input.decision });
-        else state.tables.votes.push({ id: "saved-vote", songId: input.songId, member_id: input.memberId, voter: "지우", reason: input.reason, rating: input.rating, decision: input.decision, createdAt: day(0) });
-        return route.fulfill({ json: { changed: true, isNew: !existing } });
+        else state.tables.votes.push({ id: `saved-vote-${input.songId}`, songId: input.songId, member_id: input.memberId, voter: "지우", reason: input.reason, rating: input.rating, decision: input.decision, createdAt: day(0) });
+        return route.fulfill({ json: { changed: true, isNew: !existing, vote: state.tables.votes.find((v) => v.songId === input.songId && v.member_id === input.memberId) } });
       }
       if (input.kind === "song") {
         const song = { id: "saved-song", title: input.title, artist: input.artist, adder: "지우", adder_member_id: memberId, coverImageUrl: input.coverImageUrl, album_url: input.albumUrl, album_name: input.albumName, weekly_theme_id: input.weeklyThemeId, createdAt: day(0) };
         state.tables.songs.push(song);
-        return route.fulfill({ json: { song } });
+        const vote = { id: "saved-initial-vote", songId: song.id, member_id: memberId, voter: "지우", reason: input.reason, rating: input.rating, decision: "승격", createdAt: day(0) };
+        state.tables.votes.push(vote);
+        return route.fulfill({ json: { song, vote } });
       }
-      return route.fulfill({ json: { replyId: "saved-reply" } });
+      const reply = { id: "saved-reply", vote_id: input.voteId, member_id: input.memberId, author: "지우", body: input.body, created_at: day(0) };
+      state.tables.vote_replies.push(reply);
+      return route.fulfill({ json: { replyId: reply.id, reply } });
     }
     if (path === "/api/update-song-covers") return route.fulfill({ json: { updated: 0 } });
     // No unmocked write or notification request is allowed to reach the real API.
@@ -124,12 +128,13 @@ export async function mockClub(page: Page) {
       const [key, direction] = item.split(".");
       rows = [...rows].sort((a, b) => String(a[key]).localeCompare(String(b[key])) * (direction === "desc" ? -1 : 1));
     }
+    const total = rows.length;
     const from = Number(url.searchParams.get("offset") || 0);
     // Deliberately cap responses below the requested size to exercise pagination.
     const limit = Math.min(2, Number(url.searchParams.get("limit") || 2));
     rows = rows.slice(from, from + limit);
     if (!(url.searchParams.get("select") || "").includes("reason") && table === "votes") rows = rows.map(({ reason: _, ...row }) => row);
-    return route.fulfill({ json: rows });
+    return route.fulfill({ json: rows, headers: route.request().headers().prefer?.includes("count=exact") ? { "content-range": `${from}-${Math.max(from, from + rows.length - 1)}/${total}` } : {} });
   });
   return state;
 }

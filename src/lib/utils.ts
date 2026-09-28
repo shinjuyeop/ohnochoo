@@ -30,11 +30,22 @@ export function getSongKey(title: string, artist: string) {
 export function normalizeCoverUrl(url?: string | null, size = 600) {
   const value = typeof url === "string" ? url.trim() : "";
   if (!value) return null;
-  return value
+  const normalized = value
     .replace("{w}", String(size))
     .replace("{h}", String(size))
     .replace("{f}", "jpg")
-    .replace(/\/\d+x\d+(bb|cc)?\.(jpg|jpeg|png|webp)$/i, `/${size}x${size}bb.jpg`);
+    .replace("{c}", "bb");
+  // Only Apple's artwork CDN supports this resizing convention.
+  return /^https:\/\/(?:[a-z0-9-]+\.)*mzstatic\.com\//i.test(normalized)
+    ? normalized.replace(/\/\d+x\d+(bb|cc)?(?:-\d+)?\.(jpg|jpeg|png|webp)(?=[?#]|$)/i, `/${size}x${size}bb.jpg`)
+    : normalized;
+}
+
+export function coverSrcSet(url?: string | null) {
+  const small = normalizeCoverUrl(url, 64);
+  if (!small || small === normalizeCoverUrl(url, 960)) return undefined;
+  if (!/^https:\/\/(?:[a-z0-9-]+\.)*mzstatic\.com\//i.test(small)) return undefined;
+  return [64, 128, 192, 320, 480, 640, 960].map((size) => `${normalizeCoverUrl(url, size)} ${size}w`).join(", ");
 }
 
 export function errorMessage(error: unknown) {

@@ -8,7 +8,7 @@ import { useToast } from "./ui/Toast";
 import { z } from "zod";
 import { clearDraft, draftKey, readDraft, writeDraft } from "../lib/drafts";
 
-export function VoteReplyForm({ voteId }: { voteId: string }) {
+export function VoteReplyForm({ voteId, songId }: { voteId: string; songId: string }) {
   const { profile } = useProfile();
   const storageKey = draftKey(profile?.id || "", `reply:${voteId}`);
   const [body, setBody] = useState(() => limitReplyLength(readDraft(storageKey, z.string()) || ""));
@@ -22,7 +22,7 @@ export function VoteReplyForm({ voteId }: { voteId: string }) {
     if (!profile || !body.trim()) return;
 
     try {
-      await addVoteReply.mutateAsync({ voteId, body, profile });
+      await addVoteReply.mutateAsync({ songId, voteId, body, profile });
       setBody("");
       clearDraft(storageKey);
       setOpen(false);

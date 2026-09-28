@@ -18,6 +18,49 @@ function load(file, mocks) {
 }
 const appRequest = (body) => ({ method: "POST", headers: { origin: "https://club.example", host: "club.example", "content-type": "application/json" }, body });
 
+test("committed saves return canonical data while notifications remain pending", async () => {
+    const previousUrl = process.env.SUPABASE_URL, previousAnon = process.env.SUPABASE_ANON_KEY;
+    process.env.SUPABASE_URL = "https://test.supabase.co";
+    process.env.SUPABASE_ANON_KEY = "test-anon";
+    try {
+        for (const kind of ["vote", "song", "reply"]) {
+            const tasks = [];
+            let completeNotification;
+            let notified = false;
+            const vote = { id: "vote", songId: "song", voter: "Server Name", member_id: "member", decision: "승격", rating: 4, reason: "Saved", createdAt: "2026-09-28T00:00:00Z" };
+            const reply = { id: "reply", vote_id: "vote", member_id: "member", author: "Server Name", body: "Reply", created_at: vote.createdAt };
+            const handler = load("save-activity.js", {
+                "@vercel/functions": { waitUntil: (task) => tasks.push(task) },
+                "@supabase/supabase-js": { createClient: () => ({
+                    from(table) {
+                        return { select() { return this; }, insert() { return this; }, eq() { return this; }, retry() { return this; },
+                            async maybeSingle() { return { data: table === "members" ? { id: "member", name: "Server Name" } : vote }; },
+                            async single() { return { data: reply }; },
+                        };
+                    },
+                    async rpc() { return { data: kind === "song" ? { id: "song" } : { vote_id: "vote", changed: true, is_new: true } }; },
+                }) },
+                "./_push-utils": { readJsonBody: async (req) => req.body },
+                ...Object.fromEntries(["./send-reaction-notification", "./send-song-added-notification"].map((name) => [name, {
+                    send: async () => { await new Promise((resolve) => { completeNotification = resolve; }); notified = true; },
+                }])),
+            });
+            const res = response();
+            await handler(appRequest({ kind, memberId: "member", songId: "song", voteId: "vote", title: "Song", artist: "Artist", decision: "승격", rating: 4, reason: "Saved", body: "Reply" }), res);
+            assert.equal(res.statusCode, 200);
+            assert.equal(notified, false);
+            assert.equal(tasks.length, 1);
+            assert.deepEqual(res.body[kind === "reply" ? "reply" : "vote"], kind === "reply" ? reply : vote);
+            completeNotification();
+            await Promise.all(tasks);
+            assert.equal(notified, true);
+        }
+    } finally {
+        if (previousUrl === undefined) delete process.env.SUPABASE_URL; else process.env.SUPABASE_URL = previousUrl;
+        if (previousAnon === undefined) delete process.env.SUPABASE_ANON_KEY; else process.env.SUPABASE_ANON_KEY = previousAnon;
+    }
+});
+
 test("cron authentication fails closed without a secret and rejects forged credentials", () => {
     const saved = process.env.CRON_SECRET;
     try {

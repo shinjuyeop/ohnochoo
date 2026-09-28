@@ -20,11 +20,11 @@ export function WeeklyThemeCard() {
       <div className="weekly-theme-top"><span><i aria-hidden="true" />이번 주 주제</span><time>{themeDateRange(theme.week_start)}</time></div>
       <div className="weekly-theme-copy"><h2 id="weekly-theme-title">{theme.title}</h2>{theme.description ? <p>{theme.description}</p> : null}</div>
       <div className="weekly-theme-social">
-        {songs.length ? <div className="theme-cover-stack" aria-hidden="true">{songs.slice(-3).map((song) => <SongCover key={song.id} song={song} />)}</div> : null}
+        {songs.length ? <div className="theme-cover-stack" aria-hidden="true">{songs.slice(-3).map((song) => <SongCover key={song.id} song={song} sizes="25px" />)}</div> : null}
         <span>{songs.length ? `${participants}명이 고른 ${songs.length}곡` : "이번 주의 첫 곡을 골라주세요"}</span>
       </div>
       <div className="weekly-theme-actions"><button className="primary-button" onClick={() => openAddSong(theme.id)}><Plus size={16} /> 주제로 추천하기</button><Link to={`/onochoo?theme=${theme.id}`}>모아 듣기 <ArrowRight size={15} /></Link></div>
-      {songs.length ? <div className="theme-artwork" aria-hidden="true">{songs.slice(-3).reverse().map((song, index) => <SongCover key={song.id} song={song} className={`theme-art-${index}`} />)}</div> : null}
+      {songs.length ? <div className="theme-artwork" aria-hidden="true">{songs.slice(-3).reverse().map((song, index) => <SongCover key={song.id} song={song} className={`theme-art-${index}`} sizes="120px" />)}</div> : null}
     </section>
   );
 }

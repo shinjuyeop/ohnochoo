@@ -38,7 +38,7 @@ export function SongCarousel({ songs, label, onOpen }: { songs: Song[]; label: s
         {songs.map((song, index) => (
           <li key={song.id}>
             <button className="album-tile" aria-label={`${song.title} - ${song.artist} 상세 보기`} onClick={() => onOpen(song.id)}>
-              <SongCover song={song} eager={index < 2} />
+              <SongCover song={song} sizes="(min-width: 640px) 200px, calc(42vw - 16px)" eager={index < 2} />
               <b title={song.title}>{song.title}</b>
               <span title={song.artist}>{song.artist}</span>
             </button>

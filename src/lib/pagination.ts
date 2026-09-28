@@ -1,4 +1,4 @@
-type PageResult<T> = { data: T[] | null; error: unknown };
+type PageResult<T> = { data: T[] | null; error: unknown; count?: number | null };
 
 // Advance by the actual response length: the server may cap pages below our request size.
 export async function fetchAllPages<T>(
@@ -6,10 +6,13 @@ export async function fetchAllPages<T>(
   pageSize = 500,
 ): Promise<T[]> {
   const rows: T[] = [];
+  let total: number | null = null;
   while (true) {
     const result = await fetchPage(rows.length, rows.length + pageSize - 1);
     if (result.error) throw result.error;
+    if (typeof result.count === "number" && Number.isFinite(result.count) && result.count >= 0) total = result.count;
     if (!result.data?.length) return rows;
     rows.push(...result.data);
+    if (total !== null && rows.length >= total) return rows;
   }
 }

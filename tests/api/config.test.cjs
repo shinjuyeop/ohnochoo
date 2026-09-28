@@ -28,6 +28,7 @@ test("public config and the legacy push-key alias preserve their response shapes
     const normal = response();
     handler({ query: {} }, normal);
     assert.deepEqual(normal.body, { supabaseUrl: "https://test.supabase.co", supabaseAnonKey: "public-anon" });
+    assert.equal(normal.headers["Cache-Control"], "public, max-age=300, s-maxage=300");
     const rewrite = require("../../vercel.json").rewrites.find((rule) => rule.source === "/api/vapid-public-key");
     const target = new URL(rewrite.destination, "https://club.example");
     assert.equal(target.pathname, "/api/config");
