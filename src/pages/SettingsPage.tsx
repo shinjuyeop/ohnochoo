@@ -265,7 +265,7 @@ export function SettingsPage() {
               );
             }) : <div className="admin-empty"><LockKeyhole /><p>{deleteSearch ? "검색 결과가 없어요." : "방출 예정인 곡이 없어요."}</p></div>}
           </div>
-          <div className="admin-delete-footer"><span>보관된 곡은 기록에서 다시 볼 수 있어요.</span><button className="danger-button" disabled={!selectedSongIds.length || mutations.archiveSongs.isPending}>{mutations.archiveSongs.isPending ? "보관 중..." : `${selectedSongIds.length}곡 보관`}</button></div>
+          <div className="admin-delete-footer"><span>보관된 곡은 방출에서 다시 볼 수 있어요.</span><button className="danger-button" disabled={!selectedSongIds.length || mutations.archiveSongs.isPending}>{mutations.archiveSongs.isPending ? "보관 중..." : `${selectedSongIds.length}곡 보관`}</button></div>
         </form>
       </Dialog>
     </div>

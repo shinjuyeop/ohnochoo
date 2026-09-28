@@ -44,7 +44,7 @@ export function OnochooPage() {
     <div className="page">
       <header className="page-header"><div><h1>오노추</h1><span className="page-count">{onochuSongs.length}곡</span></div><button className="icon-text-button" onClick={() => setRulesOpen(true)}><CircleHelp size={17} /> 판정 기준</button></header>
       <div className="playlist-tools">
-        <SegmentedControl label="곡 필터" value={filter} onChange={(value) => changeParam("filter", value === "all" ? "" : value)} options={filters.map((item) => ({ value: item.value, label: <>{item.label}{item.value === "pending" ? <span>{onochuSongs.filter((song) => !data.votes.some((vote) => vote.songId === song.id && isVoteByMember(vote, profile))).length}</span> : null}</> }))} />
+        <SegmentedControl label="곡 필터" value={filter} onChange={(value) => changeParam("filter", value === "all" ? "" : value)} options={filters} />
         <SearchField value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} placeholder="곡, 아티스트 검색" />
       </div>
       {filter === "pending" ? <p className="list-hint">판정일순</p> : null}

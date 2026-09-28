@@ -129,11 +129,15 @@ svg { flex-shrink: 0; }
 .bottom-link svg { width: 23px; height: 23px; stroke-width: 1.8; }
 .bottom-link.active { color: var(--brand); background: var(--control); }
 .bottom-link.active svg { stroke-width: 2.1; }
-@media (display-mode: standalone) and (max-width: 899px) { .mobile-topbar { padding-top: calc(16px + env(safe-area-inset-top)); } }
+@media (display-mode: standalone) and (max-width: 899px) {
+  /* Leave an opaque buffer below the status area before any header controls. */
+  .mobile-topbar { padding-top: calc(32px + env(safe-area-inset-top, 0px)); }
+  html { scroll-padding-top: calc(96px + env(safe-area-inset-top, 0px)); }
+}
 
 /* Page rhythm */
 .page { width: min(100%, 1280px); margin: 0 auto; padding: 16px 20px 28px; }
-.page-header { margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.page-header { min-height: 46px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .page-header > div { min-width: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
 .page-header h1 { margin: 0; font-size: clamp(30px, 4vw, 36px); font-weight: 740; line-height: 1.2; letter-spacing: -.035em; }
 .page-header p { margin: 10px 0 0; color: var(--muted); font-size: 13px; line-height: 1.65; word-break: keep-all; }
@@ -156,7 +160,6 @@ svg { flex-shrink: 0; }
 .home-aside { display: grid; align-content: start; gap: 18px; }
 .home-collection { min-width: 0; }
 .home-collection h2 { font-size: 22px; font-weight: 700; }
-.home-collection .section-heading p { margin-top: -2px; }
 .collection-empty { margin: 14px 0; font-size: 13px; color: var(--muted); }
 .song-carousel { position: relative; min-width: 0; }
 .song-carousel-track { display: grid; grid-auto-flow: column; grid-auto-columns: 42%; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; list-style: none; margin: 0 -20px; padding: 5px 20px 8px; scroll-padding-inline: 20px; }
@@ -173,8 +176,8 @@ svg { flex-shrink: 0; }
 .mini-stats dl > div + div { padding-left: 24px; border-left: 1px solid var(--line); }
 .mini-stats dt { font-size: 12px; color: var(--muted); }
 .mini-stats dd { margin: 5px 0 0; font-size: 24px; line-height: 1.15; font-weight: 550; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
-.home-listening-links { margin-top: 24px; padding-top: 12px; border-top: 1px solid var(--line-soft); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
-.home-listening-links > div { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.home-listening-links { margin-top: 24px; padding-top: 12px; border-top: 1px solid var(--line-soft); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 20px; }
+.home-listening-links > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 20px; }
 .home-listening-links a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--muted); font-size: 12px; }
 .home-listening-links a:hover { color: var(--text); }
 
@@ -255,10 +258,10 @@ svg { flex-shrink: 0; }
 .archive-section { margin-top: 0; }
 .archive-toolbar { margin-bottom: 18px; display: grid; gap: 12px; }
 .archive-control-group { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; }
-.view-toggle { min-width: 168px; }
+.view-toggle { flex-shrink: 0; width: 104px; }
 .view-toggle button svg { width: 17px; height: 17px; }
 .archive-sort { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); padding: 0 12px; background: var(--control); border-radius: var(--radius-pill); }
-.archive-sort select { min-width: 0; min-height: 44px; max-width: 135px; padding: 0; border: 0; background: transparent; font-size: 12px; color: var(--text); }
+.archive-sort select { min-width: 0; min-height: 48px; max-width: 135px; padding: 0; border: 0; background: transparent; font-size: 12px; color: var(--text); }
 .album-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px 14px; }
 .album-tile { min-width: 0; padding: 0; border: 0; background: transparent; text-align: left; }
 .album-tile .song-cover { width: 100%; border-radius: 7px; }
@@ -409,7 +412,7 @@ svg { flex-shrink: 0; }
 .profile-settings-card > div > span { color: var(--muted); font-size: 12px; }
 .profile-settings-card h2 { margin: 0; font-size: 22px; font-weight: 650; }
 .profile-settings-card p { margin: 0; color: var(--muted); font-size: 12px; }
-.profile-card-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+.profile-card-actions { grid-column: 1 / -1; min-width: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .profile-card-actions svg { width: 16px; }
 .settings-title, .admin-heading { display: flex; align-items: center; gap: 12px; }
 .settings-icon, .admin-heading > svg { flex: 0 0 auto; width: 36px; height: 36px; padding: 8px; border: 0; border-radius: 50%; color: var(--muted); background: var(--control); }
@@ -684,6 +687,10 @@ button, a { transition: background-color 160ms ease, border-color 160ms ease, co
 .record-song-action { display: flex; align-items: center; justify-content: flex-end; gap: 8px; color: var(--muted); font-size: 12px; }
 .profile-settings-card > .avatar { width: 58px; height: 58px; }
 .settings-actions:not(:empty) { margin-top: 14px; }
+@media (max-width: 639px) {
+  .profile-card-actions { flex-wrap: nowrap; gap: 6px; }
+  .profile-card-actions button { flex: 1 1 auto; min-width: 0; gap: 4px; padding-inline: 6px; font-size: 12px; white-space: nowrap; }
+}
 @media (min-width: 900px) {
   .song-card:not(.song-card-compact) { grid-template-columns: minmax(0,1fr) minmax(170px,.6fr) 92px; }
   .song-card:not(.song-card-compact) .song-card-stats { display: flex; align-items: center; justify-content: flex-end; gap: 20px; font-size: 12px; color: var(--muted); }
@@ -696,6 +703,5 @@ button, a { transition: background-color 160ms ease, border-color 160ms ease, co
   .record-song .song-cover { width: 44px; }
   .record-song::after { left: 54px; }
   .record-song-action { gap: 4px; }
-  .profile-card-actions { gap: 6px; }
-  .profile-card-actions button { padding-inline: 10px; font-size: 12px; }
+  .profile-card-actions svg { display: none; }
 }

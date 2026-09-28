@@ -31,13 +31,13 @@ export function HomePage() {
             {pending.length ? <SongCarousel songs={pending} label="평가할 곡" onOpen={openSong} /> : <div className="empty-card"><Disc3 /><p>미평가 곡이 없어요.</p></div>}
           </section>
           <section className="home-collection">
-            <div className="section-heading"><div><h2><Link className="home-section-link" to="/mutigoeul">무티고을 <span className="section-count">{mutigoeulSongs.length}</span><ChevronRight size={22} aria-hidden="true" /></Link></h2><p>최근 추가된 곡</p></div></div>
+            <div className="section-heading"><h2><Link className="home-section-link" to="/mutigoeul">무티고을 <span className="section-count">{mutigoeulSongs.length}</span><ChevronRight size={22} aria-hidden="true" /></Link></h2></div>
             {recentArchive.length ? <SongCarousel songs={recentArchive} label="무티고을 최근 추가된 곡" onOpen={openSong} /> : <p className="collection-empty">등록된 곡이 없어요.</p>}
           </section>
         </div>
         <aside className="home-aside">
           <Link className="records-entry" to="/records">
-            <span className="records-entry-heading"><b>기록</b><span className="records-entry-count">{data.songs.filter((song) => song.archived_at).length}곡<ArrowRight size={17} /></span></span>
+            <span className="records-entry-heading"><b>방출</b><span className="records-entry-count">{data.songs.filter((song) => song.archived_at).length}곡<ArrowRight size={17} /></span></span>
           </Link>
           <section className="mini-stats">
             <h2>나의 음악 기록</h2>

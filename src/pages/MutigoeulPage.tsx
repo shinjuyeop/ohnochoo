@@ -39,7 +39,7 @@ export function MutigoeulPage() {
       <section className="content-section archive-section">
         <div className="archive-toolbar">
           <div className="archive-control-group">
-            <SegmentedControl className="view-toggle" label="보기 형식" value={viewMode} onChange={changeView} options={[{ value: "grid", label: <><Grid2X2 aria-hidden="true" />블록</>, accessibleLabel: "블록 보기" }, { value: "list", label: <><List aria-hidden="true" />목록</>, accessibleLabel: "세로 목록 보기" }]} />
+            <SegmentedControl className="view-toggle" label="보기 형식" value={viewMode} onChange={changeView} options={[{ value: "grid", label: <Grid2X2 aria-hidden="true" />, accessibleLabel: "블록 보기" }, { value: "list", label: <List aria-hidden="true" />, accessibleLabel: "세로 목록 보기" }]} />
             <label className="archive-sort"><ArrowDownUp size={15} /><span className="visually-hidden">정렬</span><select value={sortOrder} onChange={(event) => changeSort(event.target.value as SortOrder)} aria-label="추가일 정렬"><option value="desc">추가일 내림차순</option><option value="asc">추가일 오름차순</option></select></label>
           </div>
           <SearchField className="archive-search" value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} placeholder="곡, 아티스트 검색" />

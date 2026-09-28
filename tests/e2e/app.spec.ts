@@ -109,7 +109,8 @@ for (const width of [320, 390, 768, 1024, 1440]) {
     page.on("pageerror", (error) => errors.push(error.message));
     await page.setViewportSize({ width, height: width < 500 ? 844 : 1000 });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await mockClub(page);
+    const state = await mockClub(page);
+    state.tables.members[0].avatar_url = "/assets/icons/apple-touch-icon-20260709.png";
     const noOverflow = async () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     };
@@ -123,6 +124,7 @@ for (const width of [320, 390, 768, 1024, 1440]) {
     await page.getByRole("link", { name: "평가할 곡 3", exact: true }).click();
     await expect(page).toHaveURL(/\/onochoo\?filter=pending$/);
     await expect(page.locator(".song-card")).toHaveCount(3);
+    const candidateHeading = await page.locator(".page-header h1").boundingBox();
     await noOverflow();
     await page.screenshot({ path: `test-results/layout/${width}-candidates.png`, fullPage: true, animations: "disabled" });
     await page.locator(".evaluate-button").nth(1).click();
@@ -134,9 +136,23 @@ for (const width of [320, 390, 768, 1024, 1440]) {
     await page.screenshot({ path: `test-results/layout/${width}-vote.png`, animations: "disabled" });
     await page.goto("/mutigoeul");
     await expect(page.locator(".album-tile")).toHaveCount(1);
+    await page.evaluate(() => document.fonts.ready);
+    const libraryHeading = await page.locator(".page-header h1").boundingBox();
+    expect(Math.abs(libraryHeading!.y - candidateHeading!.y)).toBeLessThan(1);
+    const viewToggle = await page.getByRole("group", { name: "보기 형식" }).boundingBox();
+    const sort = await page.locator(".archive-sort").boundingBox();
+    expect(Math.abs(viewToggle!.y - sort!.y)).toBeLessThan(1);
+    expect(Math.abs(viewToggle!.height - sort!.height)).toBeLessThan(1);
     await noOverflow();
+    await page.screenshot({ path: `test-results/layout/${width}-library.png`, fullPage: true, animations: "disabled" });
     await page.goto("/settings");
     await expect(page.getByRole("heading", { name: "내 정보", exact: true })).toBeVisible();
+    const profileActions = page.locator(".profile-card-actions button");
+    await expect(profileActions).toHaveCount(3);
+    expect(await profileActions.evaluateAll((buttons) => {
+      const top = buttons[0].getBoundingClientRect().top;
+      return buttons.every((button) => Math.abs(button.getBoundingClientRect().top - top) < 1 && button.scrollWidth <= button.clientWidth);
+    })).toBe(true);
     await noOverflow();
     await page.screenshot({ path: `test-results/layout/${width}-settings.png`, fullPage: true, animations: "disabled" });
     expect(errors).toEqual([]);

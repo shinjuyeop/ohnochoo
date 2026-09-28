@@ -109,7 +109,7 @@ export function AddSongDialog({ open, onOpenChange }: { open: boolean; onOpenCha
   const submit = async (values: SongForm) => {
     if (!profile) return;
     const duplicate = data?.songs.find((song) => getSongKey(song.title, song.artist) === getSongKey(values.title, values.artist));
-    if (duplicate) { toast(duplicate.archived_at ? "이미 보관된 곡이에요. 홈의 기록에서 찾아보세요." : "이미 추가된 곡이에요. 오노추나 무티고을에서 찾아보세요.", "error"); return; }
+    if (duplicate) { toast(duplicate.archived_at ? "이미 보관된 곡이에요. 홈의 방출에서 찾아보세요." : "이미 추가된 곡이에요. 오노추나 무티고을에서 찾아보세요.", "error"); return; }
     try {
       await addSong.mutateAsync({ ...values, weeklyThemeId: null, profile });
       reset(emptyForm); clearDraft(storageKey); setRestored(null);

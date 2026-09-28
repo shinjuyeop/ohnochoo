@@ -19,8 +19,8 @@ test("rounded filters and clearable search keep keyboard focus and selected stat
   await page.setViewportSize({ width: 320, height: 640 });
   await page.goto("/onochoo");
   const filters = page.getByRole("group", { name: "곡 필터" });
-  await filters.getByRole("button", { name: /미평가/ }).click();
-  await expect(filters.getByRole("button", { name: /미평가/ })).toHaveAttribute("aria-pressed", "true");
+  await filters.getByRole("button", { name: "미평가", exact: true }).click();
+  await expect(filters.getByRole("button", { name: "미평가", exact: true })).toHaveAttribute("aria-pressed", "true");
   const search = page.getByRole("searchbox", { name: "곡, 아티스트 검색", exact: true });
   await search.fill("Summer");
   await expect(page.locator(".song-card")).toHaveCount(1);

@@ -63,15 +63,15 @@ test("archiving preserves evaluations and replies, removes candidates, and opens
   await page.goto("/onochoo");
   await expect(page.locator(".song-card")).toHaveCount(2);
   await page.goto("/");
-  await page.getByRole("link", { name: /^기록/ }).click();
-  await expect(page.getByRole("heading", { name: "기록", exact: true })).toBeVisible();
+  await page.getByRole("link", { name: /^방출/ }).click();
+  await expect(page.getByRole("heading", { name: "방출", exact: true })).toBeVisible();
   await page.getByRole("button", { name: /오래된 노래.*기록 보기/ }).click();
   await expect(page.getByRole("dialog")).toContainText("추천 덕분에 잘 들었어요!");
   await expect(page.getByRole("button", { name: /평가 저장|평가 수정|답글 쓰기/ })).toHaveCount(0);
   await expect(page.getByRole("link", { name: /수록 앨범 열기/ })).toHaveAttribute("href", state.tables.songs[0].album_url);
   await page.getByRole("button", { name: "닫기", exact: true }).click();
   await page.getByRole("searchbox", { name: "보관한 곡 검색" }).fill("없는 곡");
-  await expect(page.getByRole("heading", { name: "조건에 맞는 기록이 없어요" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "조건에 맞는 방출 곡이 없어요" })).toBeVisible();
 });
 
 test("deferred themes stay hidden and old themed drafts can be saved as ordinary recommendations", async ({ page }) => {

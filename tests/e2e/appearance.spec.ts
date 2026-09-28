@@ -61,7 +61,7 @@ test("navigation and browser back start at the top while song dialogs preserve l
   await page.setViewportSize({ width: 390, height: 664 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await page.getByRole("link", { name: /^기록/ }).scrollIntoViewIfNeeded();
+  await page.getByRole("link", { name: /^방출/ }).scrollIntoViewIfNeeded();
   expect(await page.evaluate(() => scrollY)).toBeGreaterThan(100);
   await page.locator(".home-collection").getByRole("link", { name: "무티고을 13", exact: true }).click();
   await expect(page).toHaveURL(/\/mutigoeul$/);
@@ -80,9 +80,9 @@ test("navigation and browser back start at the top while song dialogs preserve l
   await page.locator(".bottom-nav").getByRole("link", { name: "홈", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
-  await page.getByRole("link", { name: /^기록/ }).scrollIntoViewIfNeeded();
+  await page.getByRole("link", { name: /^방출/ }).scrollIntoViewIfNeeded();
   expect(await page.evaluate(() => scrollY)).toBeGreaterThan(100);
-  await page.getByRole("link", { name: /^기록/ }).click();
+  await page.getByRole("link", { name: /^방출/ }).click();
   await expect(page).toHaveURL(/\/records$/);
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
   await expect(page.locator(".record-song")).toHaveCount(12);
