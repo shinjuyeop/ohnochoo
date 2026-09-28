@@ -23,12 +23,6 @@ export function getInitials(name: string) {
   return [...name.trim()].slice(0, 1).join("").toUpperCase() || "?";
 }
 
-export function avatarTone(name: string) {
-  const tones = ["violet", "blue", "pink", "green", "amber"];
-  const sum = [...name].reduce((total, char) => total + char.charCodeAt(0), 0);
-  return tones[sum % tones.length];
-}
-
 export function getSongKey(title: string, artist: string) {
   return `${title.trim().toLowerCase()}|${artist.trim().toLowerCase()}`;
 }

@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Archive, Bell, BellOff, CalendarClock, ChevronRight, CircleAlert, ImageOff, ImagePlus, LoaderCircle, LockKeyhole, LogOut, Music2, PencilLine, Save, Search, Send, Shield, UserPlus, UsersRound } from "lucide-react";
 import { Avatar } from "../components/ui/Avatar";
+import { ThemeSettings } from "../components/ThemeSettings";
 import { Dialog } from "../components/ui/Dialog";
 import { AdminLoginForm } from "../features/admin/AdminLoginForm";
 import { useAdminAuth } from "../features/admin/AdminAuthContext";
@@ -192,6 +193,7 @@ export function SettingsPage() {
               <button className="secondary-button" onClick={clearProfile}><LogOut size={17} /> 프로필 변경</button>
             </div>
           </section>
+          <ThemeSettings />
           <section className="settings-card">
             <div className="settings-title"><span className="settings-icon"><Bell /></span><div><h2>알림</h2><p>이 브라우저에 연결된 푸시 알림을 관리해요.</p></div></div>
             <div className="notification-state"><span className={notifications.enabled ? "on" : "off"}>{notifications.enabled ? <Bell size={18} /> : <BellOff size={18} />}</span><div><b>{notifications.status}</b><p>{notifications.hint}</p></div></div>

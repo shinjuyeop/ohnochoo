@@ -9,6 +9,7 @@ import { useProfile } from "../features/profile/ProfileContext";
 import { AppUiContext } from "../app/AppUiContext";
 import { Plus } from "lucide-react";
 import { ReviewSessionProvider } from "../app/ReviewSessionContext";
+import { RouteScrollReset } from "./RouteScrollReset";
 
 export function AppShell() {
   const [addOpen, setAddOpen] = useState(false);
@@ -25,6 +26,7 @@ export function AppShell() {
     <AppUiContext.Provider value={{ openAddSong: (themeId) => { setAddThemeId(themeId); setAddOpen(true); } }}>
       <ReviewSessionProvider key={profile.id}>
       <div className="app-shell">
+        <RouteScrollReset />
         <AppNavigation onAdd={() => { setAddThemeId(undefined); setAddOpen(true); }} />
         <div className="mobile-topbar">
           <span className="wordmark">ohnochoo<span className="brand-period">.</span></span>

@@ -5,11 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>ohnochoo</title>
     <meta name="description" content="친구들과 오늘의 노래를 추천하고 평가하는 웹앱" />
-    <meta name="theme-color" content="#0B0D12" />
+    <meta name="theme-color" content="#fafafa" />
+    <script>
+      // Apply the saved choice before the first paint; ThemeContext keeps it in sync.
+      (() => {
+        let preference = "system";
+        try { preference = localStorage.getItem("ohnochoo:theme") || "system"; } catch {}
+        const theme = preference === "light" || preference === "dark" ? preference : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+        document.querySelector('meta[name="theme-color"]').content = theme === "dark" ? "#141414" : "#fafafa";
+      })();
+    </script>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="오노추" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="manifest" href="/manifest.json?v=20260709" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="/manifest.json?v=20260928" />
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32-20260709.png" />
     <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon-20260709.png" />
   </head>
