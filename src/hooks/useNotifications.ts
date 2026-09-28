@@ -46,7 +46,7 @@ export function useNotifications(profile: Profile) {
     const subscription = registration ? await registration.pushManager.getSubscription() : null;
     setState(subscription
       ? { status: "알림 켜짐", hint: "새 곡, 평가, 리마인드 알림을 이 기기에서 받아요.", enabled: true, blocked: false }
-      : { status: "알림 꺼짐", hint: "새 곡과 친구들의 평가 소식을 놓치지 마세요.", enabled: false, blocked: false });
+      : { status: "알림 꺼짐", hint: "새 곡·평가·답글 알림", enabled: false, blocked: false });
   }, [profile]);
 
   useEffect(() => { void refresh(); }, [refresh]);

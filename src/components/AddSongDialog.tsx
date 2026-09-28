@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { CloudDownload, LoaderCircle, Music2, PencilLine, Sparkles } from "lucide-react";
+import { CloudDownload, LoaderCircle, PencilLine, Plus } from "lucide-react";
 import { z } from "zod";
 import { Dialog } from "./ui/Dialog";
 import { StarRating } from "./ui/StarRating";
@@ -121,7 +121,7 @@ export function AddSongDialog({ open, onOpenChange }: { open: boolean; onOpenCha
 
   const showForm = mode === "manual" || Boolean(selectedSong);
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title="노래 추가" description="플레이리스트에서 고르거나 직접 입력해 보세요." className="add-dialog">
+    <Dialog open={open} onOpenChange={onOpenChange} title="노래 추가" className="add-dialog">
       <div className="dialog-body add-flow">
         <div className="source-actions">
           <button className="source-card source-primary" onClick={syncAppleMusic} disabled={syncing}>
@@ -135,17 +135,17 @@ export function AddSongDialog({ open, onOpenChange }: { open: boolean; onOpenCha
         ) : null}
         {showForm ? (
           <form className="form-stack song-add-form" onSubmit={handleSubmit(submit)}>
-            <p className="draft-hint">{restored ? "작성하던 추천을 불러왔어요." : "창을 닫아도 작성 중인 추천은 이 기기에 보관돼요."}</p>
-            <div className="selected-song-preview"><SongCover song={previewSong} /><div><span className="eyebrow">NEW PICK</span><b>{title || "곡 정보를 입력해 주세요"}</b><small>{artist || "아티스트"}</small></div></div>
+            {restored ? <p className="draft-hint">작성하던 추천을 불러왔어요.</p> : null}
+            <div className="selected-song-preview"><SongCover song={previewSong} /><div><b>{title || "곡명"}</b><small>{artist || "아티스트"}</small></div></div>
             <div className="two-fields">
               <label className="field-label"><span>곡명</span><input {...register("title", { onChange: clearLinkedMetadata })} readOnly={Boolean(selectedSong)} placeholder="예: NEW DROP" />{errors.title ? <em>{errors.title.message}</em> : null}</label>
               <label className="field-label"><span>아티스트</span><input {...register("artist", { onChange: clearLinkedMetadata })} readOnly={Boolean(selectedSong)} placeholder="예: Don Toliver" />{errors.artist ? <em>{errors.artist.message}</em> : null}</label>
             </div>
             <label className="field-label"><span>별점</span><StarRating value={rating} onChange={(value) => setValue("rating", value, { shouldDirty: true })} /></label>
-            <label className="field-label"><span>왜 이 곡을 추천하나요?</span><textarea {...register("reason")} rows={4} placeholder="친구들이 궁금해할 추천 포인트를 적어주세요." />{errors.reason ? <em>{errors.reason.message}</em> : null}</label>
-            <button className="primary-button submit-button" disabled={addSong.isPending}>{addSong.isPending ? <><LoaderCircle className="spin" /> 저장 중...</> : <><Sparkles size={18} /> 추가하기</>}</button>
+            <label className="field-label"><span>추천 이유</span><textarea {...register("reason")} rows={3} placeholder="추천 이유를 입력하세요" />{errors.reason ? <em>{errors.reason.message}</em> : null}</label>
+            <button className="primary-button submit-button" disabled={addSong.isPending}>{addSong.isPending ? <><LoaderCircle className="spin" /> 저장 중...</> : <><Plus size={18} /> 추가하기</>}</button>
           </form>
-        ) : mode === "start" ? <div className="add-empty"><Music2 /><p>Apple Music을 동기화하면<br />새 곡을 빠르게 고를 수 있어요.</p></div> : null}
+        ) : null}
       </div>
     </Dialog>
   );

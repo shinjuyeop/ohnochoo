@@ -180,12 +180,12 @@ export function SettingsPage() {
 
   return (
     <div className="page settings-page">
-      <header className="page-header"><div><h1>내 정보</h1><p>나의 프로필과 알림을 편하게 관리해요.</p></div></header>
+      <header className="page-header"><div><h1>내 정보</h1></div></header>
       <div className="settings-layout">
         <div className="settings-main">
           <section className="settings-card profile-settings-card">
             <Avatar name={profile.name} imageUrl={currentMember.avatar_url} imageVersion={currentMember.avatar_updated_at} size="lg" />
-            <div><span>현재 프로필</span><h2>{profile.name}</h2><p>평가자</p></div>
+            <div><h2>{profile.name}</h2></div>
             <div className="profile-card-actions">
               <input ref={profileImageInput} type="file" accept="image/*" onChange={(event) => void changeProfileImage(event)} hidden />
               <button className="secondary-button" onClick={() => profileImageInput.current?.click()} disabled={mutations.updateProfileImage.isPending}>{mutations.updateProfileImage.isPending ? <LoaderCircle className="spin" /> : <ImagePlus />} 사진 변경</button>
@@ -195,7 +195,7 @@ export function SettingsPage() {
           </section>
           <ThemeSettings />
           <section className="settings-card">
-            <div className="settings-title"><span className="settings-icon"><Bell /></span><div><h2>알림</h2><p>이 브라우저에 연결된 푸시 알림을 관리해요.</p></div></div>
+            <div className="settings-title"><span className="settings-icon"><Bell /></span><div><h2>알림</h2></div></div>
             <div className="notification-state"><span className={notifications.enabled ? "on" : "off"}>{notifications.enabled ? <Bell size={18} /> : <BellOff size={18} />}</span><div><b>{notifications.status}</b><p>{notifications.hint}</p></div></div>
             <div className="settings-actions">
               {!notifications.enabled && !notifications.blocked ? <button className="primary-button" onClick={() => void notificationAction(notifications.enable, "알림을 켰어요.")}><Bell size={17} /> 알림 받기</button> : null}
@@ -204,7 +204,7 @@ export function SettingsPage() {
           </section>
         </div>
         <aside className="admin-panel">
-          <div className="admin-heading"><Shield /><div><h2>관리 도구</h2><p>{isAdmin ? "관리자 모드가 켜져 있어요." : "관리자만 사용할 수 있어요."}</p></div></div>
+          <div className="admin-heading"><Shield /><div><h2>관리 도구</h2></div></div>
           {isAdminLoading ? <div className="admin-auth-loading"><LoaderCircle className="spin" /> 권한 확인 중...</div> : isAdmin ? (
             <>
               <div className="admin-session"><span><b>관리자</b><small>{user?.email}</small></span><button onClick={() => void logoutAdmin()}>로그아웃</button></div>
@@ -217,10 +217,10 @@ export function SettingsPage() {
         </aside>
       </div>
 
-      <Dialog open={dialog === "members"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="평가자 관리" description="현재 평가자와 새 평가자를 관리해요.">
+      <Dialog open={dialog === "members"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="평가자 관리">
         <div className="dialog-body"><div className="member-list">{data.members.map((member) => <div key={member.id}><Avatar name={member.name} imageUrl={member.avatar_url} imageVersion={member.avatar_updated_at} size="sm" /><span>{member.name}</span></div>)}</div><form className="inline-add-form" onSubmit={addMember}><input value={memberName} onChange={(event) => setMemberName(event.target.value)} placeholder="새 평가자 이름" /><button className="primary-button" disabled={mutations.addMember.isPending}>{mutations.addMember.isPending ? <LoaderCircle className="spin" /> : <UserPlus size={17} />} 추가</button></form></div>
       </Dialog>
-      <Dialog open={dialog === "edit"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="곡 정보 수정" description="앱에 저장된 곡 정보를 바로잡아요." className="admin-edit-dialog">
+      <Dialog open={dialog === "edit"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="곡 정보 수정" className="admin-edit-dialog">
         <form className="dialog-body form-stack admin-edit-form" onSubmit={saveSongInfo}>
           <label className="admin-song-search"><Search /><input value={editSearch} onChange={(event) => { setEditSearch(event.target.value); selectEditSong(""); }} placeholder="제목, 아티스트, 등록자 검색" /></label>
           <label className="field-label"><span>수정할 곡</span><select value={editSongId} onChange={(event) => selectEditSong(event.target.value)}><option value="">곡을 선택해 주세요</option>{editableSongs.map((song) => <option key={song.id} value={song.id}>[{mutigoeulIds.has(song.id) ? "무티고을" : "오노추"}] {song.title} — {song.artist}</option>)}</select></label>

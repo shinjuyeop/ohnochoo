@@ -33,7 +33,7 @@ test("empty queue and library keep navigation and recommending available", async
   state.tables.weekly_themes = [];
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "모든 곡을 평가했어요" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "평가 완료" })).toBeVisible();
   await page.getByRole("button", { name: "노래 추가", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "노래 추가" })).toBeVisible();
   await page.getByRole("button", { name: "닫기", exact: true }).click();

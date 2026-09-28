@@ -5,7 +5,7 @@ import { MUTIGOEUL_APPLE_MUSIC_URL, ONOCHU_APPLE_MUSIC_URL } from "../../src/lib
 test("home queue, vote drafts, reload, failed and successful saves", async ({ page }) => {
   const state = await mockClub(page);
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "평가할 곡이 3개 있어요" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "평가할 곡 3" })).toBeVisible();
   expect(state.reads.some((url) => url.includes("vote_replies"))).toBe(false);
   await page.getByRole("button", { name: "바로 평가하기" }).click();
   await expect(page).toHaveURL(/song=old-song/);
@@ -34,7 +34,7 @@ test("song draft survives dismissal and reload and clears only after saving", as
   await page.getByRole("button", { name: "직접 입력", exact: false }).click();
   await page.getByRole("textbox", { name: "곡명", exact: true }).fill("새로운 노래");
   await page.getByRole("textbox", { name: "아티스트", exact: true }).fill("새로운 아티스트");
-  await page.getByRole("textbox", { name: "왜 이 곡을 추천하나요?" }).fill("좋은 추천 이유");
+  await page.getByRole("textbox", { name: "추천 이유" }).fill("좋은 추천 이유");
   await page.getByRole("button", { name: "닫기", exact: true }).click();
   await page.reload();
   await page.getByRole("button", { name: "노래 추가", exact: true }).click();
@@ -190,7 +190,7 @@ test("the add form remains scrollable in a narrow, short viewport", async ({ pag
   await page.goto("/");
   await page.getByRole("button", { name: "노래 추가", exact: true }).click();
   await page.getByRole("button", { name: "직접 입력", exact: false }).click();
-  await page.getByRole("textbox", { name: "왜 이 곡을 추천하나요?" }).fill("짧은 화면에서 작성하기");
+  await page.getByRole("textbox", { name: "추천 이유" }).fill("짧은 화면에서 작성하기");
   const submit = page.getByRole("button", { name: "추가하기", exact: true });
   await submit.scrollIntoViewIfNeeded();
   await expect(submit).toBeInViewport();

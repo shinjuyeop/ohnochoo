@@ -37,7 +37,7 @@ test("reviews stay on the saved song, preserve a fixed queue across reloads, and
   await expect(page.getByRole("button", { name: "다음 미평가 곡" })).toHaveCount(0);
   await page.getByRole("button", { name: "목록으로 돌아가기" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "평가할 곡이 1개 있어요" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "평가할 곡 1" })).toBeVisible();
 });
 
 test("archiving preserves evaluations and replies, removes candidates, and opens a read-only record", async ({ page }) => {
@@ -64,7 +64,7 @@ test("archiving preserves evaluations and replies, removes candidates, and opens
   await expect(page.locator(".song-card")).toHaveCount(2);
   await page.goto("/");
   await page.getByRole("link", { name: /^기록/ }).click();
-  await expect(page.getByRole("heading", { name: "기록." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "기록", exact: true })).toBeVisible();
   await page.getByRole("button", { name: /오래된 노래.*기록 보기/ }).click();
   await expect(page.getByRole("dialog")).toContainText("추천 덕분에 잘 들었어요!");
   await expect(page.getByRole("button", { name: /평가 저장|평가 수정|답글 쓰기/ })).toHaveCount(0);
@@ -82,7 +82,7 @@ test("deferred themes stay hidden and old themed drafts can be saved as ordinary
   await page.getByRole("button", { name: "직접 입력", exact: false }).click();
   await page.getByLabel("곡명", { exact: true }).fill("남겨둔 초안");
   await page.getByLabel("아티스트", { exact: true }).fill("친구들");
-  await page.getByLabel("왜 이 곡을 추천하나요?").fill("기존 내용을 보존해요");
+  await page.getByLabel("추천 이유").fill("기존 내용을 보존해요");
   await page.evaluate((theme) => {
     for (const key of Object.keys(localStorage)) {
       if (!key.includes("add-song")) continue;
@@ -139,7 +139,7 @@ test("a playlist recommendation retains album metadata across a draft reload", a
   await page.getByRole("button", { name: "노래 추가", exact: true }).click();
   await page.getByRole("button", { name: /Apple Music 동기화/ }).click();
   await page.getByRole("combobox", { name: "추가할 곡" }).selectOption("0");
-  await page.getByLabel("왜 이 곡을 추천하나요?").fill("다시 열어도 앨범 링크가 남아야 해요");
+  await page.getByLabel("추천 이유").fill("다시 열어도 앨범 링크가 남아야 해요");
   await page.reload();
   await page.getByRole("button", { name: "노래 추가", exact: true }).click();
   await page.getByRole("button", { name: "추가하기", exact: true }).click();

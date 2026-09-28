@@ -60,7 +60,7 @@ export function VoteForm({ song, existingVote, onSaved }: { song: Song; existing
 
   return (
     <form className="vote-form" onSubmit={handleSubmit(submit)}>
-      <p className="draft-hint">{restored ? "작성하던 평가를 불러왔어요." : "작성 중인 평가는 이 기기에 임시 저장돼요."}</p>
+      {restored ? <p className="draft-hint">작성하던 평가를 불러왔어요.</p> : null}
       <div className="decision-control" role="group" aria-label="평가 선택">
         {(["승격", "보류", "방출"] as Decision[]).map((item) => <button key={item} type="button" aria-pressed={decision === item} className={decision === item ? `active decision-${item}` : ""} onClick={() => setValue("decision", item, { shouldDirty: true, shouldValidate: true })}>{decision === item ? <Check size={15} /> : null}{item}</button>)}
       </div>

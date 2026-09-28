@@ -11,7 +11,7 @@ export function ThemeSettings() {
   const { preference, setPreference } = useTheme();
   return (
     <section className="settings-card">
-      <div className="settings-title"><span className="settings-icon"><Sun /></span><div><h2>화면 테마</h2><p>시스템 설정을 선택하면 기기의 화면 모드를 따라가요.</p></div></div>
+      <div className="settings-title"><span className="settings-icon"><Sun /></span><div><h2>화면 테마</h2></div></div>
       <fieldset className="theme-options">
         <legend className="visually-hidden">화면 테마</legend>
         {options.map(({ value, label, icon: Icon }) => (

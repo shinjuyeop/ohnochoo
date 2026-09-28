@@ -11,15 +11,15 @@ export function SongCard({ song, stats, hasVoted, onOpen, compact = false, hideS
       <button className="song-card-open" aria-label={`${song.title} - ${song.artist} 상세 보기`} onClick={onOpen}>
         <SongCover song={song} eager={compact} />
         <span className="song-card-main">
-          <span className="song-title-row"><span className="song-title">{song.title}</span></span>
-          <span className="song-artist">{song.artist}</span>
-          <span className="song-card-meta"><span className="song-card-adder">{song.adder} 추천</span><span className="song-vote-count">평가 {stats.votes.length}명</span>{avg !== null ? <span className="song-card-rating"><Star size={12} />{avg.toFixed(1)}</span> : null}</span>
-          {!hideStatus ? <span className="decision-countdown">{getDecisionCountdown(song.createdAt)}</span> : null}
+          <span className="song-title" title={song.title}>{song.title}</span>
+          <span className="song-artist" title={song.artist}>{song.artist}</span>
+          {!hideStatus ? <span className="decision-countdown">{getDecisionCountdown(song.createdAt)}</span> : <span className="song-card-meta">{song.adder} · 평가 {stats.votes.length}명</span>}
         </span>
       </button>
+      <div className="song-card-stats"><span>{song.adder}</span><span>평가 {stats.votes.length}명</span>{avg !== null ? <span className="song-card-rating"><Star size={12} />{avg.toFixed(1)}</span> : null}</div>
       <div className="song-row-action">
         {!hideStatus ? <StatusBadge song={song} stats={stats} /> : null}
-        {!hasVoted ? <button className="evaluate-button" onClick={onOpen}>평가하기<ChevronRight size={14} /></button> : <button className="card-arrow" aria-label={`${song.title} 상세 보기`} onClick={onOpen}><ChevronRight size={18} /></button>}
+        {!hasVoted ? <button className="evaluate-button" aria-label={`${song.title} 평가하기`} onClick={onOpen}>평가<ChevronRight size={14} /></button> : <button className="card-arrow" aria-label={`${song.title} 상세 보기`} onClick={onOpen}><ChevronRight size={18} /></button>}
       </div>
     </article>
   );

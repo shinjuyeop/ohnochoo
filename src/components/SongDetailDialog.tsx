@@ -62,11 +62,10 @@ export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyI
           <div className="song-hero-info">{allowVote ? <StatusBadge song={song} stats={stats} /> : null}<h2>{song.title}</h2><p>{song.artist}</p><small><UserRound size={14} /> {song.adder} · {formatKoreanDate(song.createdAt)}</small></div>
         </section>
         <SongAlbumLink song={song} playlistUrl={playlistUrl} playlistName={playlistName} />
-        {archived ? <p className="archived-notice">{formatKoreanDate(song.archived_at!)} 방출 · 당시 평가와 대화를 보관하고 있어요.</p> : null}
+        {archived ? <p className="archived-notice">{formatKoreanDate(song.archived_at!)} 방출 · 평가 종료</p> : null}
         <section className="vote-summary">
           <div className="summary-promote"><b>{stats.promotedCount}</b><span>승격</span></div><div><b>{stats.heldCount}</b><span>보류</span></div><div className="summary-release"><b>{stats.releasedCount}</b><span>방출</span></div><div><b>{average === null ? "-" : average.toFixed(1)}</b><span><Star size={13} /> 평균</span></div>
         </section>
-        <p className="rating-hint">별점을 남긴 평가만 평균에 포함돼요.</p>
         {discussion.isPending ? <div className="discussion-state" role="status"><LoaderCircle className="spin" size={18} /> 평가를 불러오는 중...</div> : null}
         {discussion.isError ? <div className="discussion-state" role="alert"><p>평가를 불러오지 못했어요. 작성 중인 내용은 이 기기에 보관돼요.</p><button className="secondary-button" onClick={() => void discussion.refetch()}>다시 시도</button></div> : null}
         {recommendation ? <section className="recommendation"><span className="eyebrow">추천한 이유</span><p>“{recommendation.reason}”</p></section> : null}

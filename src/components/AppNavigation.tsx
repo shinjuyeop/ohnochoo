@@ -17,7 +17,6 @@ export function AppNavigation({ onAdd }: { onAdd: () => void }) {
     <>
       <nav className="sidebar" aria-label="주요 메뉴">
         <Link to="/" className="sidebar-brand" aria-label="오노추 홈"><span>ohnochoo<span className="brand-period">.</span></span></Link>
-        <span className="sidebar-label">우리의 음악 공간</span>
         <div className="sidebar-links">
           {items.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => cn("nav-link", isActive && "active")}><Icon /><span>{label}</span></NavLink>)}
         </div>

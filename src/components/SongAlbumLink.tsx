@@ -18,14 +18,14 @@ export function SongAlbumLink({ song, playlistUrl, playlistName }: { song: Song;
   if (song.archived_at && !album?.albumUrl) return <p className="archived-listen-note">저장된 앨범 링크가 없어요. Apple Music에서 곡명과 아티스트로 찾아보세요.</p>;
 
   if (!album?.albumUrl && playlist.isPending) return (
-    <div className="listen-link" role="status"><LoaderCircle className="spin" size={18} /><span><b>수록 앨범을 찾고 있어요</b><small>Apple Music에서 확인 중이에요</small></span></div>
+    <div className="listen-link" role="status"><LoaderCircle className="spin" size={18} /><span><b>앨범 확인 중...</b></span></div>
   );
 
   return (
     <div className="album-link-section">
       <a className="listen-link" href={album?.albumUrl || playlistUrl} target="_blank" rel="noreferrer">
         <Music2 size={18} />
-        <span><b>{album?.albumUrl ? "수록 앨범 열기" : `${playlistName} 플레이리스트 열기`}</b><small>{album?.albumUrl ? album.albumName || "Apple Music에서 앨범을 열어요" : playlist.isError ? "앨범 정보를 불러오지 못했어요" : "수록 앨범을 찾지 못했어요"}</small></span>
+        <span><b>{album?.albumUrl ? "수록 앨범 열기" : `${playlistName} 플레이리스트 열기`}</b><small>{album?.albumUrl ? album.albumName || "Apple Music" : playlist.isError ? "앨범 정보를 불러오지 못했어요" : "수록 앨범을 찾지 못했어요"}</small></span>
         <ExternalLink size={16} />
       </a>
       {!album?.albumUrl ? <button className="album-retry" disabled={playlist.isFetching} onClick={() => void playlist.refetch()}>{playlist.isFetching ? "앨범 확인 중..." : "앨범 다시 찾기"}</button> : null}

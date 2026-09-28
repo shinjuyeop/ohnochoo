@@ -19,9 +19,8 @@ export function ReviewProgress({ songId }: { songId: string }) {
   const currentPending = progress.remaining.includes(songId);
   return (
     <section className="review-progress" aria-label="연속 평가" ref={region}>
-      <div className="review-progress-heading" role="status"><span>{saved ? <><Check size={16} /> 평가를 저장했어요</> : "한 곡씩, 내 취향대로"}</span><b>이번에 {progress.completed}/{progress.total}곡 완료</b></div>
+      <div className="review-progress-heading" role="status"><span>{saved ? <><Check size={16} /> 저장 완료</> : "연속 평가"}</span><b>이번에 {progress.completed}/{progress.total}곡 완료</b></div>
       <div className="review-progress-track" role="progressbar" aria-label="이번 평가 진행률" aria-valuenow={progress.completed} aria-valuemin={0} aria-valuemax={progress.total}><span style={{ width: `${progress.completed / progress.total * 100}%` }} /></div>
-      <p>{currentPending ? "저장한 뒤 다음 곡으로 넘어갈 수 있어요." : nextId ? "친구들의 평가도 읽어보고, 준비되면 다음 곡을 들어요." : "이번 목록을 모두 확인했어요. 함께 들어줘서 고마워요."}</p>
       {progress.skipped > 0 ? <small>다른 곳에서 평가했거나 평가가 종료된 {progress.skipped}곡은 건너뛰었어요.</small> : null}
       {!currentPending ? nextId ? <button className="primary-button" onClick={() => openSong(nextId, true)}>다음 미평가 곡 <ArrowRight size={16} /></button> : <button className="secondary-button" onClick={() => { finish(); closeSong(); }}>목록으로 돌아가기</button> : null}
     </section>

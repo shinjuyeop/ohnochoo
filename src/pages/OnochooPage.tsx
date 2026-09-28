@@ -40,23 +40,23 @@ export function OnochooPage() {
   if (!data || !profile) return null;
   return (
     <div className="page">
-      <header className="page-header"><div><h1>오노추<span className="heading-dot">.</span></h1><p>친구들이 고른 {onochuSongs.length}곡, 나의 취향으로 답해요.</p></div><button className="icon-text-button" onClick={() => setRulesOpen(true)}><CircleHelp size={17} /> 판정 기준</button></header>
+      <header className="page-header"><div><h1>오노추</h1><span className="page-count">{onochuSongs.length}곡</span></div><button className="icon-text-button" onClick={() => setRulesOpen(true)}><CircleHelp size={17} /> 판정 기준</button></header>
       <div className="playlist-tools">
         <div className="segmented-control">{filters.map((item) => <button key={item.value} className={filter === item.value ? "active" : ""} onClick={() => changeParam("filter", item.value === "all" ? "" : item.value)}>{item.label}{item.value === "pending" ? <span>{onochuSongs.filter((song) => !data.votes.some((vote) => vote.songId === song.id && isVoteByMember(vote, profile))).length}</span> : null}</button>)}</div>
         <label className="search-field"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="곡, 아티스트 검색" aria-label="곡, 아티스트 검색" /></label>
       </div>
-      {filter === "pending" ? <p className="list-hint">판정일이 빠른 순으로 보여드려요.</p> : null}
+      {filter === "pending" ? <p className="list-hint">판정일순</p> : null}
       <div className="song-list full-list">{filtered.map((song) => {
         const hasVoted = data.votes.some((vote) => vote.songId === song.id && isVoteByMember(vote, profile));
         const promoted = data.mutigoeulEntries.some((entry) => entry.songId === song.id);
         return <SongCard key={song.id} song={song} stats={voteStats.get(song.id) ?? emptyVoteStats()} hasVoted={hasVoted || promoted} hideStatus={promoted} onOpen={() => openSong(song.id)} />;
       })}{!filtered.length ? <div className="empty-card large"><Music2 /><h3>조건에 맞는 곡이 없어요</h3><p>다른 필터나 검색어를 사용해 보세요.</p></div> : null}</div>
-      <Dialog open={rulesOpen} onOpenChange={setRulesOpen} title="오노추 판정 기준" description="투표 수와 등록 기간을 함께 반영해요.">
+      <Dialog open={rulesOpen} onOpenChange={setRulesOpen} title="오노추 판정 기준">
         <div className="dialog-body rule-list">
           <article><span className="rule-dot promote" /><div><b>승격 후보</b><p>승격 수가 방출 수보다 3개 이상 많으면 후보가 됩니다.</p></div></article>
           <article><span className="rule-dot ready" /><div><b>무티고을 이동 가능</b><p>등록 후 7일이 지나고 승격 조건을 만족한 곡입니다.</p></div></article>
           <article><span className="rule-dot release" /><div><b>방출 예정</b><p>7일이 지났지만 아직 승격 조건을 만족하지 못했어요.</p></div></article>
-          <article><span className="rule-dot pending" /><div><b>평가 중</b><p>7일 판정일까지 친구들의 평가를 기다리고 있어요.</p></div></article>
+          <article><span className="rule-dot pending" /><div><b>평가 중</b><p>등록 후 7일 미만이며 승격 조건을 충족하지 않은 곡입니다.</p></div></article>
         </div>
       </Dialog>
     </div>

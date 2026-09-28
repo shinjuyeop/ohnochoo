@@ -33,7 +33,7 @@ export function MutigoeulPage() {
   };
   return (
     <div className="page mutigoeul-page">
-      <header className="page-header"><div><h1>무티고을<span className="heading-dot">.</span></h1><p>함께 고르고, 오래 듣고 싶은 {mutigoeulSongs.length}곡.</p></div></header>
+      <header className="page-header"><div><h1>무티고을</h1><span className="page-count">{mutigoeulSongs.length}곡</span></div></header>
       <section className="content-section archive-section">
         <div className="archive-toolbar">
           <div className="archive-control-group">
@@ -47,7 +47,7 @@ export function MutigoeulPage() {
           : <div className="song-list full-list archive-list">{sortedSongs.map((song) => <SongCard key={song.id} song={song} stats={voteStats.get(song.id) ?? emptyVoteStats()} hasVoted onOpen={() => openSong(song.id)} hideStatus />)}</div>
           : mutigoeulSongs.length
             ? <div className="empty-card large"><Music2 /><h3>검색 결과가 없어요</h3><p>다른 곡명이나 아티스트를 검색해 보세요.</p></div>
-            : <div className="empty-card large"><Library /><h3>아직 무티고을이 비어 있어요</h3><p>친구들의 선택을 받은 곡이 곧 이곳에 모일 거예요.</p></div>}
+            : <div className="empty-card large"><Library /><h3>아직 무티고을이 비어 있어요</h3></div>}
       </section>
     </div>
   );

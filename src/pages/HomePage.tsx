@@ -31,12 +31,12 @@ export function HomePage() {
         <div className="home-main">
           <section className="content-section queue-section">
             <div className="section-heading queue-heading">
-              <div><h2>{pending.length ? `평가할 곡이 ${pending.length}개 있어요` : "모든 곡을 평가했어요"}</h2><p>{pending.length ? "판정일이 빠른 곡부터 차례로 들어보세요." : "오늘 발견한 좋은 음악을 나눠보세요."}</p></div>
-              <button className="text-button queue-start" onClick={() => pending[0] ? review.start() : openAddSong()}>{pending.length ? (review.progress.remaining.length && review.progress.completed ? "평가 이어하기" : "바로 평가하기") : "새 노래 추천하기"}<ArrowRight size={16} /></button>
+              <h2>{pending.length ? <>평가할 곡 <span className="section-count">{pending.length}</span></> : "평가 완료"}</h2>
+              <button className="text-button queue-start" onClick={() => pending[0] ? review.start() : openAddSong()}>{pending.length ? (review.progress.remaining.length && review.progress.completed ? "평가 이어하기" : "바로 평가하기") : "새 노래 추가"}<ArrowRight size={16} /></button>
             </div>
             <div className="song-list full-list queue-list">
               {pending.slice(0, 4).map((song) => <SongCard key={song.id} song={song} stats={voteStats.get(song.id) ?? emptyVoteStats()} hasVoted={false} onOpen={() => openSong(song.id)} compact />)}
-              {!pending.length ? <div className="empty-card"><Disc3 /><p>모두 들었네요.<br />친구들의 다음 추천을 기다려볼까요?</p></div> : null}
+              {!pending.length ? <div className="empty-card"><Disc3 /><p>미평가 곡이 없어요.</p></div> : null}
             </div>
             {pending.length ? <Link className="list-more" to="/onochoo?filter=pending">미평가 곡 전체 보기 <span>{pending.length}</span><ArrowRight size={15} /></Link> : null}
           </section>
@@ -44,12 +44,11 @@ export function HomePage() {
         <aside className="home-aside">
           <section className="home-collection">
             <div className="section-heading"><h2>무티고을</h2><span className="collection-count">{mutigoeulSongs.length}곡</span></div>
-            {recentArchive.length ? <div className="collection-picks">{recentArchive.map((song) => <button className="collection-pick" key={song.id} onClick={() => openSong(song.id)}><SongCover song={song} /><span><b>{song.title}</b><small>{song.artist}</small></span><ArrowRight size={15} /></button>)}</div> : <p className="collection-empty">우리의 선택을 받은 음악이<br />이곳에 차곡차곡 모여요.</p>}
+            {recentArchive.length ? <div className="collection-picks">{recentArchive.map((song) => <button className="collection-pick" key={song.id} onClick={() => openSong(song.id)}><SongCover song={song} /><span><b>{song.title}</b><small>{song.artist}</small></span><ArrowRight size={15} /></button>)}</div> : <p className="collection-empty">등록된 곡이 없어요.</p>}
             <Link className="collection-more" to="/mutigoeul">플레이리스트 둘러보기 <ArrowRight size={15} /></Link>
           </section>
           <Link className="records-entry" to="/records">
             <span className="records-entry-heading"><b>기록</b><span className="records-entry-count">{data.songs.filter((song) => song.archived_at).length}곡<ArrowRight size={17} /></span></span>
-            <small>방출된 곡과 그때 나눈 이야기</small>
           </Link>
           <section className="mini-stats">
             <h2>나의 음악 기록</h2>
@@ -58,7 +57,6 @@ export function HomePage() {
         </aside>
       </div>
       <footer className="home-listening-links" aria-label="외부 링크">
-        <span>앱 밖에서도 함께 들어요</span>
         <div>
           <a href={ONOCHU_APPLE_MUSIC_URL} target="_blank" rel="noreferrer"><Music size={15} /> 오노추 <ExternalLink size={12} /></a>
           <a href={MUTIGOEUL_APPLE_MUSIC_URL} target="_blank" rel="noreferrer"><Music size={15} /> 무티고을 <ExternalLink size={12} /></a>

@@ -18,7 +18,7 @@ export function WeeklyThemeCard() {
   return (
     <section className={`weekly-theme-card ${songs.length ? "has-artwork" : ""}`} aria-labelledby="weekly-theme-title">
       <div className="weekly-theme-top"><span><i aria-hidden="true" />이번 주 주제</span><time>{themeDateRange(theme.week_start)}</time></div>
-      <div className="weekly-theme-copy"><h2 id="weekly-theme-title">{theme.title}</h2><p>{theme.description || "이 주제에 어울리는 한 곡, 함께 나눠요."}</p></div>
+      <div className="weekly-theme-copy"><h2 id="weekly-theme-title">{theme.title}</h2>{theme.description ? <p>{theme.description}</p> : null}</div>
       <div className="weekly-theme-social">
         {songs.length ? <div className="theme-cover-stack" aria-hidden="true">{songs.slice(-3).map((song) => <SongCover key={song.id} song={song} />)}</div> : null}
         <span>{songs.length ? `${participants}명이 고른 ${songs.length}곡` : "이번 주의 첫 곡을 골라주세요"}</span>
