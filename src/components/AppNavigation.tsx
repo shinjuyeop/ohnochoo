@@ -1,6 +1,8 @@
 import { Home, Library, Music2, Plus, UserRound } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { cn } from "../lib/utils";
+import { useProfile } from "../features/profile/ProfileContext";
+import { Avatar } from "./ui/Avatar";
 
 const items = [
   { to: "/", label: "홈", icon: Home, end: true },
@@ -10,20 +12,20 @@ const items = [
 ];
 
 export function AppNavigation({ onAdd }: { onAdd: () => void }) {
+  const { profile } = useProfile();
   return (
     <>
       <nav className="sidebar" aria-label="주요 메뉴">
-        <div className="sidebar-brand"><span className="brand-mark">O</span><span>ohnochoo</span></div>
+        <Link to="/" className="sidebar-brand" aria-label="오노추 홈"><span>ohnochoo<span className="brand-period">.</span></span></Link>
+        <span className="sidebar-label">우리의 음악 공간</span>
         <div className="sidebar-links">
           {items.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => cn("nav-link", isActive && "active")}><Icon /><span>{label}</span></NavLink>)}
         </div>
         <button className="primary-button sidebar-add" onClick={onAdd}><Plus size={19} /> 노래 추가</button>
-        <p className="sidebar-note">우리끼리 듣고, 고르고,<br />함께 만든 플레이리스트.</p>
+        {profile ? <Link className="sidebar-profile" to="/settings"><Avatar name={profile.name} imageUrl={profile.avatar_url} imageVersion={profile.avatar_updated_at} size="sm" /><span><b>{profile.name}</b><small>내 프로필</small></span></Link> : null}
       </nav>
       <nav className="bottom-nav" aria-label="주요 메뉴">
-        {items.slice(0, 2).map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => cn("bottom-link", isActive && "active")}><Icon /><span>{label}</span></NavLink>)}
-        <button className="nav-add" onClick={onAdd} aria-label="노래 추가"><Plus /></button>
-        {items.slice(2).map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => cn("bottom-link", isActive && "active")}><Icon /><span>{label}</span></NavLink>)}
+        {items.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => cn("bottom-link", isActive && "active")}><Icon /><span>{label}</span></NavLink>)}
       </nav>
     </>
   );

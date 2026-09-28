@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Bell, BellOff, CalendarClock, ChevronRight, CircleAlert, ImageOff, ImagePlus, LoaderCircle, LockKeyhole, LogOut, Music2, PencilLine, Save, Search, Send, Shield, Trash2, UserPlus, UsersRound } from "lucide-react";
+import { Archive, Bell, BellOff, CalendarClock, ChevronRight, CircleAlert, ImageOff, ImagePlus, LoaderCircle, LockKeyhole, LogOut, Music2, PencilLine, Save, Search, Send, Shield, UserPlus, UsersRound } from "lucide-react";
 import { Avatar } from "../components/ui/Avatar";
 import { Dialog } from "../components/ui/Dialog";
 import { AdminLoginForm } from "../features/admin/AdminLoginForm";
@@ -13,7 +13,6 @@ import { emptyVoteStats, getSongStatus, isMutigoeulReady } from "../lib/songRule
 import { errorMessage } from "../lib/utils";
 
 type AdminDialog = "members" | "edit" | "move" | "delete" | null;
-type DeleteFilter = "release" | "all";
 
 function toLocalDateTimeInput(value: string) {
   const date = new Date(value);
@@ -39,7 +38,6 @@ export function SettingsPage() {
   const [editArtist, setEditArtist] = useState("");
   const [editMemberId, setEditMemberId] = useState("");
   const [editCreatedAt, setEditCreatedAt] = useState("");
-  const [deleteFilter, setDeleteFilter] = useState<DeleteFilter>("release");
   const [deleteSearch, setDeleteSearch] = useState("");
   const [selectedSongIds, setSelectedSongIds] = useState<string[]>([]);
   if (!profile || !data) return null;
@@ -54,7 +52,7 @@ export function SettingsPage() {
     const stats = voteStats.get(song.id) ?? emptyVoteStats();
     return getSongStatus(song, stats.promotedCount, stats.releasedCount).tone === "release";
   });
-  const deleteCandidates = deleteFilter === "release" ? releaseCandidates : [...onochuSongs, ...mutigoeulSongs];
+  const deleteCandidates = releaseCandidates;
   const normalizedSearch = deleteSearch.trim().toLocaleLowerCase("ko-KR");
   const visibleDeleteCandidates = deleteCandidates.filter((song) =>
     !normalizedSearch || `${song.title} ${song.artist} ${song.adder}`.toLocaleLowerCase("ko-KR").includes(normalizedSearch),
@@ -63,12 +61,11 @@ export function SettingsPage() {
   const selectedIds = new Set(selectedSongIds);
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
   const normalizedEditSearch = editSearch.trim().toLocaleLowerCase("ko-KR");
-  const editableSongs = [...data.songs].reverse().filter((song) =>
+  const editableSongs = data.songs.filter((song) => !song.archived_at).reverse().filter((song) =>
     !normalizedEditSearch || `${song.title} ${song.artist} ${song.adder}`.toLocaleLowerCase("ko-KR").includes(normalizedEditSearch),
   );
 
   const openDeleteDialog = () => {
-    setDeleteFilter("release");
     setDeleteSearch("");
     setSelectedSongIds([]);
     setDialog("delete");
@@ -163,12 +160,12 @@ export function SettingsPage() {
     const selectedSongs = data.songs.filter((song) => selectedIds.has(song.id));
     const preview = selectedSongs.slice(0, 3).map((song) => `‘${song.title}’`).join(", ");
     const rest = selectedSongs.length > 3 ? ` 외 ${selectedSongs.length - 3}곡` : "";
-    if (!window.confirm(`${preview}${rest}을 삭제할까요? 연결된 평가도 함께 삭제됩니다.`)) return;
+    if (!window.confirm(`${preview}${rest}을 방출 보관함으로 옮길까요? 평가와 답글은 그대로 남고, 이 곡의 평가는 종료됩니다.`)) return;
     try {
-      const count = await mutations.deleteSongs.mutateAsync(selectedSongIds);
+      const count = await mutations.archiveSongs.mutateAsync(selectedSongIds);
       setSelectedSongIds([]);
       setDialog(null);
-      toast(`${count}곡을 삭제했어요.`, "success");
+      toast(`${count}곡을 방출 보관함에 보관했어요.`, "success");
     } catch (error) { toast(errorMessage(error), "error"); }
   };
   const logoutAdmin = async () => {
@@ -182,7 +179,7 @@ export function SettingsPage() {
 
   return (
     <div className="page settings-page">
-      <header className="page-header"><div><span className="eyebrow">SETTINGS</span><h1>내 정보</h1><p>프로필과 이 기기의 알림을 관리해요.</p></div></header>
+      <header className="page-header"><div><h1>내 정보</h1><p>나의 프로필과 알림을 편하게 관리해요.</p></div></header>
       <div className="settings-layout">
         <div className="settings-main">
           <section className="settings-card profile-settings-card">
@@ -212,7 +209,7 @@ export function SettingsPage() {
               <button onClick={() => setDialog("members")}><span className="admin-action-icon"><UsersRound /></span><span><b>평가자 관리</b><small>{data.members.length}명 참여 중</small></span><ChevronRight /></button>
               <button onClick={openEditDialog}><span className="admin-action-icon"><PencilLine /></span><span><b>곡 정보 수정</b><small>제목, 아티스트, 등록자, 등록일 변경</small></span><ChevronRight /></button>
               <button onClick={() => { setSongId(""); setDialog("move"); }}><span className="admin-action-icon"><Music2 /></span><span><b>무티고을로 보내기</b><small>이동 가능한 곡 {eligible.length}개</small></span><ChevronRight /></button>
-              <button className="danger-row" onClick={openDeleteDialog}><span className="admin-action-icon"><Trash2 /></span><span><b>곡 정리</b><small>방출 예정 {releaseCandidates.length}곡 · 여러 곡 선택 가능</small></span><ChevronRight /></button>
+              <button className="danger-row" onClick={openDeleteDialog}><span className="admin-action-icon"><Archive /></span><span><b>방출 보관하기</b><small>방출 예정 {releaseCandidates.length}곡 · 여러 곡 선택 가능</small></span><ChevronRight /></button>
             </>
           ) : <div className="admin-panel-login"><AdminLoginForm /></div>}
         </aside>
@@ -244,13 +241,9 @@ export function SettingsPage() {
       <Dialog open={dialog === "move"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="무티고을로 보내기" description="7일과 승격 조건을 모두 만족한 곡만 이동할 수 있어요.">
         <form className="dialog-body form-stack" onSubmit={moveSong}><label className="field-label"><span>이동할 곡</span><select value={songId} onChange={(event) => setSongId(event.target.value)} disabled={!eligible.length}><option value="">{eligible.length ? "곡을 선택해 주세요" : "이동 가능한 곡이 없어요"}</option>{eligible.map((song) => <option key={song.id} value={song.id}>{song.title} — {song.artist}</option>)}</select></label><button className="primary-button" disabled={!songId || mutations.moveToMutigoeul.isPending}>{mutations.moveToMutigoeul.isPending ? "이동 중..." : "무티고을로 보내기"}</button></form>
       </Dialog>
-      <Dialog open={dialog === "delete"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="곡 정리" description="삭제할 곡을 여러 개 선택할 수 있어요." className="admin-delete-dialog">
+      <Dialog open={dialog === "delete"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="방출 보관하기" description="7일이 지난 방출 예정 곡을 보관해요. 평가와 답글은 그대로 남아요." className="admin-delete-dialog">
         <form className="dialog-body admin-delete-body" onSubmit={deleteSelectedSongs}>
           <div className="admin-delete-tools">
-            <div className="admin-delete-filters" aria-label="삭제 목록 필터">
-              <button type="button" className={deleteFilter === "release" ? "active" : ""} onClick={() => { setDeleteFilter("release"); setSelectedSongIds([]); }}>방출 예정 <span>{releaseCandidates.length}</span></button>
-              <button type="button" className={deleteFilter === "all" ? "active" : ""} onClick={() => { setDeleteFilter("all"); setSelectedSongIds([]); }}>전체 곡 <span>{data.songs.length}</span></button>
-            </div>
             <label className="admin-song-search"><Search /><input value={deleteSearch} onChange={(event) => setDeleteSearch(event.target.value)} placeholder="제목, 아티스트 검색" /></label>
             <div className="admin-select-row"><label><input type="checkbox" checked={allVisibleSelected} onChange={toggleVisible} disabled={!visibleIds.length} /> 현재 목록 전체 선택</label><span>{selectedSongIds.length}곡 선택</span></div>
           </div>
@@ -267,9 +260,9 @@ export function SettingsPage() {
                   <span className="admin-vote-counts"><b>{stats.promotedCount}</b> 승격 <b>{stats.releasedCount}</b> 방출</span>
                 </label>
               );
-            }) : <div className="admin-empty"><LockKeyhole /><p>{deleteFilter === "release" ? "방출 예정인 곡이 없어요." : "검색 결과가 없어요."}</p></div>}
+            }) : <div className="admin-empty"><LockKeyhole /><p>{deleteSearch ? "검색 결과가 없어요." : "방출 예정인 곡이 없어요."}</p></div>}
           </div>
-          <div className="admin-delete-footer"><span>선택한 곡과 연결된 평가가 함께 삭제됩니다.</span><button className="danger-button" disabled={!selectedSongIds.length || mutations.deleteSongs.isPending}>{mutations.deleteSongs.isPending ? "삭제 중..." : `${selectedSongIds.length}곡 삭제`}</button></div>
+          <div className="admin-delete-footer"><span>보관된 곡은 기록에서 다시 볼 수 있어요.</span><button className="danger-button" disabled={!selectedSongIds.length || mutations.archiveSongs.isPending}>{mutations.archiveSongs.isPending ? "보관 중..." : `${selectedSongIds.length}곡 보관`}</button></div>
         </form>
       </Dialog>
     </div>

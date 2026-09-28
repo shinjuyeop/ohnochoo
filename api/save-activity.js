@@ -1,6 +1,7 @@
 const { createClient } = require("@supabase/supabase-js");
 const { readJsonBody } = require("./_push-utils");
 const { requireAppPost } = require("./_request-guards");
+const { resolveAlbum } = require("./_apple-music-album");
 
 async function deliver(handler, body) {
     let status = 200;
@@ -42,9 +43,16 @@ module.exports = async (req, res) => {
             const title = typeof input.title === "string" ? input.title.trim() : "";
             const artist = typeof input.artist === "string" ? input.artist.trim() : "";
             if (!title || !artist) return res.status(400).json({ error: "곡명과 아티스트를 입력해 주세요." });
-            const result = await supabase.rpc("add_song_with_initial_vote", {
+            const themeId = input.weeklyThemeId ?? null;
+            if (themeId !== null && (typeof themeId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(themeId))) {
+                return res.status(400).json({ error: "이번 주 주제를 다시 선택해 주세요." });
+            }
+            const album = resolveAlbum({ albumUrl: input.albumUrl, albumName: input.albumName });
+            const result = await supabase.rpc(themeId ? "add_song_with_weekly_theme" : album.albumUrl ? "add_song_with_metadata" : "add_song_with_initial_vote", {
                 p_title: title, p_artist: artist, p_adder: member.data.name, p_adder_member_id: member.data.id,
                 p_cover_image_url: input.coverImageUrl || null, p_rating: input.rating, p_reason: reason,
+                ...(themeId ? { p_weekly_theme_id: themeId } : {}),
+                ...(!themeId && album.albumUrl ? { p_album_url: album.albumUrl, p_album_name: album.albumName } : {}),
             });
             if (result.error) throw result.error;
             const song = Array.isArray(result.data) ? result.data[0] : result.data;

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LoaderCircle, MessageCircle, Star, UserRound } from "lucide-react";
 import { Dialog } from "./ui/Dialog";
 import { SongCover } from "./ui/SongCover";
@@ -13,17 +13,23 @@ import { useProfile } from "../features/profile/ProfileContext";
 import { averageRating, emptyVoteStats, isVoteByMember } from "../lib/songRules";
 import { formatKoreanDate } from "../lib/utils";
 import { MUTIGOEUL_APPLE_MUSIC_URL, ONOCHU_APPLE_MUSIC_URL } from "../lib/constants";
+import { ReviewProgress } from "./ReviewProgress";
+import { useReviewSession } from "../app/ReviewSessionContext";
 
-export function SongDetailDialog({ songId, focusVoteId, focusReplyId, onOpenChange }: { songId: string | null; focusVoteId?: string | null; focusReplyId?: string | null; onOpenChange: (open: boolean) => void }) {
+export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyId, onOpenChange }: { songId: string | null; open?: boolean; focusVoteId?: string | null; focusReplyId?: string | null; onOpenChange: (open: boolean) => void }) {
   const { data, voteStats } = useClubData();
   const { profile } = useProfile();
+  const review = useReviewSession();
+  const [editingSavedVote, setEditingSavedVote] = useState(false);
   const song = data?.songs.find((item) => item.id === songId);
-  const discussion = useSongDiscussion(song?.id ?? null);
+  const discussion = useSongDiscussion(song?.id ?? null, open);
   const focusTarget = useRef<HTMLDivElement | HTMLElement | null>(null);
   const focused = useRef("");
+  const bodyRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = 0; setEditingSavedVote(false); }, [songId]);
   useEffect(() => {
     const key = `${songId}:${focusVoteId}:${focusReplyId}`;
-    if (!songId) { focused.current = ""; return; }
+    if (!songId || !open) { focused.current = ""; return; }
     if (!discussion.data || focused.current === key || !focusTarget.current) return;
     const frame = requestAnimationFrame(() => {
       focusTarget.current?.scrollIntoView({ block: "center" });
@@ -31,12 +37,14 @@ export function SongDetailDialog({ songId, focusVoteId, focusReplyId, onOpenChan
       focused.current = key;
     });
     return () => cancelAnimationFrame(frame);
-  }, [discussion.data, songId, focusVoteId, focusReplyId]);
+  }, [discussion.data, songId, open, focusVoteId, focusReplyId]);
   if (!songId || !data) return null;
-  if (!song) return <Dialog open onOpenChange={onOpenChange} title="곡을 찾을 수 없어요"><div className="dialog-body"><p>삭제되었거나 더 이상 볼 수 없는 곡이에요.</p><button className="secondary-button" onClick={() => onOpenChange(false)}>목록으로 돌아가기</button></div></Dialog>;
-  const allowVote = !data.mutigoeulEntries.some((entry) => entry.songId === song.id);
-  const playlistName = allowVote ? "오노추" : "무티고을";
-  const playlistUrl = allowVote ? ONOCHU_APPLE_MUSIC_URL : MUTIGOEUL_APPLE_MUSIC_URL;
+  if (!song) return <Dialog open={open} onOpenChange={onOpenChange} title="곡을 찾을 수 없어요"><div className="dialog-body"><p>삭제되었거나 더 이상 볼 수 없는 곡이에요.</p><button className="secondary-button" onClick={() => onOpenChange(false)}>목록으로 돌아가기</button></div></Dialog>;
+  const archived = Boolean(song.archived_at);
+  const promoted = data.mutigoeulEntries.some((entry) => entry.songId === song.id);
+  const allowVote = !archived && !promoted;
+  const playlistName = promoted ? "무티고을" : "오노추";
+  const playlistUrl = promoted ? MUTIGOEUL_APPLE_MUSIC_URL : ONOCHU_APPLE_MUSIC_URL;
   const stats = voteStats.get(song.id) ?? emptyVoteStats();
   const sortedVotes = discussion.data?.votes ?? [];
   const existingVote = profile ? sortedVotes.find((vote) => isVoteByMember(vote, profile)) ?? null : null;
@@ -47,21 +55,23 @@ export function SongDetailDialog({ songId, focusVoteId, focusReplyId, onOpenChan
   const average = averageRating(stats.votes);
 
   return (
-    <Dialog open={Boolean(songId)} onOpenChange={onOpenChange} title="곡 상세" className="song-detail-dialog">
-      <div className="dialog-body song-detail-body">
+    <Dialog open={open && Boolean(songId)} onOpenChange={onOpenChange} title="곡 상세" description={`${song.title} · ${song.artist}`} className="song-detail-dialog">
+      <div className="dialog-body song-detail-body" ref={bodyRef}>
         <section className="song-hero">
           <SongCover song={song} eager />
           <div className="song-hero-info">{allowVote ? <StatusBadge song={song} stats={stats} /> : null}<h2>{song.title}</h2><p>{song.artist}</p><small><UserRound size={14} /> {song.adder} · {formatKoreanDate(song.createdAt)}</small></div>
         </section>
         <SongAlbumLink song={song} playlistUrl={playlistUrl} playlistName={playlistName} />
+        {archived ? <p className="archived-notice">{formatKoreanDate(song.archived_at!)} 방출 · 당시 평가와 대화를 보관하고 있어요.</p> : null}
         <section className="vote-summary">
-          <div><b>{stats.promotedCount}</b><span>승격</span></div><div><b>{stats.heldCount}</b><span>보류</span></div><div><b>{stats.releasedCount}</b><span>방출</span></div><div><b>{average === null ? "-" : average.toFixed(1)}</b><span><Star size={13} /> 평균</span></div>
+          <div className="summary-promote"><b>{stats.promotedCount}</b><span>승격</span></div><div><b>{stats.heldCount}</b><span>보류</span></div><div className="summary-release"><b>{stats.releasedCount}</b><span>방출</span></div><div><b>{average === null ? "-" : average.toFixed(1)}</b><span><Star size={13} /> 평균</span></div>
         </section>
         <p className="rating-hint">별점을 남긴 평가만 평균에 포함돼요.</p>
         {discussion.isPending ? <div className="discussion-state" role="status"><LoaderCircle className="spin" size={18} /> 평가를 불러오는 중...</div> : null}
         {discussion.isError ? <div className="discussion-state" role="alert"><p>평가를 불러오지 못했어요. 작성 중인 내용은 이 기기에 보관돼요.</p><button className="secondary-button" onClick={() => void discussion.refetch()}>다시 시도</button></div> : null}
         {recommendation ? <section className="recommendation"><span className="eyebrow">추천한 이유</span><p>“{recommendation.reason}”</p></section> : null}
-        {allowVote && discussion.data ? <section className="detail-section"><h3>{existingVote ? "내 평가 수정" : "이 곡 평가하기"}</h3><VoteForm key={`${song.id}:${profile?.id}`} song={song} existingVote={existingVote} /></section> : null}
+        {allowVote && discussion.data ? existingVote && review.session?.completed.includes(song.id) && !editingSavedVote ? <section className="saved-review-summary"><div><span>내 평가</span><b>{existingVote.decision}{Number(existingVote.rating) > 0 ? ` · ${Number(existingVote.rating).toFixed(1)}점` : ""}</b></div><button className="text-button" onClick={() => setEditingSavedVote(true)}>평가 수정하기</button></section> : <section className="detail-section"><h3>{existingVote ? "내 평가 수정" : "이 곡 평가하기"}</h3><VoteForm key={`${song.id}:${profile?.id}`} song={song} existingVote={existingVote} onSaved={(result) => { review.saved(song.id, result.isNew); setEditingSavedVote(false); }} /></section> : null}
+        <ReviewProgress songId={song.id} />
         {discussion.data ? <section className="detail-section friend-votes">
           <div className="section-heading"><h3>평가</h3><span><MessageCircle size={15} /> {sortedVotes.length}</span></div>
           {sortedVotes.length ? sortedVotes.map((vote) => {
@@ -76,7 +86,7 @@ export function SongDetailDialog({ songId, focusVoteId, focusReplyId, onOpenChan
                   <p>{vote.reason}</p>
                   <div className="friend-vote-actions">
                     <time>{formatKoreanDate(vote.createdAt, true)}</time>
-                    {profile ? <VoteReplyForm key={`${vote.id}:${profile.id}`} voteId={vote.id} /> : null}
+                    {profile && !archived ? <VoteReplyForm key={`${vote.id}:${profile.id}`} voteId={vote.id} /> : null}
                   </div>
                   {replies.length ? <div className="vote-replies">{replies.map((reply) => {
                     const authorMember = data.members.find((member) => member.id === reply.member_id || member.name === reply.author);

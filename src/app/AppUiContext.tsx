@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 
-interface AppUiContextValue { openAddSong: () => void }
+interface AppUiContextValue { openAddSong: (weeklyThemeId?: string) => void }
 export const AppUiContext = createContext<AppUiContextValue | null>(null);
 
 export function useAppUi() {

@@ -39,7 +39,7 @@ module.exports = async (req, res) => {
 
         const [membersResult, songsResult, votesResult, mutigoeulResult, subscriptionsResult] = await Promise.all([
             supabase.from("members").select("id,name"),
-            supabase.from("songs").select("id,title,artist,createdAt").lte("createdAt", oneDayAgoIso),
+            supabase.from("songs").select("*").lte("createdAt", oneDayAgoIso),
             supabase.from("votes").select("songId,voter,member_id"),
             supabase.from("mutigoeul_songs").select("songId"),
             supabase
@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
         if (error) throw error;
 
         const mutigoeulSongIds = new Set((mutigoeulResult.data ?? []).map((item) => item.songId));
-        const reminderSongs = (songsResult.data ?? []).filter((song) => !mutigoeulSongIds.has(song.id));
+        const reminderSongs = (songsResult.data ?? []).filter((song) => !song.archived_at && !mutigoeulSongIds.has(song.id));
         const subscriptionsByMemberId = groupSubscriptionsByMemberId(subscriptionsResult.data);
 
         let sentCount = 0;

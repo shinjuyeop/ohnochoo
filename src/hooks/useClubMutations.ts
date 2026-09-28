@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { postJson } from "../lib/api";
+import { fetchPlaylist, postJson } from "../lib/api";
+import { ONOCHU_APPLE_MUSIC_URL } from "../lib/constants";
 import { getSupabase } from "../lib/supabase";
 import { normalizeCoverUrl } from "../lib/utils";
 import { prepareProfileImage } from "../lib/profileImage";
@@ -12,13 +13,16 @@ export function useClubMutations() {
   const refresh = () => Promise.all([
     queryClient.invalidateQueries({ queryKey: ["club-data"] }),
     queryClient.invalidateQueries({ queryKey: ["song-discussion"] }),
+    queryClient.invalidateQueries({ queryKey: ["weekly-themes"] }),
   ]);
 
   const addSong = useMutation({
-    mutationFn: async (input: { title: string; artist: string; reason: string; rating: number; coverImageUrl?: string | null; profile: Profile }) => {
+    mutationFn: async (input: { title: string; artist: string; reason: string; rating: number; coverImageUrl?: string | null; weeklyThemeId?: string | null; albumUrl?: string | null; albumName?: string | null; profile: Profile }) => {
       const result = await postJson<{ song: Song }>("/api/save-activity", {
         kind: "song", title: input.title, artist: input.artist, reason: input.reason.trim(),
         rating: input.rating, coverImageUrl: normalizeCoverUrl(input.coverImageUrl), memberId: input.profile.id,
+        weeklyThemeId: input.weeklyThemeId ?? null,
+        albumUrl: input.albumUrl ?? null, albumName: input.albumName ?? null,
       });
       return result.song;
     },
@@ -94,16 +98,18 @@ export function useClubMutations() {
     onSuccess: refresh,
   });
 
-  const deleteSongs = useMutation({
+  const archiveSongs = useMutation({
     mutationFn: async (songIds: string[]) => {
       if (!songIds.length) return 0;
       const supabase = await getSupabase();
-      const result = await supabase.from("songs").delete().in("id", songIds).select("id");
-      if (result.error) throw result.error;
-      if ((result.data?.length ?? 0) !== songIds.length) {
-        throw new Error("일부 곡을 삭제하지 못했어요. 관리자 권한을 확인해 주세요.");
-      }
-      return result.data.length;
+      // Save any still-available album links before the playlist is cleaned up.
+      try {
+        const songs = await fetchPlaylist(ONOCHU_APPLE_MUSIC_URL);
+        await postJson("/api/update-song-covers", { songs });
+      } catch { /* Existing metadata and the complete discussion can still be preserved. */ }
+      const result = await supabase.rpc("archive_songs", { p_song_ids: songIds });
+      if (result.error) throw new Error(result.error.code === "PGRST202" ? "보관 기능의 데이터베이스 업데이트가 아직 적용되지 않았어요." : result.error.message);
+      return Number(result.data);
     },
     onSuccess: refresh,
   });
@@ -143,7 +149,7 @@ export function useClubMutations() {
     mutationFn: async (songs: PlaylistSong[]) => {
       const payload = songs
         .map((song) => ({ ...song, coverImageUrl: normalizeCoverUrl(song.coverImageUrl) }))
-        .filter((song) => song.title && song.artist && song.coverImageUrl);
+        .filter((song) => song.title && song.artist && (song.coverImageUrl || song.albumUrl));
       if (!payload.length) return 0;
       const result = await postJson<{ updated?: number }>("/api/update-song-covers", { songs: payload });
       return Number(result.updated || 0);
@@ -151,5 +157,5 @@ export function useClubMutations() {
     onSuccess: refresh,
   });
 
-  return { addSong, saveVote, addVoteReply, addMember, updateProfileImage, removeProfileImage, deleteSongs, updateSong, moveToMutigoeul, persistCovers };
+  return { addSong, saveVote, addVoteReply, addMember, updateProfileImage, removeProfileImage, archiveSongs, updateSong, moveToMutigoeul, persistCovers };
 }

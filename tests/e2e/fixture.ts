@@ -1,8 +1,11 @@
 import type { Page } from "@playwright/test";
+import { koreanWeekStart } from "../../src/lib/weeklyTheme";
 
 const cover = (color: string, name: string) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><rect width="300" height="300" fill="${color}"/><circle cx="150" cy="130" r="85" fill="#ffffff18"/><circle cx="150" cy="130" r="48" fill="#0004"/><circle cx="150" cy="130" r="9" fill="#fffe"/><text x="20" y="266" font-family="sans-serif" font-size="22" fill="white">${name}</text></svg>`)}`;
 const day = (ago: number) => new Date(Date.now() - ago * 86_400_000).toISOString();
 export const memberId = "11111111-1111-4111-8111-111111111111";
+export const themeId = "22222222-2222-4222-8222-222222222222";
+export const pastThemeId = "33333333-3333-4333-8333-333333333333";
 
 export async function mockClub(page: Page) {
   const state = {
@@ -11,6 +14,10 @@ export async function mockClub(page: Page) {
     reads: [] as string[],
     failSave: false,
     failPlaylist: false,
+    failThemes: false,
+    failThemeSave: false,
+    failArchive: false,
+    isAdmin: false,
     playlistReads: [] as string[],
     playlistSongs: [
       { title: "오래된 노래", artist: "스탠딩 에그", albumName: "오래된 노래 - Single", albumUrl: "https://music.apple.com/kr/album/old-song/123456789" },
@@ -18,12 +25,16 @@ export async function mockClub(page: Page) {
       { title: "우리의 계절", artist: "검정치마", albumName: "우리의 계절", albumUrl: "https://music.apple.com/kr/album/our-season/345678901" },
     ],
     tables: {
+      weekly_themes: [
+        { id: themeId, week_start: koreanWeekStart(), title: "밤 산책에 데려갈 노래", description: "선선한 밤, 이어폰을 끼고 걷는다면. 오늘의 산책에 한 곡을 더해요." },
+        { id: pastThemeId, week_start: koreanWeekStart(new Date(Date.now() - 7 * 86_400_000)), title: "오래 간직한 노래", description: "다시 꺼내 듣고 싶은 곡" },
+      ],
       members: [{ id: memberId, name: "지우", createdAt: day(100) }, { id: "member-2", name: "서연", createdAt: day(100) }],
       songs: [
         { id: "old-song", title: "오래된 노래", artist: "스탠딩 에그", adder: "서연", adder_member_id: "member-2", createdAt: day(8), coverImageUrl: cover("#285b62", "OLD SONG") },
         { id: "due-song", title: "긴 제목의 음악도 편하게 읽을 수 있을까요 (Live Session)", artist: "여러 아티스트와 함께 부르는 노래", adder: "서연", adder_member_id: "member-2", createdAt: day(6.5), coverImageUrl: cover("#774638", "LATE SUMMER") },
-        { id: "new-song", title: "Summer Night", artist: "The Midnight", adder: "서연", adder_member_id: "member-2", createdAt: day(1), coverImageUrl: cover("#494780", "SUMMER NIGHT") },
-        { id: "archive-song", title: "우리의 계절", artist: "검정치마", adder: "지우", adder_member_id: memberId, createdAt: day(30), coverImageUrl: cover("#827445", "OUR SEASON") },
+        { id: "new-song", title: "Summer Night", artist: "The Midnight", adder: "서연", adder_member_id: "member-2", createdAt: day(1), coverImageUrl: cover("#494780", "SUMMER NIGHT"), weekly_theme_id: themeId },
+        { id: "archive-song", title: "우리의 계절", artist: "검정치마", adder: "지우", adder_member_id: memberId, createdAt: day(30), coverImageUrl: cover("#827445", "OUR SEASON"), weekly_theme_id: pastThemeId },
       ],
       votes: [
         { id: "vote-1", songId: "old-song", voter: "서연", member_id: "member-2", decision: "승격", rating: 4.5, reason: "저녁 산책에 잘 어울리는 곡이에요. 마지막 후렴을 꼭 들어보세요.", createdAt: day(8) },
@@ -54,18 +65,20 @@ export async function mockClub(page: Page) {
       state.writes.push(input);
       if (state.failSave) return route.fulfill({ status: 500, json: { error: "테스트 저장 실패" } });
       if (input.kind === "vote") {
+        if (state.tables.songs.some((song) => song.id === input.songId && song.archived_at)) return route.fulfill({ status: 400, json: { error: "평가가 종료된 곡이에요." } });
         const existing = state.tables.votes.find((v) => v.songId === input.songId && v.member_id === input.memberId);
         if (existing) Object.assign(existing, { reason: input.reason, rating: input.rating, decision: input.decision });
         else state.tables.votes.push({ id: "saved-vote", songId: input.songId, member_id: input.memberId, voter: "지우", reason: input.reason, rating: input.rating, decision: input.decision, createdAt: day(0) });
         return route.fulfill({ json: { changed: true, isNew: !existing } });
       }
       if (input.kind === "song") {
-        const song = { id: "saved-song", title: input.title, artist: input.artist, adder: "지우", adder_member_id: memberId, coverImageUrl: input.coverImageUrl, createdAt: day(0) };
+        const song = { id: "saved-song", title: input.title, artist: input.artist, adder: "지우", adder_member_id: memberId, coverImageUrl: input.coverImageUrl, album_url: input.albumUrl, album_name: input.albumName, weekly_theme_id: input.weeklyThemeId, createdAt: day(0) };
         state.tables.songs.push(song);
         return route.fulfill({ json: { song } });
       }
       return route.fulfill({ json: { replyId: "saved-reply" } });
     }
+    if (path === "/api/update-song-covers") return route.fulfill({ json: { updated: 0 } });
     // No unmocked write or notification request is allowed to reach the real API.
     return route.fulfill({ status: 403, json: { error: "테스트에서 차단한 API" } });
   });
@@ -74,8 +87,33 @@ export async function mockClub(page: Page) {
     const url = new URL(route.request().url());
     state.reads.push(url.href);
     const table = url.pathname.split("/").at(-1)!;
+    if (url.pathname.includes("/auth/v1/")) {
+      if (table === "token") {
+        state.isAdmin = true;
+        const token = `eyJhbGciOiJIUzI1NiJ9.${Buffer.from(JSON.stringify({ sub: memberId, exp: Math.floor(Date.now() / 1000) + 3600 })).toString("base64url")}.test`;
+        return route.fulfill({ json: { access_token: token, refresh_token: "test-refresh", token_type: "bearer", expires_in: 3600, user: { id: memberId, email: "admin@example.test", aud: "authenticated", role: "authenticated" } } });
+      }
+      return route.fulfill({ json: { id: memberId, email: "admin@example.test" } });
+    }
+    if (table === "weekly_themes" && state.failThemes) return route.fulfill({ status: 404, json: { code: "PGRST205", message: "weekly_themes not found" } });
+    if (route.request().method() === "POST" && table === "weekly_themes") {
+      if (!state.isAdmin || state.failThemeSave) return route.fulfill({ status: 403, json: { message: "테스트 주제 저장 실패" } });
+      const input = route.request().postDataJSON();
+      const existing = state.tables.weekly_themes.find((item) => item.week_start === input.week_start);
+      const saved = { ...input, id: existing?.id ?? themeId };
+      if (existing) Object.assign(existing, saved); else state.tables.weekly_themes.push(saved);
+      return route.fulfill({ json: { id: saved.id } });
+    }
+    if (table === "admin_users") return route.fulfill({ json: state.isAdmin ? { user_id: memberId } : null });
+    if (table === "archive_songs" && route.request().method() === "POST") {
+      if (!state.isAdmin || state.failArchive) return route.fulfill({ status: 403, json: { message: "테스트 보관 실패" } });
+      const ids: string[] = route.request().postDataJSON().p_song_ids;
+      for (const song of state.tables.songs) if (ids.includes(song.id)) song.archived_at ||= day(0);
+      return route.fulfill({ json: ids.length });
+    }
     let rows = state.tables[table] ?? [];
     for (const [key, value] of url.searchParams) {
+      if (value === "not.is.null") { rows = rows.filter((row) => row[key] != null); continue; }
       if (!value.startsWith("eq.")) continue;
       const wanted = value.slice(3);
       rows = key === "votes.songId"

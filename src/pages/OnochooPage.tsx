@@ -16,16 +16,23 @@ export function OnochooPage() {
   const { profile } = useProfile();
   const [params, setParams] = useSearchParams();
   const rawFilter = params.get("filter");
+  const changeParam = (name: string, value: string) => setParams((current) => {
+    const next = new URLSearchParams(current);
+    if (value) next.set(name, value); else next.delete(name);
+    return next;
+  });
   const filter: Filter = rawFilter === "pending" || rawFilter === "voted" || rawFilter === "mine" ? rawFilter : "all";
   const [query, setQuery] = useState("");
   const { openSong } = useSongDialog();
   const [rulesOpen, setRulesOpen] = useState(false);
   const filtered = useMemo(() => {
     if (!data || !profile) return [];
-    const ordered = filter === "pending" ? sortByDecisionDate(onochuSongs) : [...onochuSongs].reverse();
+    const source = onochuSongs;
+    const ordered = filter === "pending" ? sortByDecisionDate(source) : [...source].reverse();
     return ordered.filter((song) => {
       const voted = data.votes.some((vote) => vote.songId === song.id && isVoteByMember(vote, profile));
-      const filterMatch = filter === "all" || (filter === "pending" && !voted) || (filter === "voted" && voted) || (filter === "mine" && isSongByMember(song, profile));
+      const promoted = data.mutigoeulEntries.some((entry) => entry.songId === song.id);
+      const filterMatch = filter === "all" || (filter === "pending" && !voted && !promoted) || (filter === "voted" && voted) || (filter === "mine" && isSongByMember(song, profile));
       const searchMatch = !query.trim() || `${song.title} ${song.artist} ${song.adder}`.toLowerCase().includes(query.trim().toLowerCase());
       return filterMatch && searchMatch;
     });
@@ -33,15 +40,16 @@ export function OnochooPage() {
   if (!data || !profile) return null;
   return (
     <div className="page">
-      <header className="page-header"><div><span className="eyebrow">THE CANDIDATES</span><h1>오노추</h1></div><button className="icon-text-button" onClick={() => setRulesOpen(true)}><CircleHelp size={18} /> 판정 기준</button></header>
+      <header className="page-header"><div><h1>오노추<span className="heading-dot">.</span></h1><p>친구들이 고른 {onochuSongs.length}곡, 나의 취향으로 답해요.</p></div><button className="icon-text-button" onClick={() => setRulesOpen(true)}><CircleHelp size={17} /> 판정 기준</button></header>
       <div className="playlist-tools">
-        <div className="segmented-control">{filters.map((item) => <button key={item.value} className={filter === item.value ? "active" : ""} onClick={() => setParams(item.value === "all" ? {} : { filter: item.value })}>{item.label}{item.value === "pending" ? <span>{onochuSongs.filter((song) => !data.votes.some((vote) => vote.songId === song.id && isVoteByMember(vote, profile))).length}</span> : null}</button>)}</div>
+        <div className="segmented-control">{filters.map((item) => <button key={item.value} className={filter === item.value ? "active" : ""} onClick={() => changeParam("filter", item.value === "all" ? "" : item.value)}>{item.label}{item.value === "pending" ? <span>{onochuSongs.filter((song) => !data.votes.some((vote) => vote.songId === song.id && isVoteByMember(vote, profile))).length}</span> : null}</button>)}</div>
         <label className="search-field"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="곡, 아티스트 검색" aria-label="곡, 아티스트 검색" /></label>
       </div>
       {filter === "pending" ? <p className="list-hint">판정일이 빠른 순으로 보여드려요.</p> : null}
       <div className="song-list full-list">{filtered.map((song) => {
         const hasVoted = data.votes.some((vote) => vote.songId === song.id && isVoteByMember(vote, profile));
-        return <SongCard key={song.id} song={song} stats={voteStats.get(song.id) ?? emptyVoteStats()} hasVoted={hasVoted} onOpen={() => openSong(song.id)} showDecisionCounts />;
+        const promoted = data.mutigoeulEntries.some((entry) => entry.songId === song.id);
+        return <SongCard key={song.id} song={song} stats={voteStats.get(song.id) ?? emptyVoteStats()} hasVoted={hasVoted || promoted} hideStatus={promoted} onOpen={() => openSong(song.id)} />;
       })}{!filtered.length ? <div className="empty-card large"><Music2 /><h3>조건에 맞는 곡이 없어요</h3><p>다른 필터나 검색어를 사용해 보세요.</p></div> : null}</div>
       <Dialog open={rulesOpen} onOpenChange={setRulesOpen} title="오노추 판정 기준" description="투표 수와 등록 기간을 함께 반영해요.">
         <div className="dialog-body rule-list">

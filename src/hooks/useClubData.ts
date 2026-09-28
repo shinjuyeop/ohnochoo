@@ -8,7 +8,7 @@ import type { ClubData, Member, MutigoeulEntry, Song, Vote, VoteReply, VoteStats
 async function fetchClubData(): Promise<ClubData> {
   const supabase = await getSupabase();
   const [songs, votes, members, mutigoeul] = await Promise.all([
-    fetchAllPages<Song>((from, to) => supabase.from("songs").select("id,title,artist,adder,adder_member_id,createdAt,coverImageUrl").order("createdAt").order("id").range(from, to)),
+    fetchAllPages<Song>((from, to) => supabase.from("songs").select("*").order("createdAt").order("id").range(from, to)),
     fetchAllPages<VoteSummary>((from, to) => supabase.from("votes").select("id,songId,voter,member_id,decision,rating,createdAt").order("createdAt").order("id").range(from, to)),
     fetchAllPages<Member>((from, to) => supabase.from("members").select("*").order("name").order("id").range(from, to)),
     fetchAllPages<MutigoeulEntry>((from, to) => supabase.from("mutigoeul_songs").select("id,songId,createdAt").order("createdAt").order("id").range(from, to)),
@@ -21,10 +21,10 @@ async function fetchClubData(): Promise<ClubData> {
   };
 }
 
-export function useSongDiscussion(songId: string | null) {
+export function useSongDiscussion(songId: string | null, enabled = true) {
   return useQuery({
     queryKey: ["song-discussion", songId],
-    enabled: Boolean(songId),
+    enabled: Boolean(songId) && enabled,
     queryFn: async () => {
       const supabase = await getSupabase();
       const [votes, replies] = await Promise.all([
@@ -64,6 +64,7 @@ export function RealtimeSync() {
         timer = window.setTimeout(() => {
           void client.invalidateQueries({ queryKey: ["club-data"] });
           void client.invalidateQueries({ queryKey: ["song-discussion"] });
+          void client.invalidateQueries({ queryKey: ["weekly-themes"] });
         }, 400);
       };
       for (const table of ["songs", "votes", "vote_replies", "mutigoeul_songs", "members"]) {

@@ -8,6 +8,7 @@
     { "source": "/api/vapid-public-key", "destination": "/api/config?resource=vapid-public-key" },
     { "source": "/onochoo", "destination": "/index.html" },
     { "source": "/mutigoeul", "destination": "/index.html" },
+    { "source": "/records", "destination": "/index.html" },
     { "source": "/settings", "destination": "/index.html" }
   ],
   "crons": [

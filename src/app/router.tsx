@@ -12,6 +12,7 @@ export const router = createBrowserRouter([
       { path: "onochoo", lazy: async () => ({ Component: (await import("../pages/OnochooPage")).OnochooPage }) },
       { path: "mutigoeul", lazy: async () => ({ Component: (await import("../pages/MutigoeulPage")).MutigoeulPage }) },
       { path: "settings", lazy: async () => ({ Component: (await import("../pages/SettingsPage")).SettingsPage }) },
+      { path: "records", lazy: async () => ({ Component: (await import("../pages/RecordsPage")).RecordsPage }) },
     ],
   },
 ]);

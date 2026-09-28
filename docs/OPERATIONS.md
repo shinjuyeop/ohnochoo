@@ -46,20 +46,25 @@ VAPID 키를 처음 만들 때에는 `npx web-push generate-vapid-keys`를 사�
 | [20260721220000_profile_images.sql](../supabase/migrations/20260721220000_profile_images.sql) | 프로필 사진 컬럼과 Storage 정책 |
 | [20260721221000_fix_profile_image_policies.sql](../supabase/migrations/20260721221000_fix_profile_image_policies.sql) | 사진 경로 검증 정책 보정 |
 | [20260723130000_vote_replies.sql](../supabase/migrations/20260723130000_vote_replies.sql) | 답글·300자 제한·접근 정책 |
+| [20260928120000_weekly_themes.sql](../supabase/migrations/20260928120000_weekly_themes.sql) | 주제 기능 기반 (현재 UI 보류, 기록 기능의 선행 조건 아님) |
+| [20260928160000_song_records.sql](../supabase/migrations/20260928160000_song_records.sql) | 방출 보관·기록 변경/삭제 차단·앨범 정보 원자 저장 |
 
 곡·평가 저장에는 `add_song_with_initial_vote`와 `save_member_vote`가 필요합니다. RPC가 없으면 앱이 503과 DB 업데이트 안내를 반환합니다. SQL Editor에서 아래의 **조회 전용 SQL**로 함수 존재 여부를 확인할 수 있습니다. 결과가 `null`이면 해당 함수가 없습니다.
 
 ```sql
 select
   to_regprocedure('public.add_song_with_initial_vote(text,text,text,uuid,text,numeric,text)') as add_song_rpc,
-  to_regprocedure('public.save_member_vote(uuid,text,uuid,text,numeric,text)') as save_vote_rpc;
+  to_regprocedure('public.save_member_vote(uuid,text,uuid,text,numeric,text)') as save_vote_rpc,
+  to_regprocedure('public.archive_songs(uuid[])') as archive_rpc,
+  to_regprocedure('public.add_song_with_metadata(text,text,text,uuid,text,numeric,text,text,text)') as metadata_rpc;
 ```
 
 ### 주요 데이터
 
 | 테이블 | 담는 정보 |
 |---|---|
-| `songs` | 곡·아티스트·추천자·등록일·커버 |
+| `songs` | 곡·아티스트·추천자·등록일·커버·앨범 링크·방출 보관일 |
+| `weekly_themes` | 한국 시간 기준 주 시작일·주제·짧은 설명 (`songs.weekly_theme_id`로 연결) |
 | `members` | 프로필·프로필 사진 |
 | `votes` | 승격·보류·방출, 별점, 이유 |
 | `vote_replies` | 평가에 달린 답글 |
@@ -68,13 +73,23 @@ select
 | `push_subscriptions` | 기기 구독과 활성 상태 |
 | `notification_logs` | 알림 중복 방지와 발송 상태 |
 
-추천자·평가자는 `adder_member_id`와 `member_id`로 우선 식별하며, 예전 데이터는 이름으로 호환합니다. Realtime publication에는 `songs`, `votes`, `vote_replies`, `members`, `mutigoeul_songs`를 포함합니다.
+추천자·평가자는 `adder_member_id`와 `member_id`로 우선 식별하며, 예전 데이터는 이름으로 호환합니다. 현재 Realtime 구독은 `songs`, `votes`, `vote_replies`, `members`, `mutigoeul_songs`를 사용합니다.
+
+### 기록 기능 적용
+
+1. 기존 환경에는 `20260928160000_song_records.sql`을 적용한 뒤 앱과 API를 배포합니다. 2026년 7월까지의 기본 마이그레이션이 선행되어야 하며, 보류한 주제 마이그레이션은 필수가 아닙니다. 새 환경의 `schema.sql`에는 포함되어 있습니다.
+2. 관리자는 **내 정보 → 방출 보관하기**에서 7일이 지난 방출 예정 곡을 선택합니다. 현재 표가 바뀌어 승격 조건을 충족하면 보관을 거절합니다. 하나라도 실패하면 전체 선택을 보관하지 않습니다.
+3. 보관한 곡은 홈의 **기록**에서 확인합니다. 곡·평가·답글은 남으며 이후 수정을 차단합니다. 이전에 삭제된 데이터는 복구되지 않습니다.
+
+플레이리스트에 아직 있는 곡은 보관 직전에 커버·앨범 링크의 빈 값을 보완합니다. 조회 실패 시 이미 저장된 정보로 보관하며, 이미지 파일 자체는 복제하지 않습니다. 앱의 보관 동작은 Apple Music 플레이리스트를 수정하지 않으므로 플레이리스트 정리는 별도로 진행합니다.
+
+마이그레이션은 오래된 앱의 곡 삭제도 차단합니다. 보관 해제·영구 삭제·패자부활전은 현재 UI에서 제공하지 않습니다. 주제 UI도 보류 상태이며 이미 적용한 주제 테이블을 제거할 필요는 없습니다.
 
 ### 첫 프로필과 관리자
 
 새 DB에는 첫 프로필이 자동 생성되지 않습니다. Supabase Table Editor에서 `members`에 프로필을 만들고, Supabase Authentication에서 관리자 계정을 준비합니다. `admin_users.user_id`에 Auth 사용자 ID, `member_id`에 연결할 프로필 ID를 입력합니다.
 
-앱의 **내 정보**에서 관리자 계정으로 로그인하면 평가자 추가, 곡 정보 수정·삭제, 무티고을 이동 기능을 사용할 수 있습니다. 계정 비밀번호는 앱 코드나 환경 변수에 저장하지 않습니다.
+앱의 **내 정보**에서 관리자 계정으로 로그인하면 평가자 추가, 곡 정보 수정·방출 보관, 무티고을 이동 기능을 사용할 수 있습니다. 계정 비밀번호는 앱 코드나 환경 변수에 저장하지 않습니다.
 
 ### 프로필 사진
 
@@ -109,7 +124,7 @@ Supabase Storage에 아래 버킷을 직접 생성합니다. SQL 정책만으로
 
 ### 배포 전후 확인
 
-- [ ] 필요한 DB 마이그레이션과 두 저장 RPC가 적용되어 있다.
+- [ ] 필요한 DB 마이그레이션과 저장·보관 RPC가 적용되어 있다.
 - [ ] Production 환경 변수, Realtime, Storage, 관리자 매핑을 확인했다.
 - [ ] 변경에 해당하는 테스트와 `npm run build`가 통과했다.
 - [ ] Vercel 배포 상태가 성공이며 실제 배포된 커밋이 맞다.

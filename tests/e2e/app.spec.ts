@@ -119,6 +119,7 @@ for (const width of [320, 390, 768, 1024, 1440]) {
     expect(await page.evaluate(() => document.fonts.check('16px "Pretendard Variable"'))).toBe(true);
     await noOverflow();
     await page.screenshot({ path: `test-results/layout/${width}-home.png`, fullPage: true, animations: "disabled" });
+    if (width === 390) await page.screenshot({ path: "test-results/layout/390-home-preview.png", animations: "disabled" });
     await page.goto("/onochoo?filter=pending");
     await expect(page.locator(".song-card")).toHaveCount(3);
     await noOverflow();

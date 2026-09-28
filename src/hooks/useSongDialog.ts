@@ -2,13 +2,13 @@ import { useSearchParams } from "react-router-dom";
 
 export function useSongDialog() {
   const [params, setParams] = useSearchParams();
-  const openSong = (id: string) => setParams((current) => {
+  const openSong = (id: string, replace = false) => setParams((current) => {
     const next = new URLSearchParams(current);
     next.set("song", id);
     next.delete("vote");
     next.delete("reply");
     return next;
-  });
+  }, { replace });
   const closeSong = () => setParams((current) => {
     const next = new URLSearchParams(current);
     for (const key of ["song", "vote", "reply"]) next.delete(key);

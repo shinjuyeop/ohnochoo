@@ -4,9 +4,12 @@ import type { KeyboardEvent, MouseEvent } from "react";
 export function StarRating({ value, onChange, readOnly = false, label = "별점" }: { value: number; onChange?: (value: number) => void; readOnly?: boolean; label?: string }) {
   const normalized = Math.max(0, Math.min(5, Math.round(value * 2) / 2));
   const update = (next: number) => onChange?.(Math.max(0, Math.min(5, Math.round(next * 2) / 2)));
-  const onClick = (event: MouseEvent<HTMLButtonElement>, index: number) => {
+  const onClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (readOnly) return;
     const rect = event.currentTarget.getBoundingClientRect();
-    const score = index - (event.clientX - rect.left < rect.width / 2 ? 0.5 : 0);
+    if (!rect.width) return;
+    const score = Math.max(0.5, Math.min(5, Math.ceil((event.clientX - rect.left) / rect.width * 10) / 2));
+    event.currentTarget.focus();
     update(normalized === 0.5 && score === 0.5 ? 0 : score);
   };
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -16,14 +19,13 @@ export function StarRating({ value, onChange, readOnly = false, label = "별점"
   };
   return (
     <div className="rating-row">
-      <div className="star-picker" role={readOnly ? "img" : "slider"} aria-label={readOnly ? `${label} ${normalized === 0 ? "미입력" : `${normalized.toFixed(1)}점`}` : label} aria-valuetext={readOnly ? undefined : normalized === 0 ? "미입력, 평균에서 제외" : `${normalized.toFixed(1)}점`} aria-valuemin={readOnly ? undefined : 0} aria-valuemax={readOnly ? undefined : 5} aria-valuenow={readOnly ? undefined : normalized} tabIndex={readOnly ? -1 : 0} onKeyDown={onKeyDown}>
+      <div className="star-picker" role={readOnly ? "img" : "slider"} aria-label={readOnly ? `${label} ${normalized === 0 ? "미입력" : `${normalized.toFixed(1)}점`}` : label} aria-valuetext={readOnly ? undefined : normalized === 0 ? "미입력, 평균에서 제외" : `${normalized.toFixed(1)}점`} aria-valuemin={readOnly ? undefined : 0} aria-valuemax={readOnly ? undefined : 5} aria-valuenow={readOnly ? undefined : normalized} aria-orientation={readOnly ? undefined : "horizontal"} tabIndex={readOnly ? undefined : 0} onKeyDown={onKeyDown} onClick={readOnly ? undefined : onClick}>
         {[1, 2, 3, 4, 5].map((index) => {
           const fill = Math.max(0, Math.min(1, normalized - index + 1));
           return (
-            <button type="button" key={index} disabled={readOnly} tabIndex={-1} onClick={(event) => onClick(event, index)} aria-hidden="true">
-              <Star className="star-empty" />
-              <span className="star-fill" style={{ width: `${fill * 100}%` }}><Star /></span>
-            </button>
+            <span className="star-step" key={index} aria-hidden="true">
+              <span className="star-glyph"><Star className="star-empty" /><span className="star-fill" style={{ width: `${fill * 100}%` }}><Star /></span></span>
+            </span>
           );
         })}
       </div>

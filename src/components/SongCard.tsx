@@ -1,48 +1,26 @@
-import { ChevronRight, MessageCircle, Star } from "lucide-react";
+import { ChevronRight, Star } from "lucide-react";
 import { SongCover } from "./ui/SongCover";
 import { StatusBadge } from "./ui/StatusBadge";
-import { formatCompactDate } from "../lib/utils";
 import { averageRating, getDecisionCountdown } from "../lib/songRules";
 import type { Song, VoteStats } from "../types";
 
-export function SongCard({ song, stats, hasVoted, onOpen, compact = false, hideStatus = false, showDecisionCounts = false }: { song: Song; stats: VoteStats; hasVoted: boolean; onOpen: () => void; compact?: boolean; hideStatus?: boolean; showDecisionCounts?: boolean }) {
+export function SongCard({ song, stats, hasVoted, onOpen, compact = false, hideStatus = false }: { song: Song; stats: VoteStats; hasVoted: boolean; onOpen: () => void; compact?: boolean; hideStatus?: boolean }) {
   const avg = averageRating(stats.votes);
-  const handleOpenKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    onOpen();
-  };
-
   return (
     <article className={`song-card ${compact ? "song-card-compact" : ""}`}>
-      <div
-        className="song-card-open"
-        role="button"
-        tabIndex={0}
-        aria-label={`${song.title} - ${song.artist} 상세 보기`}
-        onClick={onOpen}
-        onKeyDown={handleOpenKeyDown}
-      >
+      <button className="song-card-open" aria-label={`${song.title} - ${song.artist} 상세 보기`} onClick={onOpen}>
         <SongCover song={song} eager={compact} />
-        <div className={`song-card-main ${hideStatus ? "song-card-main-plain" : ""}`}>
-          {!hideStatus ? <div className="song-card-top"><StatusBadge song={song} stats={stats} /><span>{formatCompactDate(song.createdAt)}</span></div> : null}
-          <div className="song-title-row"><h3>{song.title}</h3>{hideStatus ? <span className="song-title-date">{formatCompactDate(song.createdAt)}</span> : null}</div>
-          <p>{song.artist}</p>
+        <span className="song-card-main">
+          <span className="song-title-row"><span className="song-title">{song.title}</span></span>
+          <span className="song-artist">{song.artist}</span>
+          <span className="song-card-meta"><span className="song-card-adder">{song.adder} 추천</span><span className="song-vote-count">평가 {stats.votes.length}명</span>{avg !== null ? <span className="song-card-rating"><Star size={12} />{avg.toFixed(1)}</span> : null}</span>
           {!hideStatus && !hasVoted ? <span className="decision-countdown">{getDecisionCountdown(song.createdAt)}</span> : null}
-          <div className={`song-card-meta ${showDecisionCounts ? "song-card-meta-decisions" : ""}`}>
-            <span className="song-card-adder">by {song.adder}</span>
-            {showDecisionCounts ? (
-              <span className="card-decision-counts" aria-label={`승격 ${stats.promotedCount}, 보류 ${stats.heldCount}, 방출 ${stats.releasedCount}`}>
-                <span className="promote">승격 {stats.promotedCount}</span>
-                <span className="hold">보류 {stats.heldCount}</span>
-                <span className="release">방출 {stats.releasedCount}</span>
-              </span>
-            ) : <span><MessageCircle size={14} /> {stats.votes.length}</span>}
-            {avg !== null ? <span className="song-card-rating"><Star size={14} /> {avg.toFixed(1)}</span> : null}
-          </div>
-        </div>
+        </span>
+      </button>
+      <div className="song-row-action">
+        {!hideStatus ? <StatusBadge song={song} stats={stats} /> : null}
+        {!hasVoted ? <button className="evaluate-button" onClick={onOpen}>평가하기<ChevronRight size={14} /></button> : <button className="card-arrow" aria-label={`${song.title} 상세 보기`} onClick={onOpen}><ChevronRight size={18} /></button>}
       </div>
-      {!hasVoted ? <button className="evaluate-button" onClick={onOpen}>평가하기</button> : <button className="card-arrow" aria-label={`${song.title} 상세 보기`} onClick={onOpen}><ChevronRight /></button>}
     </article>
   );
 }

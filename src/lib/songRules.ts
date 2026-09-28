@@ -37,7 +37,7 @@ export const emptyVoteStats = (): VoteStats => ({
 
 export function getOnochooSongs(data: ClubData) {
   const moved = new Set(data.mutigoeulEntries.map((entry) => entry.songId));
-  return data.songs.filter((song) => !moved.has(song.id));
+  return data.songs.filter((song) => !song.archived_at && !moved.has(song.id));
 }
 
 export function getMutigoeulSongs(data: ClubData) {

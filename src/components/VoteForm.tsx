@@ -19,7 +19,7 @@ const voteSchema = z.object({
 type FormValue = z.infer<typeof voteSchema>;
 const draftSchema = voteSchema.extend({ decision: voteSchema.shape.decision.optional(), reason: z.string() });
 
-export function VoteForm({ song, existingVote, onSaved }: { song: Song; existingVote: Vote | null; onSaved?: () => void }) {
+export function VoteForm({ song, existingVote, onSaved }: { song: Song; existingVote: Vote | null; onSaved?: (result: { isNew: boolean }) => void }) {
   const { profile } = useProfile();
   const storageKey = draftKey(profile?.id || "", `vote:${song.id}`);
   const [restored, setRestored] = useState(() => readDraft(storageKey, draftSchema));
@@ -53,8 +53,8 @@ export function VoteForm({ song, existingVote, onSaved }: { song: Song; existing
       hasDraft.current = false;
       setRestored(null);
       clearDraft(storageKey);
-      toast(result.changed ? (result.isNew ? "평가를 저장했어요." : "평가를 수정했어요.") : "변경된 내용이 없어요.", result.changed ? "success" : "info");
-      if (result.changed) onSaved?.();
+      if (!(result.changed && result.isNew && onSaved)) toast(result.changed ? (result.isNew ? "평가를 저장했어요." : "평가를 수정했어요.") : "변경된 내용이 없어요.", result.changed ? "success" : "info");
+      if (result.changed) onSaved?.(result);
     } catch (error) { toast(`평가 저장 실패: ${errorMessage(error)}`, "error"); }
   };
 

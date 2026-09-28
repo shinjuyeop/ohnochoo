@@ -33,7 +33,7 @@ export function MutigoeulPage() {
   };
   return (
     <div className="page mutigoeul-page">
-      <header className="page-header"><div><span className="eyebrow">THE ARCHIVE</span><h1>무티고을</h1></div></header>
+      <header className="page-header"><div><h1>무티고을<span className="heading-dot">.</span></h1><p>함께 고르고, 오래 듣고 싶은 {mutigoeulSongs.length}곡.</p></div></header>
       <section className="content-section archive-section">
         <div className="archive-toolbar">
           <div className="archive-control-group">

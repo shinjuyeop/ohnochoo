@@ -6,15 +6,18 @@ import type { Song } from "../types";
 
 export function SongAlbumLink({ song, playlistUrl, playlistName }: { song: Song; playlistUrl: string; playlistName: string }) {
   const playlist = useQuery({
+    enabled: !song.album_url && !song.archived_at,
     queryKey: ["apple-music-playlist", playlistUrl],
     queryFn: () => fetchPlaylist(playlistUrl),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     retry: false,
   });
-  const album = playlist.data?.find((item) => getSongKey(item.title, item.artist) === getSongKey(song.title, song.artist));
+  const album = song.album_url ? { albumUrl: song.album_url, albumName: song.album_name } : !song.archived_at ? playlist.data?.find((item) => getSongKey(item.title, item.artist) === getSongKey(song.title, song.artist)) : undefined;
 
-  if (playlist.isPending) return (
+  if (song.archived_at && !album?.albumUrl) return <p className="archived-listen-note">저장된 앨범 링크가 없어요. Apple Music에서 곡명과 아티스트로 찾아보세요.</p>;
+
+  if (!album?.albumUrl && playlist.isPending) return (
     <div className="listen-link" role="status"><LoaderCircle className="spin" size={18} /><span><b>수록 앨범을 찾고 있어요</b><small>Apple Music에서 확인 중이에요</small></span></div>
   );
 

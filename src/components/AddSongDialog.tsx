@@ -22,12 +22,15 @@ const schema = z.object({
   reason: z.string().trim().min(1, "추천 이유를 들려주세요."),
   rating: z.number().min(0).max(5),
   coverImageUrl: z.string().nullable().optional(),
+  albumUrl: z.string().nullable().optional(),
+  albumName: z.string().nullable().optional(),
+  weeklyThemeId: z.string().nullable().optional(),
 });
 type SongForm = z.infer<typeof schema>;
 const draftSchema = schema.extend({ title: z.string(), artist: z.string(), reason: z.string() });
-const emptyForm: SongForm = { title: "", artist: "", reason: "", rating: 5, coverImageUrl: null };
+const emptyForm: SongForm = { title: "", artist: "", reason: "", rating: 5, coverImageUrl: null, albumUrl: null, albumName: null, weeklyThemeId: null };
 
-export function AddSongDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function AddSongDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void; initialThemeId?: string }) {
   const { data } = useClubData();
   const { profile } = useProfile();
   const storageKey = draftKey(profile?.id || "", "add-song");
@@ -42,7 +45,7 @@ export function AddSongDialog({ open, onOpenChange }: { open: boolean; onOpenCha
   const [syncMessage, setSyncMessage] = useState("");
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<SongForm>({
     resolver: zodResolver(schema),
-    defaultValues: restored ?? emptyForm,
+    defaultValues: restored ? { ...restored, weeklyThemeId: null } : emptyForm,
   });
   const rating = watch("rating");
   const title = watch("title");
@@ -58,7 +61,7 @@ export function AddSongDialog({ open, onOpenChange }: { open: boolean; onOpenCha
   useEffect(() => {
     const subscription = watch((value, { name }) => {
       if (!name) return;
-      if (value.title || value.artist || value.reason) writeDraft(storageKey, value);
+      if (value.title || value.artist || value.reason || value.weeklyThemeId) writeDraft(storageKey, value);
       else clearDraft(storageKey);
     });
     return () => subscription.unsubscribe();
@@ -77,7 +80,7 @@ export function AddSongDialog({ open, onOpenChange }: { open: boolean; onOpenCha
         .filter((song) => !existing.has(getSongKey(song.title, song.artist)))
         .map((song) => ({ ...song, coverImageUrl: normalizeCoverUrl(song.coverImageUrl) }));
       setSongs(candidates); setSelectedIndex(""); setMode("sync");
-      setSyncMessage(candidates.length ? `아직 추가하지 않은 ${candidates.length}곡을 찾았어요.${updated ? ` 커버 ${updated}개도 새로 맞췄어요.` : ""}` : "새로 추가할 곡이 없어요.");
+      setSyncMessage(candidates.length ? `아직 추가하지 않은 ${candidates.length}곡을 찾았어요.${updated ? ` ${updated}곡의 커버·앨범 정보도 보완했어요.` : ""}` : "새로 추가할 곡이 없어요.");
     } catch (error) {
       if (request !== syncRequest.current) return;
       setMode("manual");
@@ -92,19 +95,23 @@ export function AddSongDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     setValue("title", song.title, { shouldValidate: true });
     setValue("artist", song.artist, { shouldValidate: true });
     setValue("coverImageUrl", song.coverImageUrl || null);
+    setValue("albumUrl", song.albumUrl || null);
+    setValue("albumName", song.albumName || null);
   };
+
+  const clearLinkedMetadata = () => { setValue("coverImageUrl", null); setValue("albumUrl", null); setValue("albumName", null); };
 
   const switchManual = () => {
     syncRequest.current += 1; setSyncing(false); setSyncMessage("");
-    setMode("manual"); setSelectedIndex(""); setValue("coverImageUrl", null);
+    setMode("manual"); setSelectedIndex(""); clearLinkedMetadata();
   };
 
   const submit = async (values: SongForm) => {
     if (!profile) return;
     const duplicate = data?.songs.find((song) => getSongKey(song.title, song.artist) === getSongKey(values.title, values.artist));
-    if (duplicate) { toast("이미 추가된 곡이에요. 오노추나 무티고을에서 찾아보세요.", "error"); return; }
+    if (duplicate) { toast(duplicate.archived_at ? "이미 보관된 곡이에요. 홈의 기록에서 찾아보세요." : "이미 추가된 곡이에요. 오노추나 무티고을에서 찾아보세요.", "error"); return; }
     try {
-      await addSong.mutateAsync({ ...values, profile });
+      await addSong.mutateAsync({ ...values, weeklyThemeId: null, profile });
       reset(emptyForm); clearDraft(storageKey); setRestored(null);
       setMode("start"); setSongs([]); setSelectedIndex(""); setSyncMessage("");
       toast("새 노래와 첫 승격 평가를 저장했어요.", "success");
@@ -131,8 +138,8 @@ export function AddSongDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             <p className="draft-hint">{restored ? "작성하던 추천을 불러왔어요." : "창을 닫아도 작성 중인 추천은 이 기기에 보관돼요."}</p>
             <div className="selected-song-preview"><SongCover song={previewSong} /><div><span className="eyebrow">NEW PICK</span><b>{title || "곡 정보를 입력해 주세요"}</b><small>{artist || "아티스트"}</small></div></div>
             <div className="two-fields">
-              <label className="field-label"><span>곡명</span><input {...register("title", { onChange: () => setValue("coverImageUrl", null) })} readOnly={Boolean(selectedSong)} placeholder="예: NEW DROP" />{errors.title ? <em>{errors.title.message}</em> : null}</label>
-              <label className="field-label"><span>아티스트</span><input {...register("artist", { onChange: () => setValue("coverImageUrl", null) })} readOnly={Boolean(selectedSong)} placeholder="예: Don Toliver" />{errors.artist ? <em>{errors.artist.message}</em> : null}</label>
+              <label className="field-label"><span>곡명</span><input {...register("title", { onChange: clearLinkedMetadata })} readOnly={Boolean(selectedSong)} placeholder="예: NEW DROP" />{errors.title ? <em>{errors.title.message}</em> : null}</label>
+              <label className="field-label"><span>아티스트</span><input {...register("artist", { onChange: clearLinkedMetadata })} readOnly={Boolean(selectedSong)} placeholder="예: Don Toliver" />{errors.artist ? <em>{errors.artist.message}</em> : null}</label>
             </div>
             <label className="field-label"><span>별점</span><StarRating value={rating} onChange={(value) => setValue("rating", value, { shouldDirty: true })} /></label>
             <label className="field-label"><span>왜 이 곡을 추천하나요?</span><textarea {...register("reason")} rows={4} placeholder="친구들이 궁금해할 추천 포인트를 적어주세요." />{errors.reason ? <em>{errors.reason.message}</em> : null}</label>

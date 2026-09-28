@@ -8,6 +8,9 @@ export interface Song {
   adder_member_id: string | null;
   createdAt: string;
   coverImageUrl: string | null;
+  archived_at?: string | null;
+  album_url?: string | null;
+  album_name?: string | null;
 }
 
 export interface VoteSummary {
@@ -67,4 +70,16 @@ export interface VoteStats {
   promotedCount: number;
   releasedCount: number;
   heldCount: number;
+}
+
+export interface WeeklyTheme {
+  id: string;
+  week_start: string;
+  title: string;
+  description: string;
+}
+
+export interface ThemeSong {
+  id: string;
+  weekly_theme_id: string;
 }
