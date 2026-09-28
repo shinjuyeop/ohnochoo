@@ -29,8 +29,6 @@ export function StarRating({ value, onChange, readOnly = false, label = "별점"
           );
         })}
       </div>
-      {!readOnly || normalized === 0 ? <span className="rating-value">{normalized === 0 ? "미입력" : normalized.toFixed(1)}</span> : null}
-      {!readOnly && normalized > 0 ? <button className="rating-clear" type="button" onClick={() => update(0)}>지우기</button> : null}
     </div>
   );
 }

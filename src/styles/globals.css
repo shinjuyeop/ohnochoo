@@ -340,7 +340,7 @@ svg { flex-shrink: 0; }
 .decision-control .active.decision-방출 { background: var(--release-soft); border-color: var(--release); color: var(--release); }
 .vote-rating { display: grid; gap: 7px; }
 .vote-rating > span { font-size: 13px; }
-.rating-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.rating-row { display: flex; align-items: center; justify-content: center; }
 .star-picker { display: flex; align-items: center; border-radius: 5px; }
 .star-picker .star-step { display: block; position: relative; width: 36px; height: 44px; padding: 9px 5px; border: 0; background: transparent; color: var(--star-empty); }
 .star-picker[role="slider"] { cursor: pointer; }
@@ -348,8 +348,6 @@ svg { flex-shrink: 0; }
 .star-glyph { position: relative; display: block; width: 26px; height: 26px; }
 .star-fill { position: absolute; inset: 0 auto auto 0; height: 26px; overflow: hidden; color: var(--star); pointer-events: none; }
 .star-fill svg { max-width: none; }
-.rating-value { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
-.rating-clear { min-height: 40px; padding: 0 5px; border: 0; background: transparent; color: var(--muted); font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
 .discussion-state { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; padding: 24px 0; font-size: 13px; color: var(--muted); text-align: center; }
 .discussion-state p { margin: 0; }
 .friend-vote { display: grid; grid-template-columns: 34px minmax(0,1fr); gap: 10px; padding: 16px 0; border-bottom: 1px solid var(--line-soft); }
@@ -366,7 +364,6 @@ svg { flex-shrink: 0; }
 .friend-vote .star-picker svg { width: 13px; height: 13px; }
 .friend-vote .star-glyph { width: 13px; height: 13px; }
 .friend-vote .star-fill { inset: 0; height: 13px; }
-.friend-vote .rating-value { font-size: 11px; }
 .friend-vote p { margin: 10px 0; color: var(--text); font-size: 14px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
 .friend-vote-actions { display: grid; grid-template-columns: auto minmax(0,1fr); align-items: center; gap: 6px 12px; min-height: 36px; }
 .friend-vote time { font-size: 11px; color: var(--muted); }
