@@ -51,7 +51,7 @@ export function isPromotionTarget(promoted: number, released: number) {
 
 export function hasElapsedOneWeek(createdAt: string, now = Date.now()) {
   const created = new Date(createdAt).getTime();
-  return !Number.isNaN(created) && now - created >= 7 * 24 * 60 * 60 * 1000;
+  return !Number.isNaN(created) && now - created >= 14 * 24 * 60 * 60 * 1000;
 }
 
 export function isMutigoeulReady(song: Song, promoted: number, released: number, now = Date.now()) {
@@ -78,7 +78,7 @@ export function averageRating(votes: VoteSummary[]) {
 }
 
 export function getDecisionCountdown(createdAt: string, now = Date.now()) {
-  const remaining = new Date(createdAt).getTime() + 7 * 24 * 60 * 60 * 1000 - now;
+  const remaining = new Date(createdAt).getTime() + 14 * 24 * 60 * 60 * 1000 - now;
   if (!Number.isFinite(remaining)) return null;
   if (remaining <= 0) return "판정일 지남";
   if (remaining < 24 * 60 * 60 * 1000) return "판정까지 24시간 이내";

@@ -236,16 +236,16 @@ export function SettingsPage() {
                 <label className="field-label"><span>등록자</span><select value={editMemberId} onChange={(event) => setEditMemberId(event.target.value)} required><option value="">등록자를 선택해 주세요</option>{data.members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
                 <label className="field-label"><span>등록 날짜와 시간</span><span className="date-time-input"><CalendarClock /><input type="datetime-local" value={editCreatedAt} max={toLocalDateTimeInput(new Date().toISOString())} onChange={(event) => setEditCreatedAt(event.target.value)} required /></span></label>
               </div>
-              <div className="admin-edit-warning"><CircleAlert /><p>등록일을 바꾸면 7일 판정과 방출 예정·무티고을 이동 가능 상태가 즉시 달라질 수 있어요.</p></div>
+              <div className="admin-edit-warning"><CircleAlert /><p>등록일을 바꾸면 14일 판정과 방출 예정·무티고을 이동 가능 상태가 즉시 달라질 수 있어요.</p></div>
               <button className="primary-button" disabled={mutations.updateSong.isPending || !editTitle.trim() || !editArtist.trim() || !editMemberId || !editCreatedAt}>{mutations.updateSong.isPending ? <><LoaderCircle className="spin" /> 저장 중...</> : <><Save /> 변경사항 저장</>}</button>
             </div>
           ) : null}
         </form>
       </Dialog>
-      <Dialog open={dialog === "move"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="무티고을로 보내기" description="7일과 승격 조건을 모두 만족한 곡만 이동할 수 있어요.">
+      <Dialog open={dialog === "move"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="무티고을로 보내기" description="14일과 승격 조건을 모두 만족한 곡만 이동할 수 있어요.">
         <form className="dialog-body form-stack" onSubmit={moveSong}><label className="field-label"><span>이동할 곡</span><select value={songId} onChange={(event) => setSongId(event.target.value)} disabled={!eligible.length}><option value="">{eligible.length ? "곡을 선택해 주세요" : "이동 가능한 곡이 없어요"}</option>{eligible.map((song) => <option key={song.id} value={song.id}>{song.title} — {song.artist}</option>)}</select></label><button className="primary-button" disabled={!songId || mutations.moveToMutigoeul.isPending}>{mutations.moveToMutigoeul.isPending ? "이동 중..." : "무티고을로 보내기"}</button></form>
       </Dialog>
-      <Dialog open={dialog === "delete"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="방출 보관하기" description="7일이 지난 방출 예정 곡을 보관해요. 평가와 답글은 그대로 남아요." className="admin-delete-dialog">
+      <Dialog open={dialog === "delete"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="방출 보관하기" description="14일이 지난 방출 예정 곡을 보관해요. 평가와 답글은 그대로 남아요." className="admin-delete-dialog">
         <form className="dialog-body admin-delete-body" onSubmit={deleteSelectedSongs}>
           <div className="admin-delete-tools">
             <SearchField value={deleteSearch} onChange={(event) => setDeleteSearch(event.target.value)} onClear={() => setDeleteSearch("")} placeholder="제목, 아티스트 검색" />

@@ -56,9 +56,9 @@ export function OnochooPage() {
       <Dialog open={rulesOpen} onOpenChange={setRulesOpen} title="오노추 판정 기준">
         <div className="dialog-body rule-list">
           <article><span className="rule-dot promote" /><div><b>승격 후보</b><p>승격 수가 방출 수보다 3개 이상 많으면 후보가 됩니다.</p></div></article>
-          <article><span className="rule-dot ready" /><div><b>무티고을 이동 가능</b><p>등록 후 7일이 지나고 승격 조건을 만족한 곡입니다.</p></div></article>
-          <article><span className="rule-dot release" /><div><b>방출 예정</b><p>7일이 지났지만 아직 승격 조건을 만족하지 못했어요.</p></div></article>
-          <article><span className="rule-dot pending" /><div><b>평가 중</b><p>등록 후 7일 미만이며 승격 조건을 충족하지 않은 곡입니다.</p></div></article>
+          <article><span className="rule-dot ready" /><div><b>무티고을 이동 가능</b><p>등록 후 14일이 지나고 승격 조건을 만족한 곡입니다.</p></div></article>
+          <article><span className="rule-dot release" /><div><b>방출 예정</b><p>14일이 지났지만 아직 승격 조건을 만족하지 못했어요.</p></div></article>
+          <article><span className="rule-dot pending" /><div><b>평가 중</b><p>등록 후 14일 미만이며 승격 조건을 충족하지 않은 곡입니다.</p></div></article>
         </div>
       </Dialog>
     </div>

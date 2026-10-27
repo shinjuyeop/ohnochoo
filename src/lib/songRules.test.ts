@@ -12,7 +12,7 @@ import {
 } from "./songRules";
 import type { Song, Vote } from "../types";
 
-const WEEK = 7 * 24 * 60 * 60 * 1000;
+const WEEK = 14 * 24 * 60 * 60 * 1000;
 const NOW = Date.parse("2026-07-20T12:00:00.000Z");
 
 function song(overrides: Partial<Song> = {}): Song {
@@ -66,8 +66,8 @@ describe("평가 순서와 판정일까지 남은 시간", () => {
   });
 });
 
-describe("등록 후 7일 판정", () => {
-  it("정확히 7일이 지난 시점부터 참이다", () => {
+describe("등록 후 14일 판정", () => {
+  it("정확히 14일이 지난 시점부터 참이다", () => {
     expect(hasElapsedOneWeek(new Date(NOW - WEEK).toISOString(), NOW)).toBe(true);
     expect(hasElapsedOneWeek(new Date(NOW - WEEK + 1).toISOString(), NOW)).toBe(false);
   });
@@ -79,7 +79,7 @@ describe("등록 후 7일 판정", () => {
 });
 
 describe("무티고을 이동 가능 여부", () => {
-  it("7일 경과와 승격 조건을 모두 만족해야 한다", () => {
+  it("14일 경과와 승격 조건을 모두 만족해야 한다", () => {
     expect(isMutigoeulReady(song(), 5, 2, NOW)).toBe(true);
     expect(isMutigoeulReady(song({ createdAt: new Date(NOW - WEEK + 1).toISOString() }), 5, 2, NOW)).toBe(false);
     expect(isMutigoeulReady(song(), 4, 2, NOW)).toBe(false);

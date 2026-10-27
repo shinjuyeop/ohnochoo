@@ -562,7 +562,7 @@ begin
     end if;
     select count(*) filter (where decision = '승격'), count(*) filter (where decision = '방출')
       into promoted, released from public.votes where "songId" = old.id;
-    if old."createdAt" > now() - interval '7 days' or promoted >= released + 3 then
+    if old."createdAt" > now() - interval '14 days' or promoted >= released + 3 then
       raise exception '지금 방출 예정인 곡만 보관할 수 있어요. 목록을 새로 확인해 주세요.';
     end if;
     if (to_jsonb(new) - 'archived_at') is distinct from (to_jsonb(old) - 'archived_at') then

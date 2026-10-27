@@ -32,7 +32,7 @@ for (const fresh of [true, false]) {
   await db.exec(`insert into vote_replies(vote_id,author,member_id,body) values ('${vote.id}','Admin','${admin}','Keep this reply')`);
   await assert.rejects(db.exec(`select archive_songs(array['${old}'::uuid])`));
   await asAdmin();
-  await db.exec(`update songs set "createdAt"=now()-interval '8 days' where id in ('${old}','${other}')`);
+  await db.exec(`update songs set "createdAt"=now()-interval '15 days' where id in ('${old}','${other}')`);
   await assert.rejects(db.exec(`select archive_songs(array['${old}'::uuid,'${young}'::uuid])`));
   assert.equal((await db.query(`select archived_at from songs where id='${old}'`)).rows[0].archived_at,null);
   const snapshot = (await db.query(`select * from votes where "songId"='${old}'`)).rows;

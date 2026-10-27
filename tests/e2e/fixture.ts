@@ -31,14 +31,14 @@ export async function mockClub(page: Page) {
       ],
       members: [{ id: memberId, name: "지우", createdAt: day(100) }, { id: "member-2", name: "서연", createdAt: day(100) }],
       songs: [
-        { id: "old-song", title: "오래된 노래", artist: "스탠딩 에그", adder: "서연", adder_member_id: "member-2", createdAt: day(8), coverImageUrl: cover("#285b62", "OLD SONG") },
-        { id: "due-song", title: "긴 제목의 음악도 편하게 읽을 수 있을까요 (Live Session)", artist: "여러 아티스트와 함께 부르는 노래", adder: "서연", adder_member_id: "member-2", createdAt: day(6.5), coverImageUrl: cover("#774638", "LATE SUMMER") },
+        { id: "old-song", title: "오래된 노래", artist: "스탠딩 에그", adder: "서연", adder_member_id: "member-2", createdAt: day(15), coverImageUrl: cover("#285b62", "OLD SONG") },
+        { id: "due-song", title: "긴 제목의 음악도 편하게 읽을 수 있을까요 (Live Session)", artist: "여러 아티스트와 함께 부르는 노래", adder: "서연", adder_member_id: "member-2", createdAt: day(13.5), coverImageUrl: cover("#774638", "LATE SUMMER") },
         { id: "new-song", title: "Summer Night", artist: "The Midnight", adder: "서연", adder_member_id: "member-2", createdAt: day(1), coverImageUrl: cover("#494780", "SUMMER NIGHT"), weekly_theme_id: themeId },
         { id: "archive-song", title: "우리의 계절", artist: "검정치마", adder: "지우", adder_member_id: memberId, createdAt: day(30), coverImageUrl: cover("#827445", "OUR SEASON"), weekly_theme_id: pastThemeId },
       ],
       votes: [
-        { id: "vote-1", songId: "old-song", voter: "서연", member_id: "member-2", decision: "승격", rating: 4.5, reason: "저녁 산책에 잘 어울리는 곡이에요. 마지막 후렴을 꼭 들어보세요.", createdAt: day(8) },
-        { id: "vote-2", songId: "due-song", voter: "서연", member_id: "member-2", decision: "승격", rating: 0, reason: "계속 생각나는 멜로디", createdAt: day(6) },
+        { id: "vote-1", songId: "old-song", voter: "서연", member_id: "member-2", decision: "승격", rating: 4.5, reason: "저녁 산책에 잘 어울리는 곡이에요. 마지막 후렴을 꼭 들어보세요.", createdAt: day(15) },
+        { id: "vote-2", songId: "due-song", voter: "서연", member_id: "member-2", decision: "승격", rating: 0, reason: "계속 생각나는 멜로디", createdAt: day(13) },
         { id: "vote-3", songId: "archive-song", voter: "지우", member_id: memberId, decision: "승격", rating: 5, reason: "오래 듣고 싶은 곡", createdAt: day(30) },
       ],
       vote_replies: [{ id: "reply-1", vote_id: "vote-1", author: "지우", member_id: memberId, body: "추천 덕분에 잘 들었어요!", created_at: day(1) }],
