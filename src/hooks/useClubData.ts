@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSupabase } from "../lib/supabase";
-import { buildVoteStats, getMutigoeulSongs, getOnochooSongs } from "../lib/songRules";
+import { buildVoteStats, getAlbumSongs, getMutigoeulSongs, getOnochooSongs } from "../lib/songRules";
 import { fetchAllPages } from "../lib/pagination";
 import type { ClubData, Member, MutigoeulEntry, Song, Vote, VoteReply, VoteStats, VoteSummary } from "../types";
 
@@ -41,10 +41,11 @@ export function useClubData() {
   const query = useQuery({ queryKey: ["club-data"], queryFn: fetchClubData });
   const derived = useMemo(() => {
     const data = query.data;
-    if (!data) return { onochuSongs: [] as Song[], mutigoeulSongs: [] as Song[], voteStats: new Map<string, VoteStats>() };
+    if (!data) return { onochuSongs: [] as Song[], mutigoeulSongs: [] as Song[], albumSongs: [] as Song[], voteStats: new Map<string, VoteStats>() };
     return {
       onochuSongs: getOnochooSongs(data),
       mutigoeulSongs: getMutigoeulSongs(data),
+      albumSongs: getAlbumSongs(data),
       voteStats: buildVoteStats(data.votes),
     };
   }, [query.data]);

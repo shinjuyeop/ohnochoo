@@ -59,12 +59,14 @@ module.exports = async (req, res) => {
             if (themeId !== null && (typeof themeId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(themeId))) {
                 return res.status(400).json({ error: "이번 주 주제를 다시 선택해 주세요." });
             }
-            const album = resolveAlbum({ albumUrl: input.albumUrl, albumName: input.albumName });
-            const result = await supabase.rpc(themeId ? "add_song_with_weekly_theme" : album.albumUrl ? "add_song_with_metadata" : "add_song_with_initial_vote", {
+            const isAlbums = input.albumName === "[ALBUMS]";
+            const album = resolveAlbum({ albumUrl: input.albumUrl, albumName: isAlbums ? input.title : input.albumName });
+            const useMetadataRpc = !themeId && (Boolean(album.albumUrl) || isAlbums);
+            const result = await supabase.rpc(themeId ? "add_song_with_weekly_theme" : useMetadataRpc ? "add_song_with_metadata" : "add_song_with_initial_vote", {
                 p_title: title, p_artist: artist, p_adder: member.data.name, p_adder_member_id: member.data.id,
                 p_cover_image_url: input.coverImageUrl || null, p_rating: input.rating, p_reason: reason,
                 ...(themeId ? { p_weekly_theme_id: themeId } : {}),
-                ...(!themeId && album.albumUrl ? { p_album_url: album.albumUrl, p_album_name: album.albumName } : {}),
+                ...(useMetadataRpc ? { p_album_url: album.albumUrl, p_album_name: isAlbums ? "[ALBUMS]" : album.albumName } : {}),
             });
             if (result.error) throw result.error;
             const song = Array.isArray(result.data) ? result.data[0] : result.data;

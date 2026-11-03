@@ -12,7 +12,7 @@ import { useClubData } from "../hooks/useClubData";
 import { useClubMutations } from "../hooks/useClubMutations";
 import { useNotifications } from "../hooks/useNotifications";
 import { useToast } from "../components/ui/Toast";
-import { emptyVoteStats, getSongStatus, isMutigoeulReady } from "../lib/songRules";
+import { emptyVoteStats, getSongStatus, isAlbumSong, isMutigoeulReady } from "../lib/songRules";
 import { errorMessage } from "../lib/utils";
 
 type AdminDialog = "members" | "edit" | "move" | "delete" | null;
@@ -225,7 +225,7 @@ export function SettingsPage() {
       <Dialog open={dialog === "edit"} onOpenChange={(open) => { if (!open) setDialog(null); }} title="곡 정보 수정" className="admin-edit-dialog">
         <form className="dialog-body form-stack admin-edit-form" onSubmit={saveSongInfo}>
           <SearchField value={editSearch} onChange={(event) => { setEditSearch(event.target.value); selectEditSong(""); }} onClear={() => { setEditSearch(""); selectEditSong(""); }} placeholder="제목, 아티스트, 등록자 검색" />
-          <label className="field-label"><span>수정할 곡</span><select value={editSongId} onChange={(event) => selectEditSong(event.target.value)}><option value="">곡을 선택해 주세요</option>{editableSongs.map((song) => <option key={song.id} value={song.id}>[{mutigoeulIds.has(song.id) ? "무티고을" : "오노추"}] {song.title} — {song.artist}</option>)}</select></label>
+          <label className="field-label"><span>수정할 곡</span><select value={editSongId} onChange={(event) => selectEditSong(event.target.value)}><option value="">곡을 선택해 주세요</option>{editableSongs.map((song) => <option key={song.id} value={song.id}>[{mutigoeulIds.has(song.id) ? "무티고을" : isAlbumSong(song) ? "앨범스" : "오노추"}] {song.title} — {song.artist}</option>)}</select></label>
           {editSongId ? (
             <div className="admin-edit-fields">
               <div className="two-fields">

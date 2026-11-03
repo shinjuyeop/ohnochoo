@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ExternalLink, LoaderCircle, Music2 } from "lucide-react";
 import { fetchPlaylist } from "../lib/api";
 import { getSongKey } from "../lib/utils";
+import { isAlbumSong } from "../lib/songRules";
 import type { Song } from "../types";
 
 export function SongAlbumLink({ song, playlistUrl, playlistName }: { song: Song; playlistUrl: string; playlistName: string }) {
@@ -13,7 +14,12 @@ export function SongAlbumLink({ song, playlistUrl, playlistName }: { song: Song;
     refetchOnWindowFocus: false,
     retry: false,
   });
-  const album = song.album_url ? { albumUrl: song.album_url, albumName: song.album_name } : !song.archived_at ? playlist.data?.find((item) => getSongKey(item.title, item.artist) === getSongKey(song.title, song.artist)) : undefined;
+  const isAlbum = isAlbumSong(song);
+  const album = song.album_url
+    ? { albumUrl: song.album_url, albumName: isAlbum ? song.title : song.album_name }
+    : !song.archived_at
+      ? playlist.data?.find((item) => getSongKey(isAlbum ? item.albumName || item.title : item.title, item.artist) === getSongKey(song.title, song.artist))
+      : undefined;
 
   if (song.archived_at && !album?.albumUrl) return <p className="archived-listen-note">저장된 앨범 링크가 없어요. Apple Music에서 곡명과 아티스트로 찾아보세요.</p>;
 

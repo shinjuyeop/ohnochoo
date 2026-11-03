@@ -45,7 +45,7 @@ module.exports = async (req, res) => {
             // Older DBs can continue filling covers until the records migration is applied.
             if (Object.hasOwn(song, "album_url") && !song.album_url && metadata.albumUrl) {
                 patch.album_url = metadata.albumUrl;
-                patch.album_name = metadata.albumName;
+                if (song.album_name !== "[ALBUMS]") patch.album_name = metadata.albumName;
             }
             if (!Object.keys(patch).length) continue;
 

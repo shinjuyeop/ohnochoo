@@ -11,6 +11,7 @@ export const router = createBrowserRouter([
       { index: true, lazy: async () => ({ Component: (await import("../pages/HomePage")).HomePage }) },
       { path: "onochoo", lazy: async () => ({ Component: (await import("../pages/OnochooPage")).OnochooPage }) },
       { path: "mutigoeul", lazy: async () => ({ Component: (await import("../pages/MutigoeulPage")).MutigoeulPage }) },
+      { path: "albums", lazy: async () => ({ Component: (await import("../pages/AlbumsPage")).AlbumsPage }) },
       { path: "settings", lazy: async () => ({ Component: (await import("../pages/SettingsPage")).SettingsPage }) },
       { path: "records", lazy: async () => ({ Component: (await import("../pages/RecordsPage")).RecordsPage }) },
     ],

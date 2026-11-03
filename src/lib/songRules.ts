@@ -1,4 +1,10 @@
-import type { ClubData, Song, VoteSummary, VoteStats } from "../types";
+import type { ClubData, PlaylistSong, Song, VoteSummary, VoteStats } from "../types";
+import { ALBUMS_MARKER } from "./constants";
+import { getSongKey, normalizeCoverUrl } from "./utils";
+
+export function isAlbumSong(song: Pick<Song, "album_name">) {
+  return song.album_name === ALBUMS_MARKER;
+}
 
 export function isVoteByMember(vote: VoteSummary, member: { id: string; name: string }) {
   return member.id && vote.member_id ? vote.member_id === member.id : vote.voter === member.name;
@@ -37,7 +43,45 @@ export const emptyVoteStats = (): VoteStats => ({
 
 export function getOnochooSongs(data: ClubData) {
   const moved = new Set(data.mutigoeulEntries.map((entry) => entry.songId));
-  return data.songs.filter((song) => !song.archived_at && !moved.has(song.id));
+  return data.songs.filter((song) => !song.archived_at && !moved.has(song.id) && !isAlbumSong(song));
+}
+
+export function getAlbumSongs(data: ClubData) {
+  const moved = new Set(data.mutigoeulEntries.map((entry) => entry.songId));
+  return data.songs.filter((song) => !song.archived_at && !moved.has(song.id) && isAlbumSong(song));
+}
+
+export function extractPlaylistAlbums(tracks: PlaylistSong[], existingAlbums: Song[] = []): PlaylistSong[] {
+  const existingKeys = new Set(existingAlbums.map((item) => getSongKey(item.title, item.artist)));
+  const existingUrls = new Set(existingAlbums.map((item) => item.album_url).filter((url): url is string => Boolean(url)));
+  const grouped = new Map<string, PlaylistSong>();
+
+  for (const track of tracks) {
+    const albumTitle = (track.albumName || track.title || "").trim();
+    const artist = (track.artist || "").trim();
+    if (!albumTitle || !artist) continue;
+    const songKey = getSongKey(albumTitle, artist);
+    const albumUrl = track.albumUrl?.trim() || null;
+    if (existingKeys.has(songKey) || (albumUrl && existingUrls.has(albumUrl))) continue;
+
+    const groupKey = albumUrl ? `url:${albumUrl.toLowerCase()}` : `key:${songKey}`;
+    const existing = grouped.get(groupKey);
+    const coverImageUrl = normalizeCoverUrl(track.coverImageUrl);
+    if (!existing) {
+      grouped.set(groupKey, {
+        title: albumTitle,
+        artist,
+        coverImageUrl,
+        albumUrl,
+        albumName: ALBUMS_MARKER,
+      });
+    } else {
+      if (!existing.coverImageUrl && coverImageUrl) existing.coverImageUrl = coverImageUrl;
+      if (!existing.albumUrl && albumUrl) existing.albumUrl = albumUrl;
+    }
+  }
+
+  return Array.from(grouped.values());
 }
 
 export function getMutigoeulSongs(data: ClubData) {

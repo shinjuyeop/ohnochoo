@@ -8,6 +8,7 @@ import { useClubMutations } from "../hooks/useClubMutations";
 import { useProfile } from "../features/profile/ProfileContext";
 import { useToast } from "./ui/Toast";
 import { errorMessage } from "../lib/utils";
+import { isAlbumSong } from "../lib/songRules";
 import type { Decision, Song, Vote } from "../types";
 import { clearDraft, draftKey, readDraft, writeDraft } from "../lib/drafts";
 
@@ -26,16 +27,18 @@ export function VoteForm({ song, existingVote, onSaved }: { song: Song; existing
   const hasDraft = useRef(Boolean(restored));
   const { saveVote } = useClubMutations();
   const toast = useToast();
+  const isAlbum = isAlbumSong(song);
+  const defaultDecision = existingVote?.decision ?? (isAlbum ? "승격" : undefined);
   const { register, handleSubmit, setValue, watch, reset, formState: { errors, isDirty } } = useForm<FormValue>({
     resolver: zodResolver(voteSchema),
-    defaultValues: restored ?? { decision: existingVote?.decision, rating: Number(existingVote?.rating || 0), reason: existingVote?.reason || "" },
+    defaultValues: restored ? { ...restored, decision: restored.decision ?? defaultDecision } : { decision: defaultDecision, rating: Number(existingVote?.rating || 0), reason: existingVote?.reason || "" },
   });
   const decision = watch("decision");
   const rating = watch("rating");
   useEffect(() => {
     if (isDirty || hasDraft.current) return;
-    reset({ decision: existingVote?.decision, rating: Number(existingVote?.rating || 0), reason: existingVote?.reason || "" });
-  }, [existingVote?.decision, existingVote?.rating, existingVote?.reason, reset, isDirty]);
+    reset({ decision: existingVote?.decision ?? (isAlbum ? "승격" : undefined), rating: Number(existingVote?.rating || 0), reason: existingVote?.reason || "" });
+  }, [existingVote?.decision, existingVote?.rating, existingVote?.reason, isAlbum, reset, isDirty]);
   useEffect(() => {
     const subscription = watch((value, { name }) => {
       if (!name) return;
@@ -61,12 +64,16 @@ export function VoteForm({ song, existingVote, onSaved }: { song: Song; existing
   return (
     <form className="vote-form" onSubmit={handleSubmit(submit)}>
       {restored ? <p className="draft-hint">작성하던 평가를 불러왔어요.</p> : null}
-      <div className="decision-control" role="group" aria-label="평가 선택">
-        {(["승격", "보류", "방출"] as Decision[]).map((item) => <button key={item} type="button" aria-pressed={decision === item} className={decision === item ? `active decision-${item}` : ""} onClick={() => setValue("decision", item, { shouldDirty: true, shouldValidate: true })}>{decision === item ? <Check size={15} /> : null}{item}</button>)}
-      </div>
-      {errors.decision ? <p className="field-error">{errors.decision.message}</p> : null}
+      {!isAlbum ? (
+        <>
+          <div className="decision-control" role="group" aria-label="평가 선택">
+            {(["승격", "보류", "방출"] as Decision[]).map((item) => <button key={item} type="button" aria-pressed={decision === item} className={decision === item ? `active decision-${item}` : ""} onClick={() => setValue("decision", item, { shouldDirty: true, shouldValidate: true })}>{decision === item ? <Check size={15} /> : null}{item}</button>)}
+          </div>
+          {errors.decision ? <p className="field-error">{errors.decision.message}</p> : null}
+        </>
+      ) : null}
       <div className="vote-rating"><span>별점</span><StarRating value={rating} onChange={(value) => setValue("rating", value, { shouldDirty: true })} /></div>
-      <label className="field-label"><span>평가 이유</span><textarea {...register("reason")} rows={3} placeholder="왜 그렇게 생각했는지 남겨주세요." />{errors.reason ? <em>{errors.reason.message}</em> : null}</label>
+      <label className="field-label"><span>평가 이유</span><textarea {...register("reason")} rows={3} placeholder={isAlbum ? "앨범을 들으며 느낀 점을 남겨주세요." : "왜 그렇게 생각했는지 남겨주세요."} />{errors.reason ? <em>{errors.reason.message}</em> : null}</label>
       <button className="primary-button" disabled={saveVote.isPending}>{saveVote.isPending ? <><LoaderCircle className="spin" /> 저장 중...</> : existingVote ? "평가 수정하기" : "평가 저장하기"}</button>
     </form>
   );

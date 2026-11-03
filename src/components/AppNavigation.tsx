@@ -1,4 +1,4 @@
-import { Home, Library, Music2, Plus, UserRound } from "lucide-react";
+import { Disc3, Home, Library, Music2, Plus, UserRound } from "lucide-react";
 import type { CSSProperties } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { cn } from "../lib/utils";
@@ -9,6 +9,7 @@ const items = [
   { to: "/", label: "홈", icon: Home, end: true },
   { to: "/onochoo", label: "오노추", icon: Music2 },
   { to: "/mutigoeul", label: "무티고을", icon: Library },
+  { to: "/albums", label: "앨범스", icon: Disc3 },
   { to: "/settings", label: "내 정보", icon: UserRound },
 ];
 

@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
         if (error) throw error;
 
         const mutigoeulSongIds = new Set((mutigoeulResult.data ?? []).map((item) => item.songId));
-        const reminderSongs = (songsResult.data ?? []).filter((song) => !song.archived_at && !mutigoeulSongIds.has(song.id));
+        const reminderSongs = (songsResult.data ?? []).filter((song) => !song.archived_at && song.album_name !== "[ALBUMS]" && !mutigoeulSongIds.has(song.id));
         const subscriptionsByMemberId = groupSubscriptionsByMemberId(subscriptionsResult.data);
 
         let sentCount = 0;

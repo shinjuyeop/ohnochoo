@@ -5,7 +5,7 @@ import { useSongDialog } from "../hooks/useSongDialog";
 import { useClubData } from "../hooks/useClubData";
 import { useProfile } from "../features/profile/ProfileContext";
 import { isSongByMember, isVoteByMember, sortByDecisionDate } from "../lib/songRules";
-import { MUTIGOEUL_APPLE_MUSIC_URL, MUTIGOEUL_INSTAGRAM_URL, ONOCHU_APPLE_MUSIC_URL } from "../lib/constants";
+import { ALBUMS_APPLE_MUSIC_URL, MUTIGOEUL_APPLE_MUSIC_URL, MUTIGOEUL_INSTAGRAM_URL, ONOCHU_APPLE_MUSIC_URL } from "../lib/constants";
 
 export function HomePage() {
   const { data, onochuSongs, mutigoeulSongs } = useClubData();
@@ -49,6 +49,7 @@ export function HomePage() {
         <div>
           <a href={ONOCHU_APPLE_MUSIC_URL} target="_blank" rel="noreferrer"><Music size={15} /> 오노추 <ExternalLink size={12} /></a>
           <a href={MUTIGOEUL_APPLE_MUSIC_URL} target="_blank" rel="noreferrer"><Music size={15} /> 무티고을 <ExternalLink size={12} /></a>
+          <a href={ALBUMS_APPLE_MUSIC_URL} target="_blank" rel="noreferrer"><Music size={15} /> 앨범스 <ExternalLink size={12} /></a>
           <a href={MUTIGOEUL_INSTAGRAM_URL} target="_blank" rel="noreferrer"><Camera size={15} /> Instagram <ExternalLink size={12} /></a>
         </div>
       </footer>

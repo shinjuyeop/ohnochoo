@@ -10,9 +10,9 @@ import { VoteForm } from "./VoteForm";
 import { VoteReplyForm } from "./VoteReplyForm";
 import { useClubData, useSongDiscussion } from "../hooks/useClubData";
 import { useProfile } from "../features/profile/ProfileContext";
-import { averageRating, emptyVoteStats, isVoteByMember } from "../lib/songRules";
+import { averageRating, emptyVoteStats, isAlbumSong, isVoteByMember } from "../lib/songRules";
 import { formatKoreanDate } from "../lib/utils";
-import { MUTIGOEUL_APPLE_MUSIC_URL, ONOCHU_APPLE_MUSIC_URL } from "../lib/constants";
+import { ALBUMS_APPLE_MUSIC_URL, MUTIGOEUL_APPLE_MUSIC_URL, ONOCHU_APPLE_MUSIC_URL } from "../lib/constants";
 import { ReviewProgress } from "./ReviewProgress";
 import { useReviewSession } from "../app/ReviewSessionContext";
 
@@ -42,9 +42,10 @@ export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyI
   if (!song) return <Dialog open={open} onOpenChange={onOpenChange} title="곡을 찾을 수 없어요"><div className="dialog-body"><p>삭제되었거나 더 이상 볼 수 없는 곡이에요.</p><button className="secondary-button" onClick={() => onOpenChange(false)}>목록으로 돌아가기</button></div></Dialog>;
   const archived = Boolean(song.archived_at);
   const promoted = data.mutigoeulEntries.some((entry) => entry.songId === song.id);
+  const isAlbum = isAlbumSong(song);
   const allowVote = !archived && !promoted;
-  const playlistName = promoted ? "무티고을" : "오노추";
-  const playlistUrl = promoted ? MUTIGOEUL_APPLE_MUSIC_URL : ONOCHU_APPLE_MUSIC_URL;
+  const playlistName = isAlbum ? "앨범스" : promoted ? "무티고을" : "오노추";
+  const playlistUrl = isAlbum ? ALBUMS_APPLE_MUSIC_URL : promoted ? MUTIGOEUL_APPLE_MUSIC_URL : ONOCHU_APPLE_MUSIC_URL;
   const stats = voteStats.get(song.id) ?? emptyVoteStats();
   const sortedVotes = discussion.data?.votes ?? [];
   const existingVote = profile ? sortedVotes.find((vote) => isVoteByMember(vote, profile)) ?? null : null;
@@ -55,22 +56,28 @@ export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyI
   const average = averageRating(stats.votes);
 
   return (
-    <Dialog open={open && Boolean(songId)} onOpenChange={onOpenChange} title="곡 상세" description={`${song.title} · ${song.artist}`} className="song-detail-dialog">
+    <Dialog open={open && Boolean(songId)} onOpenChange={onOpenChange} title={isAlbum ? "앨범 상세" : "곡 상세"} description={`${song.title} · ${song.artist}`} className="song-detail-dialog">
       <div className="dialog-body song-detail-body" ref={bodyRef}>
         <section className="song-hero">
           <SongCover song={song} sizes="(min-width: 640px) 142px, (max-width: 359px) 80px, 100px" eager />
-          <div className="song-hero-info">{allowVote ? <StatusBadge song={song} stats={stats} /> : null}<h2>{song.title}</h2><p>{song.artist}</p><small><UserRound size={14} /> {song.adder} · {formatKoreanDate(song.createdAt)}</small></div>
+          <div className="song-hero-info">{allowVote && !isAlbum ? <StatusBadge song={song} stats={stats} /> : null}<h2>{song.title}</h2><p>{song.artist}</p><small><UserRound size={14} /> {song.adder} · {formatKoreanDate(song.createdAt)}</small></div>
         </section>
         <SongAlbumLink song={song} playlistUrl={playlistUrl} playlistName={playlistName} />
         {archived ? <p className="archived-notice">{formatKoreanDate(song.archived_at!)} 방출 · 평가 종료</p> : null}
-        <section className="vote-summary">
-          <div className="summary-promote"><b>{stats.promotedCount}</b><span>승격</span></div><div><b>{stats.heldCount}</b><span>보류</span></div><div className="summary-release"><b>{stats.releasedCount}</b><span>방출</span></div><div><b>{average === null ? "-" : average.toFixed(1)}</b><span><Star size={13} /> 평균</span></div>
-        </section>
+        {isAlbum ? (
+          <section className="vote-summary vote-summary-album">
+            <div><b>{stats.votes.length}</b><span>참여</span></div><div><b>{average === null ? "-" : average.toFixed(1)}</b><span><Star size={13} /> 평균</span></div>
+          </section>
+        ) : (
+          <section className="vote-summary">
+            <div className="summary-promote"><b>{stats.promotedCount}</b><span>승격</span></div><div><b>{stats.heldCount}</b><span>보류</span></div><div className="summary-release"><b>{stats.releasedCount}</b><span>방출</span></div><div><b>{average === null ? "-" : average.toFixed(1)}</b><span><Star size={13} /> 평균</span></div>
+          </section>
+        )}
         {discussion.isPending ? <div className="discussion-state" role="status"><LoaderCircle className="spin" size={18} /> 평가를 불러오는 중...</div> : null}
         {discussion.isError ? <div className="discussion-state" role="alert"><p>평가를 불러오지 못했어요. 작성 중인 내용은 이 기기에 보관돼요.</p><button className="secondary-button" onClick={() => void discussion.refetch()}>다시 시도</button></div> : null}
         {recommendation ? <section className="recommendation"><span className="eyebrow">추천한 이유</span><p>“{recommendation.reason}”</p></section> : null}
-        {allowVote && discussion.data ? existingVote && review.session?.completed.includes(song.id) && !editingSavedVote ? <section className="saved-review-summary"><div><span>내 평가</span><b>{existingVote.decision}{Number(existingVote.rating) > 0 ? ` · ${Number(existingVote.rating).toFixed(1)}점` : ""}</b></div><button className="text-button" onClick={() => setEditingSavedVote(true)}>평가 수정하기</button></section> : <section className="detail-section"><h3>{existingVote ? "내 평가 수정" : "이 곡 평가하기"}</h3><VoteForm key={`${song.id}:${profile?.id}`} song={song} existingVote={existingVote} onSaved={(result) => { review.saved(song.id, result.isNew); setEditingSavedVote(false); }} /></section> : null}
-        <ReviewProgress songId={song.id} />
+        {allowVote && discussion.data ? existingVote && review.session?.completed.includes(song.id) && !editingSavedVote ? <section className="saved-review-summary"><div><span>내 평가</span><b>{isAlbum ? (Number(existingVote.rating) > 0 ? `${Number(existingVote.rating).toFixed(1)}점` : "평가 완료") : `${existingVote.decision}${Number(existingVote.rating) > 0 ? ` · ${Number(existingVote.rating).toFixed(1)}점` : ""}`}</b></div><button className="text-button" onClick={() => setEditingSavedVote(true)}>평가 수정하기</button></section> : <section className="detail-section"><h3>{existingVote ? "내 평가 수정" : isAlbum ? "이 앨범 평가하기" : "이 곡 평가하기"}</h3><VoteForm key={`${song.id}:${profile?.id}`} song={song} existingVote={existingVote} onSaved={(result) => { if (!isAlbum) review.saved(song.id, result.isNew); setEditingSavedVote(false); }} /></section> : null}
+        {!isAlbum ? <ReviewProgress songId={song.id} /> : null}
         {discussion.data ? <section className="detail-section friend-votes">
           <div className="section-heading"><h3>평가</h3><span><MessageCircle size={15} /> {sortedVotes.length}</span></div>
           {sortedVotes.length ? sortedVotes.map((vote) => {
@@ -81,7 +88,7 @@ export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyI
               <article className={`friend-vote ${isTargetVote ? "notification-target" : ""}`} key={vote.id} tabIndex={isTargetVote ? -1 : undefined} ref={isTargetVote ? (node) => { focusTarget.current = node; } : undefined}>
                 <Avatar name={vote.voter} imageUrl={voterMember?.avatar_url} imageVersion={voterMember?.avatar_updated_at} size="vote" />
                 <div className="friend-vote-content">
-                  <div className="friend-vote-head"><b>{vote.voter}</b><span className={`decision-label decision-label-${vote.decision}`}>{vote.decision}</span><StarRating value={Number(vote.rating)} readOnly /></div>
+                  <div className="friend-vote-head"><b>{vote.voter}</b>{!isAlbum ? <span className={`decision-label decision-label-${vote.decision}`}>{vote.decision}</span> : null}<StarRating value={Number(vote.rating)} readOnly /></div>
                   <p>{vote.reason}</p>
                   <div className="friend-vote-actions">
                     <time>{formatKoreanDate(vote.createdAt, true)}</time>
