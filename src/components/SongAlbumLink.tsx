@@ -18,7 +18,9 @@ export function SongAlbumLink({ song, playlistUrl, playlistName }: { song: Song;
   const album = song.album_url
     ? { albumUrl: song.album_url, albumName: isAlbum ? song.title : song.album_name }
     : !song.archived_at
-      ? playlist.data?.find((item) => getSongKey(isAlbum ? item.albumName || item.title : item.title, item.artist) === getSongKey(song.title, song.artist))
+      ? playlist.data?.find((item) => isAlbum
+        ? (item.albumName || item.title).trim().toLowerCase() === song.title.trim().toLowerCase()
+        : getSongKey(item.title, item.artist) === getSongKey(song.title, song.artist))
       : undefined;
 
   if (song.archived_at && !album?.albumUrl) return <p className="archived-listen-note">저장된 앨범 링크가 없어요. Apple Music에서 곡명과 아티스트로 찾아보세요.</p>;

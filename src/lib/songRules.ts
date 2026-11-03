@@ -1,6 +1,6 @@
 import type { ClubData, PlaylistSong, Song, VoteSummary, VoteStats } from "../types";
 import { ALBUMS_MARKER } from "./constants";
-import { getSongKey, normalizeCoverUrl } from "./utils";
+import { normalizeCoverUrl } from "./utils";
 
 export function isAlbumSong(song: Pick<Song, "album_name">) {
   return song.album_name === ALBUMS_MARKER;
@@ -51,37 +51,61 @@ export function getAlbumSongs(data: ClubData) {
   return data.songs.filter((song) => !song.archived_at && !moved.has(song.id) && isAlbumSong(song));
 }
 
+function extractAppleMusicAlbumId(url?: string | null) {
+  if (!url) return null;
+  const match = url.match(/\/album\/(?:[^/?#]+\/)?(\d+)(?:[/?#]|$)/i);
+  return match ? match[1] : null;
+}
+
 export function extractPlaylistAlbums(tracks: PlaylistSong[], existingAlbums: Song[] = []): PlaylistSong[] {
-  const existingKeys = new Set(existingAlbums.map((item) => getSongKey(item.title, item.artist)));
-  const existingUrls = new Set(existingAlbums.map((item) => item.album_url).filter((url): url is string => Boolean(url)));
-  const grouped = new Map<string, PlaylistSong>();
+  const existingTitles = new Set(existingAlbums.map((item) => item.title.trim().toLowerCase()));
+  const existingUrls = new Set(existingAlbums.map((item) => item.album_url?.trim().toLowerCase()).filter((url): url is string => Boolean(url)));
+  const existingAlbumIds = new Set(existingAlbums.map((item) => extractAppleMusicAlbumId(item.album_url)).filter((id): id is string => Boolean(id)));
+
+  const albums: PlaylistSong[] = [];
+  const byTitle = new Map<string, PlaylistSong>();
+  const byAlbumId = new Map<string, PlaylistSong>();
 
   for (const track of tracks) {
     const albumTitle = (track.albumName || track.title || "").trim();
     const artist = (track.artist || "").trim();
     if (!albumTitle || !artist) continue;
-    const songKey = getSongKey(albumTitle, artist);
-    const albumUrl = track.albumUrl?.trim() || null;
-    if (existingKeys.has(songKey) || (albumUrl && existingUrls.has(albumUrl))) continue;
 
-    const groupKey = albumUrl ? `url:${albumUrl.toLowerCase()}` : `key:${songKey}`;
-    const existing = grouped.get(groupKey);
+    const normalizedTitle = albumTitle.toLowerCase();
+    const albumUrl = track.albumUrl?.trim() || null;
+    const normalizedUrl = albumUrl?.toLowerCase() || null;
+    const albumId = extractAppleMusicAlbumId(albumUrl);
+
+    if (
+      existingTitles.has(normalizedTitle)
+      || (normalizedUrl && existingUrls.has(normalizedUrl))
+      || (albumId && existingAlbumIds.has(albumId))
+    ) {
+      continue;
+    }
+
+    const existing = byTitle.get(normalizedTitle) ?? (albumId ? byAlbumId.get(albumId) : undefined);
     const coverImageUrl = normalizeCoverUrl(track.coverImageUrl);
     if (!existing) {
-      grouped.set(groupKey, {
+      const created: PlaylistSong = {
         title: albumTitle,
         artist,
         coverImageUrl,
         albumUrl,
         albumName: ALBUMS_MARKER,
-      });
+      };
+      albums.push(created);
+      byTitle.set(normalizedTitle, created);
+      if (albumId) byAlbumId.set(albumId, created);
     } else {
       if (!existing.coverImageUrl && coverImageUrl) existing.coverImageUrl = coverImageUrl;
       if (!existing.albumUrl && albumUrl) existing.albumUrl = albumUrl;
+      byTitle.set(normalizedTitle, existing);
+      if (albumId) byAlbumId.set(albumId, existing);
     }
   }
 
-  return Array.from(grouped.values());
+  return albums;
 }
 
 export function getMutigoeulSongs(data: ClubData) {

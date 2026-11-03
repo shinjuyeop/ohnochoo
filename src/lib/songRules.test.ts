@@ -138,8 +138,9 @@ describe("앨범스 분리와 앨범 단위 추출", () => {
   it("플레이리스트 트랙을 수록 앨범 단위로 묶고 이미 등록된 앨범은 제외한다", () => {
     const existing = [song({ id: "album-existing", title: "이미 있는 앨범", artist: "가수 A", album_name: ALBUMS_MARKER, album_url: "https://music.apple.com/kr/album/existing/100" })];
     const tracks = [
-      { title: "트랙 1", artist: "가수 B", albumName: "새 앨범", albumUrl: "https://music.apple.com/kr/album/new/200", coverImageUrl: "https://example.com/cover.jpg" },
-      { title: "트랙 2", artist: "가수 B & 친구", albumName: "새 앨범", albumUrl: "https://music.apple.com/kr/album/new/200", coverImageUrl: "https://example.com/cover.jpg" },
+      { title: "트랙 1", artist: "가수 B", albumName: "새 앨범", albumUrl: "https://music.apple.com/kr/album/track-1/200", coverImageUrl: "https://example.com/cover.jpg" },
+      { title: "트랙 2", artist: "가수 B & 친구", albumName: "새 앨범", albumUrl: "https://music.apple.com/kr/album/track-2/200", coverImageUrl: "https://example.com/cover.jpg" },
+      { title: "트랙 3", artist: "가수 B (feat. C)", albumName: "새 앨범", albumUrl: null, coverImageUrl: "https://example.com/cover.jpg" },
       { title: "기존 트랙", artist: "가수 A", albumName: "이미 있는 앨범", albumUrl: "https://music.apple.com/kr/album/existing/100" },
     ];
 
@@ -148,7 +149,7 @@ describe("앨범스 분리와 앨범 단위 추출", () => {
         title: "새 앨범",
         artist: "가수 B",
         coverImageUrl: "https://example.com/cover.jpg",
-        albumUrl: "https://music.apple.com/kr/album/new/200",
+        albumUrl: "https://music.apple.com/kr/album/track-1/200",
         albumName: ALBUMS_MARKER,
       },
     ]);
