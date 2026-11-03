@@ -24,8 +24,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || "오노추", {
       body: data.body || "확인할 알림이 있어요.",
-      icon: "/assets/icons/icon-192-inverted-20260928.png",
-      badge: "/assets/icons/icon-192-inverted-20260928.png",
+      icon: "/assets/icons/icon-192-inverted-20261103.png",
+      badge: "/assets/icons/icon-192-inverted-20261103.png",
       data: {
         url: data.url || "/",
       },
