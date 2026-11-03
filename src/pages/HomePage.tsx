@@ -1,38 +1,42 @@
-import { ArrowRight, Camera, ChevronRight, Disc3, ExternalLink, Music } from "lucide-react";
+import { ArrowRight, Camera, ChevronRight, ExternalLink, Music } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SongCarousel } from "../components/SongCarousel";
 import { useSongDialog } from "../hooks/useSongDialog";
 import { useClubData } from "../hooks/useClubData";
 import { useProfile } from "../features/profile/ProfileContext";
-import { isSongByMember, isVoteByMember, sortByDecisionDate } from "../lib/songRules";
+import { isSongByMember, isVoteByMember } from "../lib/songRules";
 import { ALBUMS_APPLE_MUSIC_URL, MUTIGOEUL_APPLE_MUSIC_URL, MUTIGOEUL_INSTAGRAM_URL, ONOCHU_APPLE_MUSIC_URL } from "../lib/constants";
 
 export function HomePage() {
-  const { data, onochuSongs, mutigoeulSongs } = useClubData();
+  const { data, onochuSongs, mutigoeulSongs, albumSongs } = useClubData();
   const { profile } = useProfile();
   const { openSong } = useSongDialog();
   if (!data || !profile) return null;
   const myVotes = data.votes.filter((vote) => isVoteByMember(vote, profile));
-  const votedIds = new Set(myVotes.map((vote) => vote.songId));
-  const pending = sortByDecisionDate(onochuSongs.filter((song) => !votedIds.has(song.id)));
   const mine = data.songs.filter((song) => isSongByMember(song, profile)).length;
+  const recentOnochoo = [...onochuSongs].reverse().slice(0, 12);
   const recentArchive = [...data.mutigoeulEntries].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .map((entry) => mutigoeulSongs.find((song) => song.id === entry.songId)).filter((song) => song !== undefined).slice(0, 12);
+  const recentAlbums = [...albumSongs].reverse().slice(0, 12);
 
   return (
     <div className="page home-page">
       <h1 className="visually-hidden">홈</h1>
       <div className="home-layout">
         <div className="home-main">
-          <section className="content-section queue-section">
+          <section className="content-section queue-section home-collection">
             <div className="section-heading queue-heading">
-              <h2><Link className="home-section-link" to="/onochoo?filter=pending">{pending.length ? <>평가할 곡 <span className="section-count">{pending.length}</span></> : "평가 완료"}<ChevronRight size={22} aria-hidden="true" /></Link></h2>
+              <h2><Link className="home-section-link" to="/onochoo">오노추 <span className="section-count">{onochuSongs.length}</span><ChevronRight size={22} aria-hidden="true" /></Link></h2>
             </div>
-            {pending.length ? <SongCarousel songs={pending} label="평가할 곡" onOpen={openSong} /> : <div className="empty-card"><Disc3 /><p>미평가 곡이 없어요.</p></div>}
+            {recentOnochoo.length ? <SongCarousel songs={recentOnochoo} label="오노추 최근 추가된 곡" onOpen={openSong} /> : <p className="collection-empty">등록된 곡이 없어요.</p>}
           </section>
           <section className="home-collection">
             <div className="section-heading"><h2><Link className="home-section-link" to="/mutigoeul">무티고을 <span className="section-count">{mutigoeulSongs.length}</span><ChevronRight size={22} aria-hidden="true" /></Link></h2></div>
             {recentArchive.length ? <SongCarousel songs={recentArchive} label="무티고을 최근 추가된 곡" onOpen={openSong} /> : <p className="collection-empty">등록된 곡이 없어요.</p>}
+          </section>
+          <section className="home-collection">
+            <div className="section-heading"><h2><Link className="home-section-link" to="/albums">앨범스 <span className="section-count">{albumSongs.length}</span><ChevronRight size={22} aria-hidden="true" /></Link></h2></div>
+            {recentAlbums.length ? <SongCarousel songs={recentAlbums} label="앨범스 최근 추가된 앨범" onOpen={openSong} /> : <p className="collection-empty">등록된 앨범이 없어요.</p>}
           </section>
         </div>
         <aside className="home-aside">

@@ -61,7 +61,7 @@ async function sendReplyNotification({ supabase, replyId, res }) {
     const [{ data: song, error: songError }, { data: subscriptions, error: subscriptionsError }] = await Promise.all([
         supabase
             .from("songs")
-            .select("id,title")
+            .select("id,title,album_name")
             .eq("id", vote.songId)
             .maybeSingle(),
         supabase
@@ -83,7 +83,7 @@ async function sendReplyNotification({ supabase, replyId, res }) {
         dedupeKey: `vote-reply:${reply.id}:${recipientMemberId}`,
         title: "내 평가에 답글이 달렸어요 💬",
         body: `${reply.author}님이 ${song.title}의 평가에 답글을 남겼어요.`,
-        url: songLink(song.id, vote.id, reply.id),
+        url: songLink(song.id, vote.id, reply.id, song.album_name === "[ALBUMS]" ? "/albums" : "/onochoo"),
         relatedSongId: song.id,
         relatedVoteId: vote.id,
     });
@@ -135,7 +135,7 @@ async function send(req, res) {
 
         const { data: song, error: songError } = await supabase
             .from("songs")
-            .select("id,title")
+            .select("id,title,album_name")
             .eq("id", songId)
             .maybeSingle();
 
@@ -149,10 +149,11 @@ async function send(req, res) {
 
         if (subscriptionsError) throw subscriptionsError;
 
+        const isAlbum = song.album_name === "[ALBUMS]";
         const title = isUpdate ? "평가가 수정됐어요 ✏️" : "새 평가가 등록됐어요 💬";
         const body = isUpdate
             ? `${voterName}님이 ${song.title}의 평가를 수정했어요.`
-            : `${voterName}님이 ${song.title}에 ${decision} 평가를 남겼어요.`;
+            : isAlbum ? `${voterName}님이 ${song.title}에 평가를 남겼어요.` : `${voterName}님이 ${song.title}에 ${decision} 평가를 남겼어요.`;
         const notificationKey = voteEventKey(vote);
         const subscriptionsByMemberId = groupSubscriptionsByMemberId(subscriptions);
         let sentCount = 0;
@@ -173,7 +174,7 @@ async function send(req, res) {
                 dedupeKey: `${notificationKey}:${memberId}`,
                 title,
                 body,
-                url: songLink(song.id, voteId),
+                url: songLink(song.id, voteId, undefined, isAlbum ? "/albums" : "/onochoo"),
                 relatedSongId: song.id,
                 relatedVoteId: voteId,
             });

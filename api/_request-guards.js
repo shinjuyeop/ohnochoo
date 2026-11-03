@@ -34,11 +34,11 @@ function requireAppPost(req, res) {
     return true;
 }
 
-function songLink(songId, voteId, replyId) {
+function songLink(songId, voteId, replyId, basePath = "/onochoo") {
     const params = new URLSearchParams({ song: songId });
     if (voteId) params.set("vote", voteId);
     if (replyId) params.set("reply", replyId);
-    return `/onochoo?${params}`;
+    return `${basePath}?${params}`;
 }
 
 function voteEventKey(vote) {

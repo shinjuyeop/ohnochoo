@@ -41,7 +41,7 @@ async function send(req, res) {
         const [songResult, membersResult, subscriptionsResult] = await Promise.all([
             supabase
                 .from("songs")
-                .select("id,title,artist,adder,adder_member_id")
+                .select("id,title,artist,adder,adder_member_id,album_name")
                 .eq("id", songId)
                 .maybeSingle(),
             supabase.from("members").select("id,name"),
@@ -58,8 +58,9 @@ async function send(req, res) {
         const song = songResult.data;
         const subscriptionsByMemberId = groupSubscriptionsByMemberId(subscriptionsResult.data);
         const displayAdderName = song.adder || "누군가";
-        const title = "새 오노추가 올라왔어요 🎵";
-        const body = `${displayAdderName}님이 ${song.title} - ${song.artist}를 추가했어요.`;
+        const isAlbum = song.album_name === "[ALBUMS]";
+        const title = isAlbum ? "새 앨범스가 올라왔어요 💿" : "새 오노추가 올라왔어요 🎵";
+        const body = isAlbum ? `${displayAdderName}님이 ${song.title} - ${song.artist} 앨범을 추가했어요.` : `${displayAdderName}님이 ${song.title} - ${song.artist}를 추가했어요.`;
 
         let sentCount = 0;
         let memberCount = 0;
@@ -79,7 +80,7 @@ async function send(req, res) {
                 dedupeKey: `song-added:${song.id}:${member.id}`,
                 title,
                 body,
-                url: songLink(song.id),
+                url: songLink(song.id, undefined, undefined, isAlbum ? "/albums" : "/onochoo"),
                 relatedSongId: song.id,
             });
 
