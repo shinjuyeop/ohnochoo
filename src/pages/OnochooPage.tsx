@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CircleHelp, Music2 } from "lucide-react";
+import { CircleHelp, Music2, Plus } from "lucide-react";
 import { SearchField } from "../components/ui/SearchField";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
 import { useSearchParams } from "react-router-dom";
@@ -8,6 +8,7 @@ import { useSongDialog } from "../hooks/useSongDialog";
 import { Dialog } from "../components/ui/Dialog";
 import { useClubData } from "../hooks/useClubData";
 import { useProfile } from "../features/profile/ProfileContext";
+import { useAppUi } from "../app/AppUiContext";
 import { emptyVoteStats, isSongByMember, isVoteByMember, sortByDecisionDate } from "../lib/songRules";
 
 type Filter = "all" | "pending" | "voted" | "mine";
@@ -16,6 +17,7 @@ const filters: Array<{ value: Filter; label: string }> = [{ value: "all", label:
 export function OnochooPage() {
   const { data, onochuSongs, voteStats } = useClubData();
   const { profile } = useProfile();
+  const { openAddSong } = useAppUi();
   const [params, setParams] = useSearchParams();
   const rawFilter = params.get("filter");
   const changeParam = (name: string, value: string) => setParams((current) => {
@@ -42,7 +44,7 @@ export function OnochooPage() {
   if (!data || !profile) return null;
   return (
     <div className="page">
-      <header className="page-header"><div><h1>오노추</h1><span className="page-count">{onochuSongs.length}곡</span></div><button className="icon-text-button" onClick={() => setRulesOpen(true)}><CircleHelp size={17} /> 판정 기준</button></header>
+      <header className="page-header"><div><h1>오노추</h1><span className="page-count">{onochuSongs.length}곡</span></div><div className="page-header-actions"><button className="icon-text-button" onClick={() => setRulesOpen(true)}><CircleHelp size={17} /> 판정 기준</button><button className="mobile-add-button glass-control page-header-add" onClick={() => openAddSong()} aria-label="노래 추가"><Plus size={18} /><span>추가</span></button></div></header>
       <div className="playlist-tools">
         <SegmentedControl label="곡 필터" value={filter} onChange={(value) => changeParam("filter", value === "all" ? "" : value)} options={filters} />
         <SearchField value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} placeholder="곡, 아티스트 검색" />

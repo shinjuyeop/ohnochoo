@@ -1,4 +1,4 @@
-import { ArrowDownUp, Disc3, Grid2X2, List, Music2 } from "lucide-react";
+import { ArrowDownUp, Disc3, Grid2X2, List, Music2, Plus } from "lucide-react";
 import { useState } from "react";
 import { SearchField } from "../components/ui/SearchField";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
@@ -7,6 +7,7 @@ import { SongCard } from "../components/SongCard";
 import { useSongDialog } from "../hooks/useSongDialog";
 import { useClubData } from "../hooks/useClubData";
 import { useProfile } from "../features/profile/ProfileContext";
+import { useAppUi } from "../app/AppUiContext";
 import { emptyVoteStats, isVoteByMember } from "../lib/songRules";
 
 type ViewMode = "grid" | "list";
@@ -15,6 +16,7 @@ type SortOrder = "desc" | "asc";
 export function AlbumsPage() {
   const { data, albumSongs, voteStats } = useClubData();
   const { profile } = useProfile();
+  const { openAddSong } = useAppUi();
   const { openSong } = useSongDialog();
   const [viewMode, setViewMode] = useState<ViewMode>(() => localStorage.getItem("albumsViewMode") === "list" ? "list" : "grid");
   const [sortOrder, setSortOrder] = useState<SortOrder>(() => localStorage.getItem("albumsSortOrder") === "asc" ? "asc" : "desc");
@@ -37,7 +39,7 @@ export function AlbumsPage() {
   };
   return (
     <div className="page mutigoeul-page albums-page">
-      <header className="page-header"><div><h1>앨범스</h1><span className="page-count">{albumSongs.length}장</span></div></header>
+      <header className="page-header"><div><h1>앨범스</h1><span className="page-count">{albumSongs.length}장</span></div><div className="page-header-actions"><button className="mobile-add-button glass-control page-header-add" onClick={() => openAddSong()} aria-label="노래 추가"><Plus size={18} /><span>추가</span></button></div></header>
       <section className="content-section archive-section">
         <div className="archive-toolbar">
           <div className="archive-control-group">
