@@ -16,7 +16,7 @@ export function SongCard({ song, stats, hasVoted, onOpen, compact = false, hideS
           {!hideStatus ? <span className="decision-countdown">{getDecisionCountdown(song.createdAt)}</span> : <span className="song-card-meta">{song.adder} · 평가 {stats.votes.length}명</span>}
         </span>
       </button>
-      <div className="song-card-stats"><span>{song.adder}</span><span>평가 {stats.votes.length}명</span>{avg !== null ? <span className="song-card-rating"><Star size={12} />{avg.toFixed(1)}</span> : null}</div>
+      <div className="song-card-stats"><span className="song-card-adder">{song.adder}</span><span className="song-card-votes">평가 {stats.votes.length}명</span>{avg !== null ? <span className="song-card-rating"><Star size={12} />{avg.toFixed(1)}</span> : <span className="song-card-rating song-card-rating-empty" aria-label="평균 별점 없음">—</span>}</div>
       <div className="song-row-action">
         {!hideStatus ? <StatusBadge song={song} stats={stats} /> : null}
         {!hasVoted ? <button className="evaluate-button" aria-label={`${song.title} 평가하기`} onClick={onOpen}>평가<ChevronRight size={14} /></button> : <button className="card-arrow" aria-label={`${song.title} 상세 보기`} onClick={onOpen}><ChevronRight size={18} /></button>}

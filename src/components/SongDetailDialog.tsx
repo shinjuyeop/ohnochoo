@@ -56,7 +56,7 @@ export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyI
   const average = averageRating(stats.votes);
 
   return (
-    <Dialog open={open && Boolean(songId)} onOpenChange={onOpenChange} title={isAlbum ? "앨범 상세" : "곡 상세"} description={`${song.title} · ${song.artist}`} className="song-detail-dialog">
+    <Dialog open={open && Boolean(songId)} onOpenChange={onOpenChange} title={isAlbum ? "앨범 상세" : "곡 상세"} className="song-detail-dialog">
       <div className="dialog-body song-detail-body" ref={bodyRef}>
         <section className="song-hero">
           <SongCover song={song} sizes="(min-width: 640px) 142px, (max-width: 359px) 80px, 100px" eager />

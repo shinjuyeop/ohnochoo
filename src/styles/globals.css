@@ -29,6 +29,7 @@
   --on-brand: #ffffff;
   --brand-hover: #444444;
   --brand-soft: #00000008;
+  --accent-nav: #007aff;
   --selection: #00000020;
   --promote: #316148;
   --promote-soft: #3161480c;
@@ -75,6 +76,7 @@
   --on-brand: #1a1a1a;
   --brand-hover: #ffffff;
   --brand-soft: #ffffff09;
+  --accent-nav: #0a84ff;
   --selection: #ffffff26;
   --promote: #a3c9b0;
   --promote-soft: #a3c9b016;
@@ -133,6 +135,8 @@ svg { flex-shrink: 0; }
 .app-shell { min-height: 100dvh; }
 .sidebar { display: none; }
 .mobile-topbar { position: sticky; top: 0; z-index: 35; min-height: 72px; padding: calc(10px + env(safe-area-inset-top)) 22px 10px; background: var(--canvas); backdrop-filter: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; -webkit-backdrop-filter: none; }
+.mobile-topbar-subpage { min-height: 58px; padding-bottom: 4px; justify-content: flex-end; }
+.mobile-topbar-subpage .wordmark { display: none; }
 .wordmark { font-size: 23px; font-weight: 790; letter-spacing: -.065em; }
 .mobile-topbar-actions { display: flex; flex-shrink: 0; align-items: center; gap: 13px; }
 .mobile-add-button { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; padding: 0 15px; border: 0; border-radius: var(--radius-pill); background: var(--control); color: var(--brand); font-size: 13px; font-weight: 650; white-space: nowrap; }
@@ -143,7 +147,7 @@ svg { flex-shrink: 0; }
 .bottom-nav::before { content: ""; position: absolute; inset: 5px auto 5px 5px; width: calc((100% - 10px) / var(--nav-count)); border-radius: var(--radius-pill); background: var(--glass-selection); box-shadow: inset 0 1px 0 var(--control-highlight), 0 1px 5px var(--shadow); transform: translateX(calc(var(--nav-index) * 100%)); opacity: var(--nav-active); transition: transform 320ms var(--motion-spring), opacity 160ms ease; pointer-events: none; }
 .bottom-link { position: relative; min-height: 52px; border-radius: 27px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--glass-label); font-size: 11px; font-weight: 550; }
 .bottom-link svg { width: 23px; height: 23px; stroke-width: 1.8; }
-.bottom-link.active { color: var(--brand); font-weight: 700; }
+.bottom-link.active { color: var(--accent-nav); font-weight: 700; }
 .bottom-link.active svg { stroke-width: 2.1; }
 
 /* A single, bounded backdrop. Buttons use static lighting, with no extra filters. */
@@ -175,6 +179,7 @@ body:has(.dialog-overlay) .bottom-nav { background-color: var(--surface); -webki
 
 /* Page rhythm */
 .page { width: min(100%, 1280px); margin: 0 auto; padding: 16px 20px 28px; }
+@media (max-width: 639px) { .page:not(.home-page) { padding-top: 6px; } }
 .page-header { min-height: 46px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .page-header > div { min-width: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
 .page-header h1 { margin: 0; font-size: clamp(30px, 4vw, 36px); font-weight: 740; line-height: 1.2; letter-spacing: -.035em; }
@@ -260,7 +265,8 @@ body:has(.dialog-overlay) .bottom-nav { background-color: var(--surface); -webki
 .song-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; font-weight: 550; line-height: 1.4; letter-spacing: -.015em; }
 .song-artist { display: block; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--muted); }
 .song-card-meta { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.song-card-rating { display: inline-flex; align-items: center; gap: 3px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.song-card-rating { display: inline-flex; align-items: center; justify-content: flex-end; gap: 3px; min-width: 38px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.song-card-rating-empty { color: var(--line-strong); justify-content: center; }
 .song-card-rating svg { color: var(--star); }
 .decision-countdown { display: block; margin-top: 2px; font-size: 11px; line-height: 1.4; color: var(--muted); }
 .song-row-action { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 1px; }
@@ -381,7 +387,13 @@ body:has(.dialog-overlay) .bottom-nav { background-color: var(--surface); -webki
 .decision-control .active.decision-방출 { background: var(--release-soft); border-color: var(--release); color: var(--release); }
 .vote-rating { display: grid; gap: 7px; }
 .vote-rating > span { font-size: 13px; }
-.rating-row { display: flex; align-items: center; justify-content: center; }
+.rating-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 12px; }
+.rating-row[data-empty="true"] .star-picker .star-empty { opacity: .45; }
+.star-rating-meta { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; font-variant-numeric: tabular-nums; }
+.star-rating-value { min-width: 38px; font-size: 13px; font-weight: 650; color: var(--star); }
+.star-rating-value.is-empty { color: var(--muted); font-weight: 500; }
+.star-rating-reset { min-height: 28px; padding: 0 10px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--control); color: var(--muted); font-size: 11px; font-weight: 600; white-space: nowrap; }
+.star-rating-reset:hover { background: var(--control-hover); color: var(--text); }
 .star-picker { display: flex; align-items: center; border-radius: 5px; }
 .star-picker .star-step { display: block; position: relative; width: 36px; height: 44px; padding: 9px 5px; border: 0; background: transparent; color: var(--star-empty); }
 .star-picker[role="slider"] { cursor: pointer; }
@@ -567,9 +579,9 @@ body:has(.dialog-overlay) .bottom-nav { background-color: var(--surface); -webki
   .sidebar-brand { display: flex; align-items: center; min-height: 44px; margin-bottom: 24px; padding: 0 10px; font-size: 25px; font-weight: 770; letter-spacing: -.05em; }
   .sidebar-links { display: grid; gap: 3px; }
   .nav-link { display: flex; align-items: center; gap: 13px; min-height: 47px; padding: 0 13px; border-radius: 8px; color: var(--muted); font-size: 14px; font-weight: 500; }
-  .nav-link svg { width: 18px; height: 18px; stroke-width: 1.7; }
+  .nav-link svg { width: 18px; height: 18px; stroke-width: 1.8; color: var(--accent-nav); }
   .nav-link.active { background: var(--brand-soft); color: var(--text); }
-  .nav-link.active svg { color: var(--brand); }
+  .nav-link.active svg { color: var(--accent-nav); }
   .nav-link:hover { background: var(--brand-soft); color: var(--text); }
   .sidebar-add { margin-top: 20px; width: 100%; font-size: 13px; }
   .sidebar-profile { display: flex; align-items: center; gap: 11px; margin-top: auto; padding: 22px 8px 0; border-top: 1px solid var(--line); }
@@ -714,6 +726,7 @@ button, a { transition: background-color 160ms ease, border-color 160ms ease, co
 .saved-review-summary span { display: block; font-size: 12px; color: var(--muted); }
 .saved-review-summary b { display: block; margin-top: 5px; font-size: 15px; font-weight: 550; }
 .saved-review-summary button { font-size: 12px; }
+.song-detail-dialog .dialog-header { min-height: 62px; }
 .song-detail-dialog .dialog-header > div { min-width: 0; }
 .song-detail-dialog .dialog-header p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .song-detail-dialog .dialog-header .icon-button { flex-shrink: 0; }
@@ -732,9 +745,10 @@ button, a { transition: background-color 160ms ease, border-color 160ms ease, co
   .profile-card-actions button { flex: 1 1 auto; min-width: 0; gap: 4px; padding-inline: 6px; font-size: 12px; white-space: nowrap; }
 }
 @media (min-width: 900px) {
-  .song-card:not(.song-card-compact) { grid-template-columns: minmax(0,1fr) minmax(170px,.6fr) 92px; }
-  .song-card:not(.song-card-compact) .song-card-stats { display: flex; align-items: center; justify-content: flex-end; gap: 20px; font-size: 12px; color: var(--muted); }
-  .song-card-stats > span:first-child { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .song-card:not(.song-card-compact) { grid-template-columns: minmax(0,1fr) 228px 92px; }
+  .song-card:not(.song-card-compact) .song-card-stats { display: grid; grid-template-columns: minmax(0,1fr) 64px 42px; align-items: center; gap: 16px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .song-card-stats > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+  .song-card-stats > span:nth-child(2) { white-space: nowrap; text-align: right; }
 }
 @media (max-width: 359px) {
   .song-card-open .song-cover { width: 48px; }

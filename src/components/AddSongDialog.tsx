@@ -209,7 +209,7 @@ export function AddSongDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               <label className="field-label"><span>{isAlbums ? "앨범명" : "곡명"}</span><input {...register("title", { onChange: clearLinkedMetadata })} readOnly={Boolean(selectedSong)} placeholder={isAlbums ? "예: GNX" : "예: NEW DROP"} />{errors.title ? <em>{errors.title.message}</em> : null}</label>
               <label className="field-label"><span>아티스트</span><input {...register("artist", { onChange: clearLinkedMetadata })} readOnly={Boolean(selectedSong)} placeholder="예: Don Toliver" />{errors.artist ? <em>{errors.artist.message}</em> : null}</label>
             </div>
-            <label className="field-label"><span>별점</span><StarRating value={rating} onChange={(value) => setValue("rating", value, { shouldDirty: true })} /></label>
+            <div className="field-label"><span>별점</span><StarRating value={rating} onChange={(value) => setValue("rating", value, { shouldDirty: true })} /></div>
             <label className="field-label"><span>추천 이유</span><textarea {...register("reason")} rows={3} placeholder="추천 이유를 입력하세요" />{errors.reason ? <em>{errors.reason.message}</em> : null}</label>
             <button className="primary-button submit-button" disabled={addSong.isPending}>{addSong.isPending ? <><LoaderCircle className="spin" /> 저장 중...</> : <><Plus size={18} /> 추가하기</>}</button>
           </form>

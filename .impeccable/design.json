@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 2,
+  "updatedAt": "2026-11-12T08:05:38.000Z",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "name": "Charcoal Brand",
+        "role": "Primary solid CTA buttons, active focus rings, and monochrome action emphasis"
+      },
+      "secondary": {
+        "name": "Apple System Blue",
+        "role": "Desktop sidebar navigation icons only (per Apple Music Web reference); never applied to all buttons"
+      },
+      "accent": {
+        "name": "Antique Star Gold",
+        "role": "0.5-increment star rating fill and average star score highlight"
+      },
+      "background": {
+        "name": "Editorial Canvas",
+        "role": "Main application background surface (#FAFAFA in light mode, #141414 in dark mode)"
+      },
+      "surface": {
+        "name": "Pure Surface",
+        "role": "Dialog sheets, segmented active thumb, search input, and elevated panels (#FFFFFF in light mode, #1D1D1D in dark mode)"
+      },
+      "text": {
+        "name": "Primary Ink",
+        "role": "Headings, song titles, sidebar menu labels, and primary body copy (#202020 in light mode, #EFEFEF in dark mode)"
+      },
+      "muted": {
+        "name": "Secondary Metadata",
+        "role": "Artist names, timestamps, recommender captions, and inactive tab labels (#656565 in light mode, #ACACAC in dark mode)"
+      },
+      "border": {
+        "name": "Hairline Divider",
+        "role": "1px structural dividers, sidebar border, and artwork inner ring (#DEDEDE / #E9E9E9)"
+      },
+      "error": {
+        "name": "Release Terracotta",
+        "role": "Release (방출) vote state, release-scheduled status badge, and destructive alerts"
+      },
+      "success": {
+        "name": "Promote Sage",
+        "role": "Promote (승격) vote state, promotion candidate badge, and Mutigoeul ready state"
+      },
+      "warning": {
+        "name": "Evaluation Amber",
+        "role": "14-day evaluation deadline and pending attention notices"
+      },
+      "tonalRamp": [
+        { "step": "50", "name": "Pure White", "hex": "#FFFFFF" },
+        { "step": "100", "name": "Canvas Light", "hex": "#FAFAFA" },
+        { "step": "200", "name": "Sidebar Light", "hex": "#F3F3F3" },
+        { "step": "300", "name": "Control Fill", "hex": "#EDEDF0" },
+        { "step": "400", "name": "Hairline Line", "hex": "#DEDEDE" },
+        { "step": "600", "name": "Muted Gray", "hex": "#656565" },
+        { "step": "800", "name": "Brand Charcoal", "hex": "#262626" },
+        { "step": "900", "name": "Canvas Dark", "hex": "#141414" }
+      ]
+    },
+    "typographyMeta": {
+      "heading": {
+        "weights": "600, 700",
+        "tracking": "-0.025em to -0.015em",
+        "notes": "Apple system sans-serif (-apple-system, BlinkMacSystemFont) paired with bundled Pretendard Variable 1.3.9"
+      },
+      "body": {
+        "weights": "400, 500, 600",
+        "tracking": "-0.01em to 0",
+        "notes": "14px base for dense track rows and 13px for artist/recommender sublines"
+      },
+      "mono": {
+        "weights": "500, 600",
+        "tracking": "0",
+        "notes": "Tabular numerals (font-variant-numeric: tabular-nums) enforced on star scores, vote tallies, and D-day badges"
+      },
+      "scale": [
+        {
+          "role": "Page Title (h1)",
+          "size": "clamp(26px, 3vw, 32px)",
+          "lineHeight": "1.12",
+          "weight": "700",
+          "tracking": "-0.025em",
+          "sample": "오노추"
+        },
+        {
+          "role": "Detail Hero Title (h3)",
+          "size": "clamp(20px, 2.6vw, 24px)",
+          "lineHeight": "1.2",
+          "weight": "700",
+          "tracking": "-0.02em",
+          "sample": "Spinning in the Plane - Single"
+        },
+        {
+          "role": "Section Heading (h2)",
+          "size": "18px",
+          "lineHeight": "1.25",
+          "weight": "700",
+          "tracking": "-0.015em",
+          "sample": "최근 추가된 항목"
+        },
+        {
+          "role": "Track / Carousel Title",
+          "size": "14px",
+          "lineHeight": "1.3",
+          "weight": "600",
+          "tracking": "-0.01em",
+          "sample": "샴푸의 요정 - Single"
+        },
+        {
+          "role": "Body & Artist Subline",
+          "size": "13px",
+          "lineHeight": "1.45",
+          "weight": "400",
+          "tracking": "0",
+          "sample": "jeebanoff · 추천 신주엽"
+        },
+        {
+          "role": "Badge & Tabular Meta",
+          "size": "12px",
+          "lineHeight": "1.2",
+          "weight": "600",
+          "tracking": "0",
+          "sample": "★ 4.5 · 승격 4 · 방출 0 · D-12"
+        }
+      ]
+    },
+    "shadows": [
+      {
+        "name": "Artwork Inner Ring",
+        "value": "inset 0 0 0 1px rgba(128, 128, 128, 0.14)",
+        "usage": "1:1 album covers to preserve edge definition on white or dark canvases"
+      },
+      {
+        "name": "Liquid Glass Capsule",
+        "value": "0 8px 26px rgba(32, 32, 48, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.70)",
+        "usage": "Mobile floating bottom navigation bar (.bottom-nav)"
+      },
+      {
+        "name": "Modal & Sheet Elevation",
+        "value": "0 20px 60px rgba(0, 0, 0, 0.18)",
+        "usage": "Desktop dialog modal and mobile bottom sheet (.dialog)"
+      }
+    ],
+    "motion": [
+      {
+        "name": "--motion-ease",
+        "value": "180ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "usage": "Standard hover, selection, and sheet transitions"
+      },
+      {
+        "name": "--motion-spring",
+        "value": "260ms cubic-bezier(0.22, 1.12, 0.36, 1)",
+        "usage": "Segmented control pill and subtle active feedback"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "Desktop Wide",
+        "value": "min-width: 1121px — 224px fixed sidebar + multi-column shelf and 3-column track table"
+      },
+      {
+        "name": "Desktop Standard",
+        "value": "781px to 1120px — 210px fixed sidebar + centered modal dialogs"
+      },
+      {
+        "name": "Mobile & Portrait Tablet",
+        "value": "max-width: 780px — Mobile topbar + floating Liquid Glass bottom nav + bottom-sheet dialogs"
+      },
+      {
+        "name": "Compact Mobile",
+        "value": "max-width: 480px — 148px carousel cards and compact 14px–16px horizontal padding"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "ds-nav-sidebar",
+      "title": "Desktop Sidebar Item (Blue Icon + Dark Label + Light Grey Active Fill)",
+      "category": "nav",
+      "description": "Apple Music Web sidebar navigation item with #007AFF icon, near-black text, and soft grey active row background.",
+      "html": "<div class=\"ds-nav-sidebar-demo\"><a href=\"#\" class=\"ds-nav-row is-active\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5z\"/></svg><span>홈</span></a><a href=\"#\" class=\"ds-nav-row\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M9 18V5l12-2v13\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/><circle cx=\"18\" cy=\"16\" r=\"3\"/></svg><span>오노추</span></a></div>",
+      "css": ".ds-nav-sidebar-demo { width: 210px; background: #F3F3F3; padding: 12px; border-radius: 12px; border: 1px solid #DEDEDE; display: flex; flex-direction: column; gap: 4px; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard Variable', sans-serif; } .ds-nav-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; color: #202020; text-decoration: none; font-size: 14px; font-weight: 500; } .ds-nav-row svg { color: #007AFF; flex-shrink: 0; } .ds-nav-row.is-active { background: rgba(60, 60, 67, 0.08); font-weight: 600; }"
+    },
+    {
+      "id": "ds-btn-primary",
+      "title": "Monochrome Primary & Control Buttons",
+      "category": "button",
+      "description": "Charcoal solid primary button (--brand) and subtle neutral secondary button (--control).",
+      "html": "<div class=\"ds-btn-row\"><button class=\"ds-btn-solid\">곡 추천하기</button><button class=\"ds-btn-subtle\">Apple Music에서 열기</button></div>",
+      "css": ".ds-btn-row { display: flex; gap: 8px; align-items: center; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard Variable', sans-serif; } .ds-btn-solid { background: #262626; color: #FFFFFF; border: none; border-radius: 10px; padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; } .ds-btn-subtle { background: #EDEDF0; color: #202020; border: 1px solid #DEDEDE; border-radius: 10px; padding: 9px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }"
+    },
+    {
+      "id": "ds-decision-control",
+      "title": "Onochoo Decision & Star Rating Strip",
+      "category": "custom",
+      "description": "3-way vote buttons (승격 / 보류 / 방출) and explicit 0.5-increment star rating with clear unrated state.",
+      "html": "<div class=\"ds-vote-card\"><div class=\"ds-decision-grid\"><button class=\"ds-dec is-promote\">승격</button><button class=\"ds-dec\">보류</button><button class=\"ds-dec\">방출</button></div><div class=\"ds-star-row\"><span class=\"ds-stars\">★★★★☆</span><span class=\"ds-star-score\">4.0점</span><button class=\"ds-star-reset\">미입력으로 변경</button></div></div>",
+      "css": ".ds-vote-card { background: #FFFFFF; border: 1px solid #DEDEDE; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 12px; max-width: 360px; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard Variable', sans-serif; } .ds-decision-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; } .ds-dec { padding: 8px 0; border-radius: 10px; border: 1px solid #DEDEDE; background: #FAFAFA; color: #202020; font-size: 13px; font-weight: 600; } .ds-dec.is-promote { background: #3161480C; border-color: #316148; color: #316148; } .ds-star-row { display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; } .ds-stars { color: #927023; font-size: 16px; letter-spacing: 2px; } .ds-star-score { font-size: 13px; font-weight: 600; color: #927023; } .ds-star-reset { margin-left: auto; background: none; border: none; color: #656565; font-size: 12px; text-decoration: underline; cursor: pointer; }"
+    }
+  ],
+  "narrative": {
+    "overview": "ohnochoo는 최신 Apple Music(데스크톱 웹 music.apple.com 및 모바일 iOS 26 앱)의 미니멀한 흑백·회색 기반 디자인 언어와 Liquid Glass 내비게이션을 충실하게 재현하는 음악 추천·평가·아카이빙 웹앱이다. 앨범 아트워크가 시각적 중심이 되도록 무채색 캔버스를 유지하며, 데스크톱 사이드바 아이콘에만 제한적으로 파란색(#007AFF)을 적용한다.",
+    "colors": "라이트 모드(#FAFAFA / #FFFFFF / #F3F3F3)와 다크 모드(#141414 / #1D1D1D / #191919) 모두 무채색 계층을 기본으로 하며, 빨간색/핑크색 강조 컬러는 사용하지 않는다. 데스크톱 사이드바 아이콘에만 파란색(#007AFF / #0A84FF)을 쓰고 메뉴 텍스트는 검정 계열, 선택된 메뉴는 연한 회색 배경을 적용한다. 오노추 고유 판정(승격 #316148, 보류 #656565, 방출 #A34444)과 별점(#927023)은 저채도 시맨틱 토큰을 유지한다.",
+    "typography": "-apple-system, BlinkMacSystemFont, Pretendard Variable 단일 산세리프 스택을 사용하며, 모든 별점·득표수·D-day 수치에 font-variant-numeric: tabular-nums를 강제한다.",
+    "layout": "780px 브레이크포인트를 기준으로 데스크톱은 좌측 고정 사이드바(210px/224px) + 우측 본문(최대 1280px), 모바일은 상단 헤더 + 하단 부유형 Liquid Glass 캡슐 내비게이션 구조를 따른다.",
+    "elevation": "일반 리스트와 카드에는 그림자를 배제하고 1px 헤어라인(--line-soft)과 아트워크 내부 링(inset 0 0 0 1px)을 사용한다. 모바일 하단 내비게이션(.bottom-nav)은 blur(16px) saturate(1.3)의 Liquid Glass 질감을 유지한다.",
+    "shapes": "리스트 썸네일 6px~8px, 캐러셀/상세 아트워크 8px~12px, 버튼/입력창 10px, 내부 패널 14px~16px, 모달/바텀 시트 20px~24px, 캡슐/세그먼트 999px의 동심원 곡률 체계를 따른다.",
+    "dosAndDonts": "흑백·회색 중심 디자인과 모바일 Liquid Glass 하단 바, 홈 캐러셀 구성을 유지한다. 빨간색/핑크색 강조 컬러 도입, 모든 버튼에 파란색 적용, 연속 평가 기능 복원, 불필요한 평가 대시보드/배지 추가, 14일 카운트다운 중복 표시, 2×2 플레이리스트 헤더 추가는 금지한다. 곡 상세 화면(SongDetailDialog)의 모달-페이지 전환 여부는 미확정 상태로 기록한다."
+  }
+}
