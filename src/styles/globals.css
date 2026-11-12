@@ -134,7 +134,7 @@ svg { flex-shrink: 0; }
 /* Navigation */
 .app-shell { min-height: 100dvh; }
 .sidebar { display: none; }
-.mobile-topbar { position: relative; z-index: 35; min-height: 72px; padding: calc(10px + env(safe-area-inset-top)) 22px 10px; background: var(--canvas); backdrop-filter: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; -webkit-backdrop-filter: none; will-change: transform; }
+.mobile-topbar { min-height: 46px; margin-bottom: 16px; background: var(--canvas); backdrop-filter: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; -webkit-backdrop-filter: none; }
 .wordmark { font-size: 23px; font-weight: 790; letter-spacing: -.065em; }
 .mobile-topbar-actions { display: flex; flex-shrink: 0; align-items: center; gap: 13px; }
 .mobile-add-button { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; padding: 0 15px; border: 0; border-radius: var(--radius-pill); background: var(--control); color: var(--brand); font-size: 13px; font-weight: 650; white-space: nowrap; }
@@ -171,13 +171,12 @@ body:has(.dialog-overlay) .bottom-nav { background-color: var(--surface); -webki
 }
 @media (display-mode: standalone) and (max-width: 899px) {
   /* Leave an opaque buffer below the status area before any header controls. */
-  .mobile-topbar, .page:not(.home-page) { padding-top: calc(32px + env(safe-area-inset-top, 0px)); }
+  .page { padding-top: calc(32px + env(safe-area-inset-top, 0px)); }
   html { scroll-padding-top: calc(96px + env(safe-area-inset-top, 0px)); }
 }
 
 /* Page rhythm */
 .page { width: min(100%, 1280px); margin: 0 auto; padding: calc(16px + env(safe-area-inset-top, 0px)) 20px 28px; }
-.home-page { padding-top: 8px; }
 .page-header { min-height: 46px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .page-header > div:first-child { min-width: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
 .page-header h1 { margin: 0; font-size: clamp(30px, 4vw, 36px); font-weight: 740; line-height: 1.2; letter-spacing: -.035em; }
@@ -616,7 +615,7 @@ body:has(.dialog-overlay) .bottom-nav { background-color: var(--surface); -webki
   .page-header, .page-header-actions { gap: 8px; }
   .page-header-add { padding-inline: 12px; }
   .song-carousel-track { margin-inline: -18px; padding-inline: 18px; scroll-padding-inline: 18px; }
-  .mobile-topbar { padding-inline: 18px; gap: 8px; }
+  .mobile-topbar { gap: 8px; }
   .mobile-topbar .wordmark { font-size: 20px; }
   .mobile-topbar-actions { gap: 7px; }
   .weekly-theme-card { padding: 18px; }

@@ -1,6 +1,8 @@
-import { ArrowRight, Camera, ChevronRight, ExternalLink, Music } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowRight, Camera, ChevronRight, ExternalLink, Music, Plus } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAppUi } from "../app/AppUiContext";
 import { SongCarousel } from "../components/SongCarousel";
+import { Avatar } from "../components/ui/Avatar";
 import { useSongDialog } from "../hooks/useSongDialog";
 import { useClubData } from "../hooks/useClubData";
 import { useProfile } from "../features/profile/ProfileContext";
@@ -10,7 +12,9 @@ import { ALBUMS_APPLE_MUSIC_URL, MUTIGOEUL_APPLE_MUSIC_URL, MUTIGOEUL_INSTAGRAM_
 export function HomePage() {
   const { data, onochuSongs, mutigoeulSongs, albumSongs } = useClubData();
   const { profile } = useProfile();
+  const { openAddSong } = useAppUi();
   const { openSong } = useSongDialog();
+  const navigate = useNavigate();
   if (!data || !profile) return null;
   const myVotes = data.votes.filter((vote) => isVoteByMember(vote, profile));
   const mine = data.songs.filter((song) => isSongByMember(song, profile)).length;
@@ -22,6 +26,10 @@ export function HomePage() {
   return (
     <div className="page home-page">
       <h1 className="visually-hidden">홈</h1>
+      <header className="page-header mobile-topbar">
+        <span className="wordmark">ohnochoo<span className="brand-period">.</span></span>
+        <div className="mobile-topbar-actions"><button className="mobile-add-button glass-control" onClick={() => openAddSong()} aria-label="노래 추가"><Plus size={18} /><span>추가</span></button><button className="mobile-profile-button glass-control" onClick={() => navigate("/settings")} aria-label={`${profile.name} 내 정보`}><Avatar name={profile.name} imageUrl={profile.avatar_url} imageVersion={profile.avatar_updated_at} size="sm" /></button></div>
+      </header>
       <div className="home-layout">
         <div className="home-main">
           <section className="content-section queue-section home-collection">
