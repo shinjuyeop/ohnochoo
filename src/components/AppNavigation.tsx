@@ -5,20 +5,24 @@ import { cn } from "../lib/utils";
 import { useProfile } from "../features/profile/ProfileContext";
 import { Avatar } from "./ui/Avatar";
 
-const items = [
+const sidebarItems = [
   { to: "/", label: "홈", icon: Home, end: true },
   { to: "/onochoo", label: "오노추", icon: Music2 },
   { to: "/mutigoeul", label: "무티고을", icon: Library },
   { to: "/albums", label: "앨범스", icon: Disc3 },
+];
+
+const bottomItems = [
+  ...sidebarItems,
   { to: "/settings", label: "내 정보", icon: UserRound },
 ];
 
 export function AppNavigation({ onAdd }: { onAdd: () => void }) {
   const { profile } = useProfile();
   const { pathname } = useLocation();
-  const activeIndex = items.findIndex(({ to, end }) => end ? pathname === to : pathname === to || pathname.startsWith(`${to}/`));
+  const activeIndex = bottomItems.findIndex(({ to, end }) => end ? pathname === to : pathname === to || pathname.startsWith(`${to}/`));
   const navigationStyle = {
-    "--nav-count": items.length,
+    "--nav-count": bottomItems.length,
     "--nav-index": Math.max(0, activeIndex),
     "--nav-active": activeIndex >= 0 ? 1 : 0,
   } as CSSProperties;
@@ -27,13 +31,13 @@ export function AppNavigation({ onAdd }: { onAdd: () => void }) {
       <nav className="sidebar" aria-label="주요 메뉴">
         <Link to="/" className="sidebar-brand" aria-label="오노추 홈"><span>ohnochoo<span className="brand-period">.</span></span></Link>
         <div className="sidebar-links">
-          {items.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => cn("nav-link", isActive && "active")}><Icon /><span>{label}</span></NavLink>)}
+          {sidebarItems.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => cn("nav-link", isActive && "active")}><Icon /><span>{label}</span></NavLink>)}
         </div>
         <button className="primary-button sidebar-add" onClick={onAdd}><Plus size={19} /> 노래 추가</button>
         {profile ? <Link className="sidebar-profile" to="/settings"><Avatar name={profile.name} imageUrl={profile.avatar_url} imageVersion={profile.avatar_updated_at} size="sm" /><span><b>{profile.name}</b><small>내 프로필</small></span></Link> : null}
       </nav>
       <nav className="bottom-nav" style={navigationStyle} aria-label="주요 메뉴">
-        {items.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => cn("bottom-link", isActive && "active")}><Icon /><span>{label}</span></NavLink>)}
+        {bottomItems.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => cn("bottom-link", isActive && "active")}><Icon /><span>{label}</span></NavLink>)}
       </nav>
     </>
   );

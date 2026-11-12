@@ -288,11 +288,11 @@ Apple Music의 동심원 곡률(Concentric Corner Radius) 비율에 맞춰 요�
 #### 현재 실제로 구현된 디자인
 
 - **데스크톱 사이드바 (`.sidebar`)**:
-  - 상단에 브랜드 워드마크(`ohnochoo.`)가 위치하고, 그 아래에 5개 주요 경로(`홈`, `오노추`, `무티고을`, `앨범스`, `내 정보`), `노래 추가` 버튼, 하단 프로필 전환 링크가 수직 배치된다.
+  - 상단에 브랜드 워드마크(`ohnochoo.`)가 위치하고, 그 아래에 4개 주요 경로(`홈`, `오노추`, `무티고을`, `앨범스`), `노래 추가` 버튼, 하단 프로필 전환 링크(`.sidebar-profile` → `/settings` 이동)가 수직 배치된다.
   - 모든 메뉴 아이콘(`.nav-link svg`)은 Apple Music 웹 레퍼런스처럼 파란색(`--accent-nav`: 라이트 `#007AFF`, 다크 `#0A84FF`)으로 렌더링되며, 메뉴 텍스트는 무채색(`--muted`, 활성/Hover 시 `--text`), 선택된 메뉴(`.nav-link.active`)는 연한 회색 배경(`--brand-soft`)으로 표시된다.
 - **모바일 내비게이션 (`.mobile-topbar` + `.bottom-nav`)**:
   - 상단 `.mobile-topbar`는 홈(`/`)에서는 좌측 워드마크(`ohnochoo.`)와 우측 액션 버튼(`+ 추가`, 프로필)을 표시하고, 본문 대제목(`.page-header h1`)이 있는 서브페이지(`.mobile-topbar-subpage`)에서는 워드마크를 숨겨 상단 제목 중복을 최소화한다.
-  - 하단 `.bottom-nav`는 화면 하단에 떠 있는 Liquid Glass 캡슐 바(`max-width: 520px`, `border-radius: 999px`) 안에 5개 핵심 탭을 배치하며, 활성 탭(`.bottom-link.active`)은 반투명 유리 알약(`--glass-selection`) 위에서 파란색(`--accent-nav`) 아이콘과 라벨로 강조된다.
+  - 하단 `.bottom-nav`는 화면 하단에 떠 있는 Liquid Glass 캡슐 바(`max-width: 520px`, `border-radius: 999px`) 안에 5개 핵심 탭(`홈`, `오노추`, `무티고을`, `앨범스`, `내 정보`)을 배치하며, 활성 탭(`.bottom-link.active`)은 반투명 유리 알약(`--glass-selection`) 위에서 파란색(`--accent-nav`) 아이콘과 라벨로 강조된다.
 
 #### Apple Music 레퍼런스와의 차이 및 향후 검토 사항
 
