@@ -29,11 +29,11 @@ export function RecordsPage() {
         <label className="records-month"><span className="visually-hidden">방출한 달</span><select value={month} onChange={(event) => setMonth(event.target.value)}><option value="">모든 달</option>{months.map((value) => <option key={value} value={value}>{value.replace("-", "년 ")}월</option>)}</select></label>
       </div>
       <div className="record-list">
-        {filtered.map((song) => {
+        {filtered.map((song, index) => {
           const stats = voteStats.get(song.id) ?? emptyVoteStats();
           const rating = averageRating(stats.votes);
           return <button className="record-song" key={song.id} onClick={() => openSong(song.id)} aria-label={`${song.title} - ${song.artist} 방출 기록 보기`}>
-            <SongCover song={song} /><span className="record-song-copy"><span className="song-title" title={song.title}>{song.title}</span><span className="song-artist">{song.artist}</span><span className="record-song-meta">{formatKoreanDate(song.archived_at!)} 방출</span></span><span className="record-votes"><span>승격 {stats.promotedCount}</span><span>보류 {stats.heldCount}</span><span>방출 {stats.releasedCount}</span></span><span className="record-song-action">{rating !== null ? <span className="song-card-rating"><Star size={12} />{rating.toFixed(1)}</span> : <span className="song-card-rating song-card-rating-empty" aria-label="평균 별점 없음">—</span>}<ChevronRight size={18} /></span>
+            <SongCover song={song} eager={index < 8} /><span className="record-song-copy"><span className="song-title" title={song.title}>{song.title}</span><span className="song-artist">{song.artist}</span><span className="record-song-meta">{formatKoreanDate(song.archived_at!)} 방출</span></span><span className="record-votes"><span>승격 {stats.promotedCount}</span><span>보류 {stats.heldCount}</span><span>방출 {stats.releasedCount}</span></span><span className="record-song-action">{rating !== null ? <span className="song-card-rating"><Star size={12} />{rating.toFixed(1)}</span> : <span className="song-card-rating song-card-rating-empty" aria-label="평균 별점 없음">—</span>}<ChevronRight size={18} /></span>
           </button>;
         })}
         {!filtered.length ? <div className="empty-card large"><Archive /><h3>{archived.length ? "조건에 맞는 방출 곡이 없어요" : "아직 보관된 곡이 없어요"}</h3></div> : null}

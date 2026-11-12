@@ -1,6 +1,12 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
 import { RouteErrorPage } from "../components/AppErrorBoundary";
+import { HomePage } from "../pages/HomePage";
+import { OnochooPage } from "../pages/OnochooPage";
+import { MutigoeulPage } from "../pages/MutigoeulPage";
+import { AlbumsPage } from "../pages/AlbumsPage";
+import { SettingsPage } from "../pages/SettingsPage";
+import { RecordsPage } from "../pages/RecordsPage";
 
 export const router = createBrowserRouter([
   {
@@ -8,12 +14,12 @@ export const router = createBrowserRouter([
     element: <AppShell />,
     errorElement: <RouteErrorPage />,
     children: [
-      { index: true, lazy: async () => ({ Component: (await import("../pages/HomePage")).HomePage }) },
-      { path: "onochoo", lazy: async () => ({ Component: (await import("../pages/OnochooPage")).OnochooPage }) },
-      { path: "mutigoeul", lazy: async () => ({ Component: (await import("../pages/MutigoeulPage")).MutigoeulPage }) },
-      { path: "albums", lazy: async () => ({ Component: (await import("../pages/AlbumsPage")).AlbumsPage }) },
-      { path: "settings", lazy: async () => ({ Component: (await import("../pages/SettingsPage")).SettingsPage }) },
-      { path: "records", lazy: async () => ({ Component: (await import("../pages/RecordsPage")).RecordsPage }) },
+      { index: true, Component: HomePage },
+      { path: "onochoo", Component: OnochooPage },
+      { path: "mutigoeul", Component: MutigoeulPage },
+      { path: "albums", Component: AlbumsPage },
+      { path: "settings", Component: SettingsPage },
+      { path: "records", Component: RecordsPage },
     ],
   },
 ]);

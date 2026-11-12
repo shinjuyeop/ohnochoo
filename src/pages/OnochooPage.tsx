@@ -50,10 +50,10 @@ export function OnochooPage() {
         <SearchField value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} placeholder="곡, 아티스트 검색" />
       </div>
       {filter === "pending" ? <p className="list-hint">판정일순</p> : null}
-      <div className="song-list full-list">{filtered.map((song) => {
+      <div className="song-list full-list">{filtered.map((song, index) => {
         const hasVoted = data.votes.some((vote) => vote.songId === song.id && isVoteByMember(vote, profile));
         const promoted = data.mutigoeulEntries.some((entry) => entry.songId === song.id);
-        return <SongCard key={song.id} song={song} stats={voteStats.get(song.id) ?? emptyVoteStats()} hasVoted={hasVoted || promoted} hideStatus={promoted} onOpen={() => openSong(song.id)} />;
+        return <SongCard key={song.id} song={song} stats={voteStats.get(song.id) ?? emptyVoteStats()} hasVoted={hasVoted || promoted} hideStatus={promoted} eager={index < 8} onOpen={() => openSong(song.id)} />;
       })}{!filtered.length ? <div className="empty-card large"><Music2 /><h3>조건에 맞는 곡이 없어요</h3><p>다른 필터나 검색어를 사용해 보세요.</p></div> : null}</div>
       <Dialog open={rulesOpen} onOpenChange={setRulesOpen} title="오노추 판정 기준">
         <div className="dialog-body rule-list">

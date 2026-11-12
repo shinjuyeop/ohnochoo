@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { AppNavigation } from "./AppNavigation";
 import { AddSongDialog } from "./AddSongDialog";
 import { SongDetailDialog } from "./SongDetailDialog";
+import { preloadSongCovers } from "./ui/SongCover";
+import { useClubData } from "../hooks/useClubData";
 import { useSongDialog } from "../hooks/useSongDialog";
 import { useProfile } from "../features/profile/ProfileContext";
 import { AppUiContext } from "../app/AppUiContext";
@@ -14,7 +16,12 @@ export function AppShell() {
   const [addThemeId, setAddThemeId] = useState<string | undefined>();
   const location = useLocation();
   const { profile } = useProfile();
+  const { data } = useClubData();
   const { songId, voteId, replyId, backLabel, closeSong } = useSongDialog();
+  useEffect(() => {
+    if (!data?.songs.length) return;
+    preloadSongCovers([...data.songs].reverse(), "52px");
+  }, [data?.songs]);
   if (!profile) return null;
   return (
     <AppUiContext.Provider value={{ openAddSong: (themeId) => { setAddThemeId(themeId); setAddOpen(true); } }}>

@@ -49,10 +49,10 @@ export function AlbumsPage() {
           <SearchField className="archive-search" value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} placeholder="앨범, 아티스트 검색" />
         </div>
         {sortedAlbums.length ? viewMode === "grid"
-          ? <div className="album-grid">{sortedAlbums.map((album, index) => <button className="album-tile" key={album.id} onClick={() => openSong(album.id)}><SongCover song={album} sizes="(min-width: 1500px) 224px, (min-width: 1200px) calc((100vw - 364px) / 4), (min-width: 900px) calc((100vw - 314px) / 3), (min-width: 640px) calc((100vw - 96px) / 3), calc((100vw - 54px) / 2)" eager={index < 2} /><b>{album.title}</b><span>{album.artist}</span></button>)}</div>
-          : <div className="song-list full-list archive-list">{sortedAlbums.map((album) => {
+          ? <div className="album-grid">{sortedAlbums.map((album, index) => <button className="album-tile" key={album.id} onClick={() => openSong(album.id)}><SongCover song={album} sizes="(min-width: 1500px) 224px, (min-width: 1200px) 220px, (min-width: 640px) 200px, 44vw" eager={index < 6} /><b>{album.title}</b><span>{album.artist}</span></button>)}</div>
+          : <div className="song-list full-list archive-list">{sortedAlbums.map((album, index) => {
             const hasVoted = Boolean(profile && data?.votes.some((vote) => vote.songId === album.id && isVoteByMember(vote, profile)));
-            return <SongCard key={album.id} song={album} stats={voteStats.get(album.id) ?? emptyVoteStats()} hasVoted={hasVoted} onOpen={() => openSong(album.id)} hideStatus />;
+            return <SongCard key={album.id} song={album} stats={voteStats.get(album.id) ?? emptyVoteStats()} hasVoted={hasVoted} eager={index < 8} onOpen={() => openSong(album.id)} hideStatus />;
           })}</div>
           : albumSongs.length
             ? <div className="empty-card large"><Music2 /><h3>검색 결과가 없어요</h3><p>다른 앨범명이나 아티스트를 검색해 보세요.</p></div>

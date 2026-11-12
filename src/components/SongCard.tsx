@@ -4,12 +4,12 @@ import { StatusBadge } from "./ui/StatusBadge";
 import { averageRating, getDecisionCountdown } from "../lib/songRules";
 import type { Song, VoteStats } from "../types";
 
-export function SongCard({ song, stats, hasVoted, onOpen, compact = false, hideStatus = false }: { song: Song; stats: VoteStats; hasVoted: boolean; onOpen: () => void; compact?: boolean; hideStatus?: boolean }) {
+export function SongCard({ song, stats, hasVoted, onOpen, compact = false, hideStatus = false, eager = false }: { song: Song; stats: VoteStats; hasVoted: boolean; onOpen: () => void; compact?: boolean; hideStatus?: boolean; eager?: boolean }) {
   const avg = averageRating(stats.votes);
   return (
     <article className={`song-card ${compact ? "song-card-compact" : ""}`}>
       <button className="song-card-open" aria-label={`${song.title} - ${song.artist} 상세 보기`} onClick={onOpen}>
-        <SongCover song={song} eager={compact} />
+        <SongCover song={song} eager={compact || eager} />
         <span className="song-card-main">
           <span className="song-title" title={song.title}>{song.title}</span>
           <span className="song-artist" title={song.artist}>{song.artist}</span>
