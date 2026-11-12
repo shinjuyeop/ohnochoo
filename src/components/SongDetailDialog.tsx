@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, LoaderCircle, MessageCircle, Star, UserRound } from "lucide-react";
+import { ChevronLeft, LoaderCircle, MessageCircle, Star, UserRound } from "lucide-react";
 import { SongCover } from "./ui/SongCover";
 import { SongAlbumLink } from "./SongAlbumLink";
 import { StatusBadge } from "./ui/StatusBadge";
@@ -54,7 +54,7 @@ export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyI
       <article className="page page-transition song-detail-page" aria-label="곡을 찾을 수 없어요">
         <div className="song-detail-nav">
           <button type="button" className="records-back song-detail-back" onClick={() => onOpenChange(false)}>
-            <ArrowLeft size={16} aria-hidden="true" /> {backLabel}
+            <ChevronLeft size={22} aria-hidden="true" /> <span className="back-label">{backLabel}</span>
           </button>
         </div>
         <div className="song-detail-body empty-card large">
@@ -84,7 +84,7 @@ export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyI
     <article className="page page-transition song-detail-page" aria-label={isAlbum ? "앨범 상세" : "곡 상세"}>
       <div className="song-detail-nav">
         <button type="button" className="records-back song-detail-back" onClick={() => onOpenChange(false)}>
-          <ArrowLeft size={16} aria-hidden="true" /> {backLabel}
+          <ChevronLeft size={22} aria-hidden="true" /> <span className="back-label">{backLabel}</span>
         </button>
       </div>
       <div className="song-detail-body" ref={bodyRef}>

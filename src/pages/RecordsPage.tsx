@@ -1,4 +1,4 @@
-import { Archive, ArrowLeft, ChevronRight, Star } from "lucide-react";
+import { Archive, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { SearchField } from "../components/ui/SearchField";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -20,7 +20,9 @@ export function RecordsPage() {
   const filtered = archived.filter((song) => (!month || monthKey(song.archived_at!) === month) && `${song.title} ${song.artist} ${song.adder}`.toLocaleLowerCase("ko-KR").includes(query.trim().toLocaleLowerCase("ko-KR")));
   return (
     <div className="page records-page">
-      <Link className="records-back" to="/"><ArrowLeft size={16} /> 홈</Link>
+      <div className="song-detail-nav">
+        <Link className="records-back" to="/"><ChevronLeft size={22} aria-hidden="true" /> <span className="back-label">홈</span></Link>
+      </div>
       <header className="page-header"><div><h1>방출</h1><span className="page-count">{archived.length}곡</span></div></header>
       <div className="records-tools">
         <SearchField value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} placeholder="곡, 아티스트, 추천자 검색" aria-label="보관한 곡 검색" />
