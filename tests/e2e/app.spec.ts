@@ -5,15 +5,15 @@ import { MUTIGOEUL_APPLE_MUSIC_URL, ONOCHU_APPLE_MUSIC_URL } from "../../src/lib
 test("home queue, vote drafts, reload, failed and successful saves", async ({ page }) => {
   const state = await mockClub(page);
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "평가할 곡 3" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "오노추 3" })).toBeVisible();
   expect(state.reads.some((url) => url.includes("vote_replies"))).toBe(false);
-  await page.locator(".queue-section .album-tile").first().click();
+  await page.locator(".queue-section .album-tile").last().click();
   await expect(page).toHaveURL(/song=old-song/);
   await page.getByRole("button", { name: "보류", exact: true }).click();
   await page.getByRole("textbox", { name: "평가 이유", exact: true }).fill("작성하다 나갔다가 돌아와도 남아 있어야 해요.");
   await page.getByRole("slider", { name: "별점" }).press("ArrowRight");
-  await page.getByRole("button", { name: "닫기", exact: true }).click();
-  await page.locator(".queue-section .album-tile").first().click();
+  await page.locator(".song-detail-back").click();
+  await page.locator(".queue-section .album-tile").last().click();
   await expect(page.getByRole("textbox", { name: "평가 이유", exact: true })).toHaveValue("작성하다 나갔다가 돌아와도 남아 있어야 해요.");
   await page.reload();
   await expect(page.getByRole("slider", { name: "별점" })).toHaveAttribute("aria-valuenow", "0.5");
@@ -52,7 +52,7 @@ test("notification opens the exact reply and archive links cannot expose voting"
   await expect(page.locator(".notification-target")).toBeFocused();
   await expect(page.getByRole("link", { name: "수록 앨범 열기" })).toHaveAttribute("href", "https://music.apple.com/kr/album/old-song/123456789");
   await page.goto("/onochoo?song=archive-song");
-  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByRole("article", { name: "곡 상세" })).toBeVisible();
   await expect(page.getByRole("link", { name: "수록 앨범 열기" })).toHaveAttribute("href", "https://music.apple.com/kr/album/our-season/345678901");
   await expect(page.getByRole("button", { name: /평가.*하기/ })).toHaveCount(0);
   await page.goto("/onochoo?song=deleted-song");
@@ -63,11 +63,11 @@ test("album lookup is shared across songs and only missing albums use the playli
   const state = await mockClub(page);
   await page.goto("/onochoo?song=old-song");
   await expect(page.getByRole("link", { name: "수록 앨범 열기" })).toHaveAttribute("href", state.playlistSongs[0].albumUrl);
-  await page.getByRole("button", { name: "닫기", exact: true }).click();
+  await page.locator(".song-detail-back").click();
   await page.locator(".song-card").filter({ hasText: "Live Session" }).getByRole("button").first().click();
   await expect(page.getByRole("link", { name: "수록 앨범 열기" })).toHaveAttribute("href", state.playlistSongs[1].albumUrl);
   expect(state.playlistReads).toEqual([ONOCHU_APPLE_MUSIC_URL]);
-  await page.getByRole("button", { name: "닫기", exact: true }).click();
+  await page.locator(".song-detail-back").click();
   await page.locator(".song-card").filter({ hasText: "Summer Night" }).getByRole("button").first().click();
   await expect(page.getByRole("link", { name: "오노추 플레이리스트 열기" })).toHaveAttribute("href", ONOCHU_APPLE_MUSIC_URL);
   await expect(page.getByText("수록 앨범을 찾지 못했어요")).toBeVisible();
@@ -97,9 +97,9 @@ test("returning from music does not reload or erase a draft on a new deployment"
   await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
   await expect(page.getByRole("complementary", { name: "앱 업데이트" })).toBeAttached();
   await expect(page.getByRole("textbox", { name: "평가 이유", exact: true })).toHaveValue("업데이트 중에도 유지할 내용");
-  await page.getByRole("button", { name: "닫기", exact: true }).click();
+  await page.locator(".song-detail-back").click();
   await page.getByRole("button", { name: "업데이트", exact: true }).click();
-  await page.locator(".queue-section .album-tile").first().click();
+  await page.locator(".queue-section .album-tile").last().click();
   await expect(page.getByRole("textbox", { name: "평가 이유", exact: true })).toHaveValue("업데이트 중에도 유지할 내용");
 });
 
@@ -121,8 +121,8 @@ for (const width of [320, 390, 768, 1024, 1440]) {
     await noOverflow();
     await page.screenshot({ path: `test-results/layout/${width}-home.png`, fullPage: true, animations: "disabled" });
     if (width === 390) await page.screenshot({ path: "test-results/layout/390-home-preview.png", animations: "disabled" });
-    await page.getByRole("link", { name: "평가할 곡 3", exact: true }).click();
-    await expect(page).toHaveURL(/\/onochoo\?filter=pending$/);
+    await page.getByRole("link", { name: "오노추 3", exact: true }).click();
+    await expect(page).toHaveURL(/\/onochoo$/);
     await expect(page.locator(".song-card")).toHaveCount(3);
     const candidateHeading = await page.locator(".page-header h1").boundingBox();
     await noOverflow();
@@ -130,7 +130,7 @@ for (const width of [320, 390, 768, 1024, 1440]) {
     await page.locator(".evaluate-button").nth(1).click();
     await expect(page.getByRole("textbox", { name: "평가 이유", exact: true })).toBeVisible();
     await noOverflow();
-    expect(await page.locator(".dialog-body").evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+    expect(await page.locator(".song-detail-body").evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
     await page.screenshot({ path: `test-results/layout/${width}-detail.png`, animations: "disabled" });
     await page.getByRole("textbox", { name: "평가 이유", exact: true }).scrollIntoViewIfNeeded();
     await page.screenshot({ path: `test-results/layout/${width}-vote.png`, animations: "disabled" });
@@ -184,20 +184,38 @@ test("reply drafts survive a closed dialog and a page reload", async ({ page }) 
   await page.goto("/onochoo?song=old-song");
   await page.getByRole("button", { name: "답글 쓰기" }).click();
   await page.getByRole("textbox", { name: "답글 내용" }).fill("이 답글도 잃어버리지 않아요");
-  await page.getByRole("button", { name: "닫기", exact: true }).click();
+  await page.locator(".song-detail-back").click();
   await page.reload();
   await page.goto("/onochoo?song=old-song");
   await expect(page.getByRole("textbox", { name: "답글 내용" })).toHaveValue("이 답글도 잃어버리지 않아요");
 });
 
-test("browser back closes the song without losing the pending filter", async ({ page }) => {
-  await mockClub(page);
+test("browser back and back button close the song without losing the pending filter, search query, or scroll position", async ({ page }) => {
+  const state = await mockClub(page);
+  for (let index = 0; index < 15; index++) {
+    state.tables.songs.push({ ...state.tables.songs[2], id: `extra-song-${index}`, title: `Live Session ${index}` });
+  }
   await page.goto("/onochoo?filter=pending");
-  await page.locator(".evaluate-button").first().click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await page.goBack();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const search = page.getByRole("searchbox", { name: "곡, 아티스트 검색", exact: true });
+  await search.fill("Live Session");
+  const targetButton = page.locator(".evaluate-button").nth(8);
+  await targetButton.scrollIntoViewIfNeeded();
+  const scrolledY = await page.evaluate(() => Math.round(window.scrollY));
+  expect(scrolledY).toBeGreaterThan(100);
+  await targetButton.click();
+  await expect(page.getByRole("article", { name: "곡 상세" })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBe(0);
+  await page.locator(".song-detail-back").click();
+  await expect(page.getByRole("article", { name: "곡 상세" })).toHaveCount(0);
   await expect(page).toHaveURL(/filter=pending$/);
+  await expect(search).toHaveValue("Live Session");
+  await expect.poll(async () => Math.abs(await page.evaluate(() => Math.round(window.scrollY)) - scrolledY)).toBeLessThanOrEqual(2);
+  await page.goForward();
+  await expect(page.getByRole("article", { name: "곡 상세" })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole("article", { name: "곡 상세" })).toHaveCount(0);
+  await expect(page).toHaveURL(/filter=pending$/);
+  await expect(search).toHaveValue("Live Session");
 });
 
 test("the add form remains scrollable in a narrow, short viewport", async ({ page }) => {

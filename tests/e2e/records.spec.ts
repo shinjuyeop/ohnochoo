@@ -4,7 +4,7 @@ import { mockClub, pastThemeId } from "./fixture";
 test("reviews stay on the saved song, preserve a fixed queue across reloads, and finish manually", async ({ page }) => {
   const state = await mockClub(page);
   await page.goto("/");
-  await page.locator(".queue-section .album-tile").first().click();
+  await page.locator(".queue-section .album-tile").last().click();
   await expect(page.getByRole("region", { name: "연속 평가" })).toHaveCount(0);
   await page.getByRole("button", { name: "승격", exact: true }).click();
   await page.getByLabel("평가 이유", { exact: true }).fill("다음 곡 전에 친구들의 이야기도 읽고 싶어요");
@@ -16,7 +16,7 @@ test("reviews stay on the saved song, preserve a fixed queue across reloads, and
   await page.getByRole("button", { name: "평가 저장하기", exact: true }).click();
   await expect(page.getByRole("region", { name: "연속 평가" })).toContainText("1/3곡 완료");
   await expect(page).toHaveURL(/song=old-song/);
-  await expect(page.getByRole("dialog")).toContainText("마지막 후렴");
+  await expect(page.getByRole("article", { name: "곡 상세" })).toContainText("마지막 후렴");
   state.tables.songs.push({ ...state.tables.songs[2], id: "late-add", title: "나중에 들어온 곡" });
   await page.reload();
   await expect(page.getByRole("region", { name: "연속 평가" })).toContainText("1/3곡 완료");
@@ -36,8 +36,8 @@ test("reviews stay on the saved song, preserve a fixed queue across reloads, and
   await expect(page.getByRole("region", { name: "연속 평가" })).toContainText("3/3곡 완료");
   await expect(page.getByRole("button", { name: "다음 미평가 곡" })).toHaveCount(0);
   await page.getByRole("button", { name: "목록으로 돌아가기" }).click();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "평가할 곡 1" })).toBeVisible();
+  await expect(page.getByRole("article", { name: "곡 상세" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "오노추 4" })).toBeVisible();
 });
 
 test("archiving preserves evaluations and replies, removes candidates, and opens a read-only record", async ({ page }) => {
@@ -66,10 +66,10 @@ test("archiving preserves evaluations and replies, removes candidates, and opens
   await page.getByRole("link", { name: /^방출/ }).click();
   await expect(page.getByRole("heading", { name: "방출", exact: true })).toBeVisible();
   await page.getByRole("button", { name: /오래된 노래.*기록 보기/ }).click();
-  await expect(page.getByRole("dialog")).toContainText("추천 덕분에 잘 들었어요!");
+  await expect(page.getByRole("article", { name: "곡 상세" })).toContainText("추천 덕분에 잘 들었어요!");
   await expect(page.getByRole("button", { name: /평가 저장|평가 수정|답글 쓰기/ })).toHaveCount(0);
   await expect(page.getByRole("link", { name: /수록 앨범 열기/ })).toHaveAttribute("href", state.tables.songs[0].album_url);
-  await page.getByRole("button", { name: "닫기", exact: true }).click();
+  await page.locator(".song-detail-back").click();
   await page.getByRole("searchbox", { name: "보관한 곡 검색" }).fill("없는 곡");
   await expect(page.getByRole("heading", { name: "조건에 맞는 방출 곡이 없어요" })).toBeVisible();
 });
@@ -111,7 +111,7 @@ test("record and review empty states remain usable on a 320px screen", async ({ 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole("link", { name: "홈", exact: true }).first().click();
   await page.locator(".queue-section .album-tile").first().click();
-  await page.getByRole("button", { name: "닫기", exact: true }).click();
+  await page.locator(".song-detail-back").click();
   await page.reload();
   await page.locator(".queue-section .album-tile").first().click();
   await expect(page.getByRole("textbox", { name: "평가 이유", exact: true })).toBeVisible();
@@ -120,7 +120,7 @@ test("record and review empty states remain usable on a 320px screen", async ({ 
 test("closed songs are skipped without inflating session progress", async ({ page }) => {
   const state = await mockClub(page);
   await page.goto("/");
-  await page.locator(".queue-section .album-tile").first().click();
+  await page.locator(".queue-section .album-tile").last().click();
   await page.getByRole("button", { name: "승격", exact: true }).click();
   await page.getByLabel("평가 이유", { exact: true }).fill("첫 곡을 저장하고 다음 곡으로 넘어가요");
   await page.getByRole("button", { name: "평가 저장하기", exact: true }).click();

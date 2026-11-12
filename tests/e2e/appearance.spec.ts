@@ -76,9 +76,9 @@ test("navigation and browser back start at the top while song dialogs preserve l
   const before = await page.evaluate(() => scrollY);
   expect(before).toBeGreaterThan(100);
   await song.click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await page.getByRole("button", { name: "닫기", exact: true }).click();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("article", { name: "곡 상세" })).toBeVisible();
+  await page.locator(".song-detail-back").click();
+  await expect(page.getByRole("article", { name: "곡 상세" })).toHaveCount(0);
   expect(Math.abs(await page.evaluate(() => scrollY) - before)).toBeLessThan(2);
   await page.locator(".bottom-nav").getByRole("link", { name: "홈", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);

@@ -37,21 +37,21 @@ test("first home visit reveals whole covers after download and decode without a 
   });
   try {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "평가할 곡 3" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "오노추 3" })).toBeVisible();
     const covers = page.locator(".queue-section .song-cover");
-    for (let index = 0; index < 2; index++) {
+    for (const index of [1, 2]) {
       await expectSquareArtwork(covers.nth(index));
       await expect(covers.nth(index).locator("img")).toHaveCSS("opacity", "0");
     }
     releaseDownload();
-    for (let index = 0; index < 2; index++) {
+    for (const index of [1, 2]) {
       const image = covers.nth(index).locator("img");
       await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
       // A download finishing must not expose a frame while its decoder is still pending.
       await expect(image).toHaveCSS("opacity", "0");
     }
     await page.evaluate(() => document.dispatchEvent(new Event("test:release-cover-decode")));
-    for (let index = 0; index < 2; index++) {
+    for (const index of [1, 2]) {
       await expect(covers.nth(index).locator("img")).toHaveCSS("opacity", "1");
       await expectSquareArtwork(covers.nth(index));
     }
@@ -59,7 +59,7 @@ test("first home visit reveals whole covers after download and decode without a 
     await page.locator(".bottom-nav").getByRole("link", { name: "오노추", exact: true }).click();
     await page.locator(".bottom-nav").getByRole("link", { name: "홈", exact: true }).click();
     await page.setViewportSize({ width: 320, height: 568 });
-    for (let index = 0; index < 2; index++) {
+    for (const index of [1, 2]) {
       await expect(covers.nth(index).locator("img")).toHaveCSS("opacity", "1");
       await expectSquareArtwork(covers.nth(index));
     }

@@ -6,7 +6,7 @@ test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
 test("startup stops at known table totals without requesting empty trailing pages", async ({ page }) => {
   const state = await mockClub(page);
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "평가할 곡 3" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "오노추 3" })).toBeVisible();
   const reads = state.reads.map((url) => new URL(url)).filter((url) => url.pathname.includes("/rest/v1/"));
   expect(reads.map((url) => `${url.pathname.split("/").at(-1)}:${url.searchParams.get("offset")}` ).sort()).toEqual([
     "members:0", "mutigoeul_songs:0", "songs:0", "songs:2", "votes:0", "votes:2",

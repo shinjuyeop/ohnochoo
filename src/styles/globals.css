@@ -726,10 +726,11 @@ button, a { transition: background-color 160ms ease, border-color 160ms ease, co
 .saved-review-summary span { display: block; font-size: 12px; color: var(--muted); }
 .saved-review-summary b { display: block; margin-top: 5px; font-size: 15px; font-weight: 550; }
 .saved-review-summary button { font-size: 12px; }
-.song-detail-dialog .dialog-header { min-height: 62px; }
-.song-detail-dialog .dialog-header > div { min-width: 0; }
-.song-detail-dialog .dialog-header p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.song-detail-dialog .dialog-header .icon-button { flex-shrink: 0; }
+.song-detail-nav { margin: -8px 0 12px; }
+.song-detail-back { padding: 0 10px 0 4px; margin: 0 0 0 -4px; border: 0; border-radius: 8px; background: transparent; font-weight: 550; }
+.song-detail-back:hover, .records-back:hover { color: var(--text); }
+.song-detail-back:hover { background: var(--brand-soft); }
+.song-detail-body { max-width: 880px; }
 
 /* Music-library rows: artwork, title and a single line of supporting information. */
 .page-count, .section-count { color: var(--muted); font-size: 14px; font-weight: 400; white-space: nowrap; letter-spacing: 0; }

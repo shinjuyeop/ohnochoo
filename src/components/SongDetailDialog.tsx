@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { LoaderCircle, MessageCircle, Star, UserRound } from "lucide-react";
-import { Dialog } from "./ui/Dialog";
+import { ArrowLeft, LoaderCircle, MessageCircle, Star, UserRound } from "lucide-react";
 import { SongCover } from "./ui/SongCover";
 import { SongAlbumLink } from "./SongAlbumLink";
 import { StatusBadge } from "./ui/StatusBadge";
@@ -16,7 +15,7 @@ import { ALBUMS_APPLE_MUSIC_URL, MUTIGOEUL_APPLE_MUSIC_URL, ONOCHU_APPLE_MUSIC_U
 import { ReviewProgress } from "./ReviewProgress";
 import { useReviewSession } from "../app/ReviewSessionContext";
 
-export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyId, onOpenChange }: { songId: string | null; open?: boolean; focusVoteId?: string | null; focusReplyId?: string | null; onOpenChange: (open: boolean) => void }) {
+export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyId, backLabel = "목록", onOpenChange }: { songId: string | null; open?: boolean; focusVoteId?: string | null; focusReplyId?: string | null; backLabel?: string; onOpenChange: (open: boolean) => void }) {
   const { data, voteStats } = useClubData();
   const { profile } = useProfile();
   const review = useReviewSession();
@@ -28,6 +27,17 @@ export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyI
   const bodyRef = useRef<HTMLDivElement>(null);
   useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = 0; setEditingSavedVote(false); }, [songId]);
   useEffect(() => {
+    if (!songId || !open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented || event.isComposing) return;
+      if (document.querySelector(".dialog-overlay")) return;
+      event.preventDefault();
+      onOpenChange(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [songId, open, onOpenChange]);
+  useEffect(() => {
     const key = `${songId}:${focusVoteId}:${focusReplyId}`;
     if (!songId || !open) { focused.current = ""; return; }
     if (!discussion.data || focused.current === key || !focusTarget.current) return;
@@ -38,8 +48,23 @@ export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyI
     });
     return () => cancelAnimationFrame(frame);
   }, [discussion.data, songId, open, focusVoteId, focusReplyId]);
-  if (!songId || !data) return null;
-  if (!song) return <Dialog open={open} onOpenChange={onOpenChange} title="곡을 찾을 수 없어요"><div className="dialog-body"><p>삭제되었거나 더 이상 볼 수 없는 곡이에요.</p><button className="secondary-button" onClick={() => onOpenChange(false)}>목록으로 돌아가기</button></div></Dialog>;
+  if (!songId || !open || !data) return null;
+  if (!song) {
+    return (
+      <article className="page page-transition song-detail-page" aria-label="곡을 찾을 수 없어요">
+        <div className="song-detail-nav">
+          <button type="button" className="records-back song-detail-back" onClick={() => onOpenChange(false)}>
+            <ArrowLeft size={16} aria-hidden="true" /> {backLabel}
+          </button>
+        </div>
+        <div className="song-detail-body empty-card large">
+          <h2>곡을 찾을 수 없어요</h2>
+          <p>삭제되었거나 더 이상 볼 수 없는 곡이에요.</p>
+          <button type="button" className="secondary-button" onClick={() => onOpenChange(false)}>목록으로 돌아가기</button>
+        </div>
+      </article>
+    );
+  }
   const archived = Boolean(song.archived_at);
   const promoted = data.mutigoeulEntries.some((entry) => entry.songId === song.id);
   const isAlbum = isAlbumSong(song);
@@ -56,8 +81,13 @@ export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyI
   const average = averageRating(stats.votes);
 
   return (
-    <Dialog open={open && Boolean(songId)} onOpenChange={onOpenChange} title={isAlbum ? "앨범 상세" : "곡 상세"} className="song-detail-dialog">
-      <div className="dialog-body song-detail-body" ref={bodyRef}>
+    <article className="page page-transition song-detail-page" aria-label={isAlbum ? "앨범 상세" : "곡 상세"}>
+      <div className="song-detail-nav">
+        <button type="button" className="records-back song-detail-back" onClick={() => onOpenChange(false)}>
+          <ArrowLeft size={16} aria-hidden="true" /> {backLabel}
+        </button>
+      </div>
+      <div className="song-detail-body" ref={bodyRef}>
         <section className="song-hero">
           <SongCover song={song} sizes="(min-width: 640px) 142px, (max-width: 359px) 80px, 100px" eager />
           <div className="song-hero-info">{allowVote && !isAlbum ? <StatusBadge song={song} stats={stats} /> : null}<h2>{song.title}</h2><p>{song.artist}</p><small><UserRound size={14} /> {song.adder} · {formatKoreanDate(song.createdAt)}</small></div>
@@ -109,6 +139,6 @@ export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyI
           }) : <div className="empty-inline"><MessageCircle /><p>아직 남겨진 평가가 없어요.</p></div>}
         </section> : null}
       </div>
-    </Dialog>
+    </article>
   );
 }

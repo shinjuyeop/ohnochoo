@@ -5,13 +5,13 @@ test("home uses matching section counts and clear, unblurred top chrome", async 
   await mockClub(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "평가할 곡 3" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "오노추 3" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "무티고을 1" })).toBeVisible();
   await expect(page.getByRole("button", { name: /바로 평가하기|평가 이어하기/ })).toHaveCount(0);
   await expect(page.locator(".mobile-topbar")).toHaveCSS("backdrop-filter", "none");
   await page.locator(".queue-section .album-tile").first().click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await expect(page.locator(".dialog-overlay")).toHaveCSS("backdrop-filter", "none");
+  await expect(page.getByRole("article", { name: "곡 상세" })).toBeVisible();
+  await expect(page.locator(".dialog-overlay")).toHaveCount(0);
 });
 
 test("rounded filters and clearable search keep keyboard focus and selected state", async ({ page }) => {
