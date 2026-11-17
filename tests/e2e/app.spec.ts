@@ -46,7 +46,7 @@ test("song draft survives dismissal and reload and clears only after saving", as
 });
 
 test("notification opens the exact reply and archive links cannot expose voting", async ({ page }) => {
-  await mockClub(page);
+  const state = await mockClub(page);
   await page.goto("/onochoo?song=old-song&vote=vote-1&reply=reply-1");
   await expect(page.locator(".notification-target")).toHaveText(/추천 덕분에 잘 들었어요/);
   await expect(page.locator(".notification-target")).toBeFocused();
@@ -55,6 +55,10 @@ test("notification opens the exact reply and archive links cannot expose voting"
   await expect(page.getByRole("article", { name: "곡 상세" })).toBeVisible();
   await expect(page.getByRole("link", { name: "수록 앨범 열기" })).toHaveAttribute("href", "https://music.apple.com/kr/album/our-season/345678901");
   await expect(page.getByRole("button", { name: /평가.*하기/ })).toHaveCount(0);
+  state.tables.songs.push({ ...state.tables.songs[0], id: "newly-added-song", title: "방금 올라온 신곡" });
+  await page.evaluate(() => window.history.pushState(null, "", "/onochoo?song=newly-added-song"));
+  await page.evaluate(() => window.dispatchEvent(new PopStateEvent("popstate")));
+  await expect(page.getByRole("heading", { name: "방금 올라온 신곡", exact: true })).toBeVisible();
   await page.goto("/onochoo?song=deleted-song");
   await expect(page.getByRole("heading", { name: "곡을 찾을 수 없어요" })).toBeVisible();
 });

@@ -1,3 +1,19 @@
+function navigateClient(client, targetUrl) {
+  return new Promise((resolve) => {
+    try {
+      const channel = new MessageChannel();
+      const timer = setTimeout(() => resolve(false), 250);
+      channel.port1.onmessage = (event) => {
+        clearTimeout(timer);
+        resolve(Boolean(event.data?.ok));
+      };
+      client.postMessage({ type: "ohnochoo:navigate", url: targetUrl }, [channel.port2]);
+    } catch {
+      resolve(false);
+    }
+  });
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
 });
@@ -42,11 +58,17 @@ self.addEventListener("notificationclick", (event) => {
   } catch { /* Use home for malformed links. */ }
 
   event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+    (async () => {
+      const clientList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
       for (const client of clientList) {
         if ("focus" in client) {
-          client.navigate(targetUrl);
-          return client.focus();
+          const handled = await navigateClient(client, targetUrl);
+          if (!handled && "navigate" in client) {
+            try { await client.navigate(targetUrl); } catch { /* Fall back if uncontrolled. */ }
+          }
+          try {
+            return await client.focus();
+          } catch { /* Fall through if focusing fails. */ }
         }
       }
 
@@ -55,7 +77,7 @@ self.addEventListener("notificationclick", (event) => {
       }
 
       return undefined;
-    }),
+    })(),
   );
 });
 

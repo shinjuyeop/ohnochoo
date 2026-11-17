@@ -1,12 +1,30 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { router } from "../app/router";
 
 export function usePwaLifecycle() {
   const queryClient = useQueryClient();
   const [availableVersion, setAvailableVersion] = useState<string | null>(null);
   useEffect(() => {
+    const onServiceWorkerMessage = (event: MessageEvent) => {
+      if (event.data?.type !== "ohnochoo:navigate" || typeof event.data.url !== "string") return;
+      try {
+        const target = new URL(event.data.url, window.location.origin);
+        if (target.origin !== window.location.origin) {
+          event.ports?.[0]?.postMessage({ ok: false });
+          return;
+        }
+        void queryClient.invalidateQueries({ queryKey: ["club-data"] });
+        void queryClient.invalidateQueries({ queryKey: ["song-discussion"] });
+        void router.navigate(`${target.pathname}${target.search}${target.hash}`);
+        event.ports?.[0]?.postMessage({ ok: true });
+      } catch {
+        event.ports?.[0]?.postMessage({ ok: false });
+      }
+    };
     if ("serviceWorker" in navigator) {
       void navigator.serviceWorker.register("/service-worker.js", { scope: "/" }).catch(() => undefined);
+      navigator.serviceWorker.addEventListener("message", onServiceWorkerMessage);
     }
     let activeVersion: string | null = null;
     let cancelled = false;
@@ -29,7 +47,13 @@ export function usePwaLifecycle() {
     };
     document.addEventListener("visibilitychange", onVisible);
     void checkVersion();
-    return () => { cancelled = true; document.removeEventListener("visibilitychange", onVisible); };
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.removeEventListener("message", onServiceWorkerMessage);
+      }
+    };
   }, [queryClient]);
   return { updateAvailable: Boolean(availableVersion), applyUpdate: () => window.location.reload() };
 }

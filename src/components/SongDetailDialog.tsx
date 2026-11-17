@@ -16,7 +16,7 @@ import { ReviewProgress } from "./ReviewProgress";
 import { useReviewSession } from "../app/ReviewSessionContext";
 
 export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyId, backLabel = "목록", onOpenChange }: { songId: string | null; open?: boolean; focusVoteId?: string | null; focusReplyId?: string | null; backLabel?: string; onOpenChange: (open: boolean) => void }) {
-  const { data, voteStats } = useClubData();
+  const { data, isFetching, refetch, voteStats } = useClubData();
   const { profile } = useProfile();
   const review = useReviewSession();
   const [editingSavedVote, setEditingSavedVote] = useState(false);
@@ -24,8 +24,26 @@ export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyI
   const discussion = useSongDiscussion(song?.id ?? null, open);
   const focusTarget = useRef<HTMLDivElement | HTMLElement | null>(null);
   const focused = useRef("");
+  const refetchedMissingSong = useRef<string | null>(null);
+  const refetchedMissingTarget = useRef("");
   const bodyRef = useRef<HTMLDivElement>(null);
   useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = 0; setEditingSavedVote(false); }, [songId]);
+  useEffect(() => {
+    if (!songId || !open || !data || song) return;
+    if (refetchedMissingSong.current === songId) return;
+    refetchedMissingSong.current = songId;
+    void refetch();
+  }, [songId, open, data, song, refetch]);
+  useEffect(() => {
+    if (!songId || !open || !discussion.data || (!focusVoteId && !focusReplyId)) return;
+    const hasVote = !focusVoteId || discussion.data.votes.some((vote) => vote.id === focusVoteId);
+    const hasReply = !focusReplyId || discussion.data.replies.some((reply) => reply.id === focusReplyId);
+    if (hasVote && hasReply) return;
+    const targetKey = `${songId}:${focusVoteId}:${focusReplyId}`;
+    if (refetchedMissingTarget.current === targetKey) return;
+    refetchedMissingTarget.current = targetKey;
+    void discussion.refetch();
+  }, [songId, open, discussion.data, focusVoteId, focusReplyId, discussion]);
   useEffect(() => {
     if (!songId || !open) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -50,18 +68,26 @@ export function SongDetailDialog({ songId, open = true, focusVoteId, focusReplyI
   }, [discussion.data, songId, open, focusVoteId, focusReplyId]);
   if (!songId || !open || !data) return null;
   if (!song) {
+    const waitingForFreshData = isFetching || refetchedMissingSong.current !== songId;
     return (
-      <article className="page page-transition song-detail-page" aria-label="곡을 찾을 수 없어요">
+      <article className="page page-transition song-detail-page" aria-label={waitingForFreshData ? "곡 정보를 불러오는 중" : "곡을 찾을 수 없어요"}>
         <div className="song-detail-nav">
           <button type="button" className="records-back song-detail-back" onClick={() => onOpenChange(false)}>
             <ChevronLeft size={22} aria-hidden="true" /> <span className="back-label">{backLabel}</span>
           </button>
         </div>
-        <div className="song-detail-body empty-card large">
-          <h2>곡을 찾을 수 없어요</h2>
-          <p>삭제되었거나 더 이상 볼 수 없는 곡이에요.</p>
-          <button type="button" className="secondary-button" onClick={() => onOpenChange(false)}>목록으로 돌아가기</button>
-        </div>
+        {waitingForFreshData ? (
+          <div className="song-detail-body empty-card large" role="status">
+            <LoaderCircle className="spin" />
+            <h3>곡 정보를 불러오는 중...</h3>
+          </div>
+        ) : (
+          <div className="song-detail-body empty-card large">
+            <h2>곡을 찾을 수 없어요</h2>
+            <p>삭제되었거나 더 이상 볼 수 없는 곡이에요.</p>
+            <button type="button" className="secondary-button" onClick={() => onOpenChange(false)}>목록으로 돌아가기</button>
+          </div>
+        )}
       </article>
     );
   }
